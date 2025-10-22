@@ -167,28 +167,34 @@
 }
 
 @layer utilities {
-  .container {
-    @apply mx-auto max-w-screen-2xl px-4 md:px-6 lg:px-8;
-  }
 
+  /* Auth */
   .auth-layout {
-    @apply flex flex-col justify-between lg:flex-row h-screen bg-gray-900 relative overflow-hidden;
+    @apply relative flex flex-col justify-between lg:flex-row h-screen bg-black-500 overflow-hidden;
   }
 
-  .auth-logo {
-    @apply pt-6 lg:pt-8 mb-8 lg:mb-12;
+  .auth-container {
+    @apply relative flex flex-col items-center justify-between mt-12 h-[400px] p-4 w-full rounded-3xl backdrop-blur-xl border border-white/10;
+  }
+
+  .auth-logo-container {
+    @apply absolute z-10 left-1/2 -translate-x-1/2 -top-12 p-2.5 h-[100px] w-[100px] rounded-3xl border border-white/40 bg-blue-400/30 backdrop-blur-2xl shadow-lg shadow-black-500/25;
   }
 
   .auth-left-section {
-    @apply w-full lg:w-[45%] lg:h-screen px-6 lg:px-16 flex flex-col overflow-y-auto;
+    @apply flex flex-col items-center justify-center w-full lg:w-[45%] h-full lg:h-screen px-6 xl:px-20 lg:border-r-2 bg-center bg-cover bg-no-repeat overflow-y-auto bg-[url(/images/AuthLeftBg.png)];
   }
 
   .auth-right-section {
-    @apply w-full max-lg:border-t max-lg:border-gray-600 lg:w-[55%] lg:h-screen bg-gray-800 px-6 py-4 md:p-6 lg:py-12 lg:px-18 flex flex-col justify-start;
+    @apply flex flex-col justify-start w-full max-lg:border-t max-lg:border-gray-600 lg:w-[55%] lg:h-screen px-6 py-4 md:p-6 lg:py-12 lg:px-18;
+  }
+
+  .auth-children {
+    @apply mt-13 flex flex-col items-center justify-center w-full;
   }
 
   .auth-blockquote {
-    @apply text-sm md:text-xl lg:text-2xl font-medium text-gray-400 mb-1 md:mb-6 lg:mb-8;
+    @apply text-sm md:text-lg lg:text-2xl font-medium text-gray-400 mb-1 md:mb-6 lg:mb-8;
   }
 
   .auth-testimonial-author {
@@ -196,6 +202,6 @@
   }
 
   .auth-dashboard-preview {
-    @apply border-6 border-gray-800 left-0 hidden w-[1024px] h-auto max-w-none lg:block rounded-xl shadow-2xl;
+    @apply absolute top-0 border-4 border-gray-800 left-0 hidden w-[1024px] max-w-none lg:block rounded-xl shadow-2xl;
   }
 }
