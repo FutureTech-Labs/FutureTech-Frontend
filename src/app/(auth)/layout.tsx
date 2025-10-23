@@ -25,9 +25,9 @@ const AuthLayout = ({ children }: { children: ReactNode }) => {
                         {children}
                     </div>
 
-                    <div className="flex flex-col gap-4 w-full text-center">
+                    <div className="flex flex-col gap-4 w-full text-center mt-5">
                         <Separator />
-                        <p className="text-xs lg:text-sm">
+                        <p className="text-xs lg:text-sm text-secondary-100">
                             &copy; {Year} FutureTech. All rights reserved.
                         </p>
                     </div>

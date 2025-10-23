@@ -174,7 +174,7 @@
   }
 
   .auth-container {
-    @apply relative flex flex-col items-center justify-between mt-12 h-[400px] p-4 w-full rounded-3xl backdrop-blur-xl border border-white/10;
+    @apply relative flex flex-col items-center justify-between mt-12 p-4 w-full rounded-3xl backdrop-blur-xl border border-white/10;
   }
 
   .auth-logo-container {
@@ -185,12 +185,12 @@
     @apply flex flex-col items-center justify-center w-full lg:w-[45%] h-full lg:h-screen px-6 xl:px-20 lg:border-r-2 bg-center bg-cover bg-no-repeat overflow-y-auto bg-[url(/images/AuthLeftBg.png)];
   }
 
-  .auth-right-section {
-    @apply flex flex-col justify-start w-full max-lg:border-t max-lg:border-gray-600 lg:w-[55%] lg:h-screen px-6 py-4 md:p-6 lg:py-12 lg:px-18;
-  }
-
   .auth-children {
     @apply mt-13 flex flex-col items-center justify-center w-full;
+  }
+
+  .auth-right-section {
+    @apply flex flex-col justify-start w-full max-lg:border-t max-lg:border-gray-600 lg:w-[55%] lg:h-screen px-6 py-4 md:p-6 lg:py-12 lg:px-18;
   }
 
   .auth-blockquote {
@@ -204,4 +204,15 @@
   .auth-dashboard-preview {
     @apply absolute top-0 border-4 border-gray-800 left-0 hidden w-[1024px] max-w-none lg:block rounded-xl shadow-2xl;
   }
+
+  /* Gradients */
+  .main-button-gradient {
+    background: linear-gradient(90deg, #307DED 0%, #1B4787 100%);
+    @apply border border-white/35 h-10 text-white hover:brightness-125 transition-all duration-300 ease-in-out hover:-translate-y-[2px] cursor-pointer;
+  }
+
+  .stepper-gradient {
+    background: linear-gradient(133.264deg, #FFFFFF 0%, #7CF6FF 100%);
+  }
+
 }
