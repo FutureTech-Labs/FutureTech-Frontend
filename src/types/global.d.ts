@@ -12,7 +12,7 @@ declare global {
         otp: string;
         newPassword: string;
         confirmPassword: string;
-    }
+    };
 
     type IFormInputProps = {
         name: string;
