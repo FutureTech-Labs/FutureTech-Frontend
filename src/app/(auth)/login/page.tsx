@@ -7,6 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import InputField from '@/components/forms/InputField';
+import { login } from '@/services/authService';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 const SignIn = () => {
     const {
@@ -18,13 +21,33 @@ const SignIn = () => {
         mode: 'onBlur'
     });
 
+    const router = useRouter();
+
+
     const onSubmit = async (data: ISignInFormData) => {
         try {
-            console.log("🚀 ~ onSubmit ~ data:", data)
+            const res = await login(data.email, data.password);
+
+            if (res.success) {
+                toast.success("Login successful!");
+
+                const role = res.user.role;
+
+                if (role === "admin") {
+                    router.replace("/admin/dashboard");
+                } else if (role === "cashier") {
+                    router.replace("/cashier/dashboard");
+                } else {
+                    router.replace("/login");
+                }
+            } else {
+                toast.error(res.message || "Invalid credentials");
+            }
         } catch (error) {
-            console.log("OnSubmit ~ error:", error)
+            console.error("Login error:", error);
         }
-    }
+    };
+
 
     return (
         <>

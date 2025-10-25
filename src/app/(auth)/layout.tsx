@@ -1,8 +1,18 @@
 import Image from "next/image";
 import { ReactNode } from "react";
 import { Separator } from "@/components/ui/separator";
+import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
 
-const AuthLayout = ({ children }: { children: ReactNode }) => {
+const AuthLayout = async ({ children }: { children: ReactNode }) => {
+
+    const session = await getSession();
+
+    if (session) {
+        if (session.role === "admin") redirect("/admin/dashboard");
+        if (session.role === "cashier") redirect("/cashier/dashboard");
+        redirect("/");
+    }
     const Year = new Date().getFullYear();
 
     return (
