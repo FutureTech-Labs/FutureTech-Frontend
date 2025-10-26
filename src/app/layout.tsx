@@ -1,7 +1,8 @@
+import "./globals.css";
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { Toaster } from "@/components/ui/sonner";
 
 const jakartaSans = Plus_Jakarta_Sans({
   variable: "--font-jakarta-sans",
@@ -9,8 +10,11 @@ const jakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "FutureTech",
-  description: "A modern computer shop management system built with Next.js",
+  title: {
+    default: "FutureTech",
+    template: "FutureTech - %s"
+  },
+  description: "A modern computer shop management system built with Next.js by Muhammad Hashir",
 };
 
 export default function RootLayout({
@@ -21,9 +25,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${jakartaSans.variable} font-sans antialiased`}
-      >
-        <AuthProvider>{children}</AuthProvider>
+        className={`${jakartaSans.variable} font-sans antialiased`}>
+        <Toaster />
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

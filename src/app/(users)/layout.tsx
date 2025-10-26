@@ -1,24 +1,17 @@
 import { ReactNode } from "react";
-import Sidebar from "@/components/common/Sidebar";
-import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
-import { getMe } from "@/services/authService";
+import Sidebar from "@/components/common/Sidebar";
+import { getLoggedInUser } from "@/services/LoggedUser";
 
 interface UsersLayoutProps {
     children: ReactNode;
 }
 
 export default async function UsersLayout({ children }: UsersLayoutProps) {
-    const session = await getSession();
+    const user = await getLoggedInUser();
 
-    if (!session) redirect("/login");
-    if (session.role !== "admin" && session.role !== "cashier") redirect("/unauthorized");
-
-    // Fetch full user data from /auth/me
-    const res = await getMe();
-
-    if (!res.success) redirect("/login"); // fallback
-    const user = res.user;
+    if (!user) redirect("/login");
+    if (user.role !== "admin" && user.role !== "cashier") redirect("/unauthorized");
 
     return (
         <div className="flex min-h-screen">

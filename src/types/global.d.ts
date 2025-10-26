@@ -2,6 +2,7 @@ export { };
 
 declare global {
 
+    // Interfaces
     interface ISignInFormData {
         email: string;
         password: string;
@@ -14,6 +15,23 @@ declare global {
         confirmPassword: string;
     };
 
+    interface IUser {
+        id: string;
+        name: string;
+        email: string;
+        role: "admin" | "cashier";
+        status: string;
+    };
+
+    interface IAuthContextType {
+        user: IUser | null;
+        loading: boolean;
+        logout: () => Promise<void>;
+        refreshUser: () => Promise<void>;
+    };
+
+
+    // Types
     type IFormInputProps = {
         name: string;
         label?: string;

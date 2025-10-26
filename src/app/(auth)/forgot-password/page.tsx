@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import InputField from "@/components/forms/InputField";
 import { ForgotpasswordStepContent } from "@/constants";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { InputOTP, InputOTPGroup, InputOTPSlot, } from "@/components/ui/input-otp";
+import { resetPassword, sendResetOtp, verifyOtp } from "@/services/authService";
 
 const ForgotPassword = () => {
     const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
@@ -22,14 +23,43 @@ const ForgotPassword = () => {
         handleSubmit,
         watch,
         control,
-        formState: { errors },
+        setError,
+        formState: { errors, isSubmitting },
     } = useForm<IForgotPasswordForm>({
         mode: "onBlur",
     });
 
-    const onSubmit: SubmitHandler<IForgotPasswordForm> = (data: IForgotPasswordForm) => {
-        console.log("Form Data:", data);
-        if (step < 4) setStep((prev) => (prev + 1) as 1 | 2 | 3 | 4);
+    const onSubmit: SubmitHandler<IForgotPasswordForm> = async (data: IForgotPasswordForm) => {
+        try {
+            if (step === 1) {
+                // Step 1: Send OTP
+                await sendResetOtp(data.email);
+                setStep(2);
+            } else if (step === 2) {
+                // Step 2: Validate OTP
+                await verifyOtp(data.email, data.otp!);
+                setStep(3);
+            } else if (step === 3) {
+                // Step 3: Reset password 
+                await resetPassword(data.email, data.otp!, data.newPassword!);
+                // Only go to Step 4 if backend succeeds
+                setStep(4);
+            }
+        } catch (error: any) {
+            const msg = error?.response?.data?.message || "Something went wrong";
+
+            if (msg.toLowerCase().includes("email")) {
+                setError("email", { type: "server", message: msg });
+            } else if (msg.toLowerCase().includes("otp")) {
+                setError("otp", { type: "server", message: msg });
+            } else if (msg.toLowerCase().includes("password")) {
+                setError("newPassword", { type: "server", message: msg });
+            } else {
+                // fallback
+                setError("email", { type: "server", message: msg });
+            }
+            return;
+        }
     };
 
     return (
@@ -60,9 +90,9 @@ const ForgotPassword = () => {
                         validation={{
                             required: "Email is required",
                             pattern: {
-                                value: /^\w+@\w+\.\w+$/,
+                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                                 message: "Invalid email address",
-                            },
+                            }
                         }}
                     />
                 )}
@@ -87,7 +117,11 @@ const ForgotPassword = () => {
                                 >
                                     <InputOTPGroup>
                                         {[...Array(6)].map((_, i) => (
-                                            <InputOTPSlot key={i} index={i} className="mx-1 lg:mx-2 border border-white/35 w-10 h-10 rounded-md" />
+                                            <InputOTPSlot
+                                                key={i}
+                                                index={i}
+                                                className="mx-1 lg:mx-2 border border-white/35 w-10 h-10 rounded-md"
+                                            />
                                         ))}
                                     </InputOTPGroup>
                                 </InputOTP>
@@ -137,7 +171,7 @@ const ForgotPassword = () => {
 
                 {/* step 4: Success */}
                 {step === 4 && (
-                    <Link href="/sign-in" className="w-full">
+                    <Link href="/login" className="w-full">
                         <Button className="w-full main-button-gradient">Continue</Button>
                     </Link>
                 )}
@@ -151,25 +185,41 @@ const ForgotPassword = () => {
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    className="flex-1 h-10 !border-white/40"
+                                    className="flex-1 h-10 border-white/40!"
                                     onClick={() => router.back()}
+                                    disabled={isSubmitting}
                                 >
                                     Back
                                 </Button>
 
                                 {/* Submit Button */}
-                                <Button type="submit" className="flex-1 main-button-gradient">
-                                    Send OTP
+                                <Button
+                                    type="submit"
+                                    className="flex-1 main-button-gradient"
+                                    disabled={isSubmitting}
+                                >
+                                    {isSubmitting ? "Sending OTP..." : "Send OTP"}
                                 </Button>
                             </>
-                        ) : (
 
-                            <Button type="submit" className="w-full mt-2 main-button-gradient">
-                                {step === 2 ? "Verify OTP" : "Reset Password"}
+                        ) : (
+                            <Button
+                                type="submit"
+                                className="w-full mt-2 main-button-gradient"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting
+                                    ? step === 2
+                                        ? "Verifying..."
+                                        : "Resetting..."
+                                    : step === 2
+                                        ? "Verify OTP"
+                                        : "Reset Password"}
                             </Button>
                         )}
                     </div>
                 )}
+
             </form>
         </div>
     );

@@ -4,12 +4,12 @@ import { getSession } from "@/lib/session";
 export default async function Home() {
   const session = await getSession();
 
-  // ✅ Redirect to login if no token found
+  // Redirect to login if no token found
   if (!session) {
     redirect("/login");
   }
 
-  // ✅ Redirect user based on role
+  // Redirect user based on role
   if (session.role === "admin") {
     redirect("/admin/dashboard");
   } else if (session.role === "cashier") {

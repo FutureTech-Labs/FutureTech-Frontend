@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  reactCompiler: true,
+  experimental: {
+    turbopackFileSystemCacheForDev: true,
+    viewTransition: true
+  },
 };
 
 export default nextConfig;

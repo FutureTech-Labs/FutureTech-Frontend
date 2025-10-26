@@ -1,28 +1,13 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { getMe, logout as logoutService } from "../services/authService";
 import { useRouter } from "next/navigation";
+import { getMe, logout as logoutService } from "../services/authService";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-interface User {
-    id: string;
-    name: string;
-    email: string;
-    role: "admin" | "cashier";
-    status: string;
-}
-
-interface AuthContextType {
-    user: User | null;
-    loading: boolean;
-    logout: () => Promise<void>;
-    refreshUser: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<IAuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<IUser | null>(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 

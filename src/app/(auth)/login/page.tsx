@@ -1,20 +1,20 @@
 'use client';
 
-import React from 'react'
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { useForm } from 'react-hook-form'
+import { useRouter } from 'next/navigation';
 import { Label } from '@/components/ui/label';
+import { login } from '@/services/authService';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import InputField from '@/components/forms/InputField';
-import { login } from '@/services/authService';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
 
 const SignIn = () => {
     const {
         register,
         handleSubmit,
+        setError,
         formState: { errors, isSubmitting },
     } = useForm<ISignInFormData>({
         defaultValues: { email: '', password: '', },
@@ -32,22 +32,22 @@ const SignIn = () => {
                 toast.success("Login successful!");
 
                 const role = res.user.role;
-
-                if (role === "admin") {
-                    router.replace("/admin/dashboard");
-                } else if (role === "cashier") {
-                    router.replace("/cashier/dashboard");
-                } else {
-                    router.replace("/login");
-                }
-            } else {
-                toast.error(res.message || "Invalid credentials");
+                if (role === "admin") router.replace("/admin/dashboard");
+                else if (role === "cashier") router.replace("/cashier/dashboard");
+                else router.replace("/login");
             }
-        } catch (error) {
-            console.error("Login error:", error);
+        } catch (error: any) {
+            const msg = error?.response?.data?.message?.toString().toLowerCase().trim();
+
+            if (msg?.includes("password")) {
+                setError("password", { type: "server", message: error.response.data.message });
+            } else if (msg?.includes("email")) {
+                setError("email", { type: "server", message: error.response.data.message });
+            } else if (msg) {
+                console.error(error.response.data.message);
+            }
         }
     };
-
 
     return (
         <>
@@ -67,7 +67,13 @@ const SignIn = () => {
                     placeholder="Enter your email"
                     register={register}
                     error={errors.email}
-                    validation={{ required: "Email is required", pattern: { value: /^\w+@\w+\.\w+$/, message: "Invalid email address" } }}
+                    validation={{
+                        required: "Email is required",
+                        pattern: {
+                            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                            message: "Invalid email address",
+                        }
+                    }}
                 />
 
                 <InputField
@@ -77,7 +83,13 @@ const SignIn = () => {
                     type="password"
                     register={register}
                     error={errors.password}
-                    validation={{ required: "Password is required", minLength: { value: 6, message: "Password must be at least 6 characters long" } }}
+                    validation={{
+                        required: "Password is required",
+                        minLength: {
+                            value: 6,
+                            message: "Password must be at least 6 characters long"
+                        }
+                    }}
                 />
 
                 <div className="flex justify-between items-center text-sm text-primary-100">
