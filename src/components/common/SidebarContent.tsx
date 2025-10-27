@@ -1,40 +1,51 @@
 'use client';
 
-import LogoutButton from "./LogoutButton";
+import { Home, Users, Settings, FileText } from "lucide-react";
 
 interface SidebarContentProps {
     user: IUser;
     isCollapsed?: boolean;
 }
 
-export default function SidebarContent({ user, isCollapsed = false }: SidebarContentProps) {
+const links = [
+    { label: "Dashboard", icon: Home, href: "/dashboard" },
+    { label: "Users", icon: Users, href: "/users" },
+    { label: "Settings", icon: Settings, href: "/settings" },
+    { label: "Reports", icon: FileText, href: "/reports" },
+];
+
+const SidebarContent = ({ user, isCollapsed = false }: SidebarContentProps) => {
     return (
-        <div className={`flex flex-col justify-between h-full p-4 transition-all duration-300 ${isCollapsed ? "w-20 items-center" : "w-64"}`}>
-            <div className={isCollapsed ? "text-center" : ""}>
-                <h2 className="text-xl font-bold mb-6">FutureTech</h2>
+        <div className={`flex flex-col h-full transition-all duration-300 ${isCollapsed ? "w-20 items-center" : "w-64"}`}>
 
-                {!isCollapsed && (
-                    <>
-                        <p className="text-sm mb-2">Logged in as: {user.role}</p>
-                        <p className="text-sm mb-2">{user.name}</p>
-                        <p className="text-sm mb-2">{user.email}</p>
-                    </>
-                )}
+            {/* Links */}
+            <nav className="flex-1">
+                {links.map((link) => {
+                    const Icon = link.icon;
+                    return (
+                        <a
+                            key={link.href}
+                            href={link.href}
+                            className={`flex items-center gap-3 p-2 my-1 rounded-md hover:bg-white/10 transition-colors ${isCollapsed ? "justify-center" : ""
+                                }`}
+                        >
+                            <Icon size={20} />
+                            {!isCollapsed && <span>{link.label}</span>}
+                        </a>
+                    );
+                })}
+            </nav>
 
-                {/* Role-based buttons */}
-                {user.role === "admin" && (
-                    <button className="mt-2 w-full bg-blue-600 py-2 rounded hover:bg-blue-700 text-white">
-                        Admin Panel
-                    </button>
-                )}
-                {user.role === "cashier" && (
-                    <button className="mt-2 w-full bg-green-600 py-2 rounded hover:bg-green-700 text-white">
-                        Cashier Dashboard
-                    </button>
-                )}
-            </div>
-
-            <LogoutButton />
+            {/* User Info */}
+            {!isCollapsed && (
+                <div className="text-sm text-gray-400">
+                    <p>Logged in as: {user.role}</p>
+                    <p>{user.name}</p>
+                    <p>{user.email}</p>
+                </div>
+            )}
         </div>
     );
 }
+
+export default SidebarContent;

@@ -215,4 +215,14 @@
     background: linear-gradient(133.264deg, #FFFFFF 0%, #7CF6FF 100%);
   }
 
+  /* Hide scrollbar for all browsers */
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
 }

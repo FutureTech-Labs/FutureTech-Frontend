@@ -1,15 +1,15 @@
 import { ReactNode } from "react";
 import { redirect } from "next/navigation";
+import Header from "@/components/common/Header";
 import Sidebar from "@/components/common/Sidebar";
 import { getLoggedInUser } from "@/services/LoggedUser";
 import { SidebarProvider } from "@/context/SidebarContext";
-import Header from "@/components/common/Header";
 
 interface UsersLayoutProps {
     children: ReactNode;
 }
 
-export default async function UsersLayout({ children }: UsersLayoutProps) {
+const UsersLayout = async ({ children }: UsersLayoutProps) => {
     const user = await getLoggedInUser();
 
     if (!user) redirect("/login");
@@ -22,12 +22,12 @@ export default async function UsersLayout({ children }: UsersLayoutProps) {
                 <Sidebar user={user} />
 
                 {/* Main Content Wrapper */}
-                <div className="flex flex-1 flex-col gap-2 bg-black rounded-xl">
+                <div className="flex flex-1 flex-col rounded-xl">
                     {/* Header */}
                     <Header user={user} />
 
                     {/* Main Content */}
-                    <section className="flex-1 h-full rounded-xl overflow-auto">
+                    <section className="flex-1 h-full rounded-xl overflow-auto p-3">
                         {children}
                     </section>
                 </div>
@@ -35,3 +35,5 @@ export default async function UsersLayout({ children }: UsersLayoutProps) {
         </SidebarProvider>
     );
 }
+
+export default UsersLayout;
