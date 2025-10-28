@@ -95,7 +95,7 @@ const Header = ({ user }: HeaderProps) => {
                             <SheetDescription className="sr-only"></SheetDescription>
                         </SheetHeader>
 
-                        <div className="h-full overflow-y-auto">
+                        <div className="h-full overflow-y-auto px-3 pt-2">
                             <SidebarContent user={user} />
                         </div>
 

@@ -5,24 +5,26 @@ import LogoutButton from "./LogoutButton";
 import SidebarContent from "./SidebarContent";
 import { useSidebar } from "@/context/SidebarContext";
 
-interface SidebarProps {
-    user: IUser;
-}
-
-const Sidebar = ({ user }: SidebarProps) => {
+const Sidebar = ({ user }: ISidebarProps) => {
     const { isCollapsed } = useSidebar();
 
     return (
-        <aside className={`hidden md:flex h-dvh shadow-2xl shadow-white/5 transition-all duration-300 
-        ${isCollapsed ? "md:w-20 items-center py-1.5 border-r" : "md:w-64 px-6 py-3"}`}>
+        <aside className={`relative hidden md:flex h-dvh shadow-xl shadow-white/5 transition-all duration-300 
+        ${isCollapsed ? "md:w-20 items-center py-1.5" : "md:w-64 px-6 py-3"}`}>
 
+            {/* Gradients */}
+            <div className="absolute top-0 left-0 w-50 h-30 gradient-01 pointer-events-none z-0" />
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-30 h-20 gradient-01 pointer-events-none z-0" />
+            <div className="absolute bottom-0 right-0 w-44 h-40 gradient-01 pointer-events-none z-0" />
+
+            {/* Contents */}
             <div className="flex flex-col items-center w-full h-full">
 
-                {/* Header / Logo */}
-                <div className="flex items-center justify-center py-2 border-b-2 w-full">
+                {/* Header */}
+                <div className={`flex items-center justify-center w-full ${isCollapsed ? "py-3" : "py-[9px]"} border-b-2 border-primary-900 z-10`}>
 
                     {isCollapsed ? (
-                        <div className="w-12 h-12">
+                        <div className="w-10 h-10">
                             <Image
                                 src={"/images/FutureTechLogo.png"}
                                 alt="Logo"
@@ -46,13 +48,13 @@ const Sidebar = ({ user }: SidebarProps) => {
                     }
                 </div>
 
-                {/* Scrollable center content */}
-                <div className="flex-1 w-full overflow-y-auto scrollbar-hide py-4">
+                {/* center content */}
+                <div className="flex-1 w-full overflow-y-auto scrollbar-hide py-4 z-10">
                     <SidebarContent user={user} isCollapsed={isCollapsed} />
                 </div>
 
                 {/* Footer */}
-                <div className="w-full">
+                <div className={`w-full z-10 border-t border-primary-900 ${isCollapsed ? "px-2" : ""}`}>
                     <LogoutButton />
                 </div>
 

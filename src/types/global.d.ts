@@ -30,6 +30,15 @@ declare global {
         refreshUser: () => Promise<void>;
     };
 
+    interface ISidebarProps {
+        user: IUser;
+    };
+
+    interface ISidebarContentProps {
+        user: IUser;
+        isCollapsed?: boolean;
+    };
+
 
     // Types
     type IFormInputProps = {
