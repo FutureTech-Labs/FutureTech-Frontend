@@ -3,71 +3,23 @@
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { usePathname } from "next/navigation";
 import { Separator } from "../ui/separator";
+import { usePathname } from "next/navigation";
+import { adminLinks, cashierLinks } from "@/constants";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ISidebarContentProps {
     user: IUser;
     isCollapsed?: boolean;
 }
 
-const adminLinks = [
-    {
-        title: "Navigation",
-        links: [
-            { label: "Overview", icon: "/icons/Dashboard.svg", href: "/admin/dashboard" },
-            { label: "Inventory", icon: "/icons/Inventory.svg", href: "/admin/inventory" },
-            { label: "Stocks", icon: "/icons/Stocks.svg", href: "/admin/stocks" },
-        ],
-    },
-    {
-        title: "Finance",
-        links: [
-            { label: "Sales", icon: "/icons/Sales.svg", href: "/admin/sales" },
-            { label: "Invoices", icon: "/icons/Invoices.svg", href: "/admin/invoices" },
-            { label: "Returns", icon: "/icons/Returns.svg", href: "/admin/returns" },
-            { label: "Reports", icon: "/icons/Reports.svg", href: "/admin/reports" },
-            { label: "Expenses", icon: "/icons/Expenses.svg", href: "/admin/expenses" },
-        ],
-    },
-    {
-        title: "Support",
-        links: [
-            { label: "Users", icon: "/icons/Users.svg", href: "/admin/users" },
-            { label: "Settings", icon: "/icons/Settings.svg", href: "/admin/settings" },
-        ],
-    },
-];
-
-const cashierLinks = [
-    {
-        title: "Navigation",
-        links: [
-            { label: "Overview", icon: "/icons/Dashboard.svg", href: "/cashier/dashboard" },
-            { label: "Stocks", icon: "/icons/Stocks.svg", href: "/cashier/stocks" },
-        ],
-    },
-    {
-        title: "Finance",
-        links: [
-            { label: "Sales", icon: "/icons/Sales.svg", href: "/cashier/sales" },
-            { label: "Invoices", icon: "/icons/Invoices.svg", href: "/cashier/invoices" },
-            { label: "Returns", icon: "/icons/Returns.svg", href: "/cashier/returns" },
-        ],
-    },
-];
-
 const SidebarContent = ({ user, isCollapsed = false }: ISidebarContentProps) => {
     const pathname = usePathname();
     const roleLinks = user.role === "admin" ? adminLinks : cashierLinks;
 
     return (
-        <div
-            className={cn(
-                "flex flex-col h-full transition-all duration-300",
-                isCollapsed ? "w-20 items-center px-2" : "w-full"
-            )}
-        >
+        <div className={cn("flex flex-col h-full transition-all duration-300", isCollapsed ? "w-20 items-center px-2" : "w-full")}>
+
             <nav className="flex-1 w-full space-y-4">
                 {roleLinks.map((section, index) => (
                     <div key={section.title} className="w-full">
@@ -80,7 +32,7 @@ const SidebarContent = ({ user, isCollapsed = false }: ISidebarContentProps) => 
                         {section.links.map((link) => {
                             const isActive = pathname === link.href;
 
-                            return (
+                            const Links = (
                                 <Link
                                     key={link.href}
                                     href={link.href}
@@ -88,7 +40,7 @@ const SidebarContent = ({ user, isCollapsed = false }: ISidebarContentProps) => 
                                         "flex items-center gap-4 p-2 my-1 rounded-md transition-colors text-md text-primary-100",
                                         isCollapsed ? "justify-center" : "",
                                         isActive
-                                            ? "bg-white/20"
+                                            ? "button-gradient border border-t-2 border-white/20 shadow-xl shadow-primary-900/30"
                                             : "hover:bg-white/10 hover:text-primary-300"
                                     )}
                                 >
@@ -103,10 +55,23 @@ const SidebarContent = ({ user, isCollapsed = false }: ISidebarContentProps) => 
                                     {!isCollapsed && <span>{link.label}</span>}
                                 </Link>
                             );
+
+                            return isCollapsed ? (
+                                <Tooltip key={link.href}>
+                                    <TooltipTrigger asChild>{Links}</TooltipTrigger>
+                                    <TooltipContent
+                                        side="right"
+                                        className="text-sm font-medium text-foreground button-gradient border border-white/10">
+                                        {link.label}
+                                    </TooltipContent>
+                                </Tooltip>
+                            ) : (
+                                Links
+                            );
                         })}
 
                         {index < roleLinks.length - 1 && (
-                            <Separator className="my-3 bg-primary-900 border" />
+                            <Separator className="my-3 bg-primary-900" />
                         )}
                     </div>
                 ))}

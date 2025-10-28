@@ -1,17 +1,17 @@
-<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g clip-path="url(#clip0_22976_4143)">
-<mask id="mask0_22976_4143" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
-<path d="M20 0H0V20H20V0Z" fill="white"/>
+<mask id="mask0_22976_4143" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="16" height="16">
+<path d="M16 0H0V16H16V0Z" fill="white"/>
 </mask>
 <g mask="url(#mask0_22976_4143)">
-<path d="M7.51667 2.36681L3.025 5.86681C2.275 6.45014 1.66667 7.69181 1.66667 8.63351V14.8085C1.66667 16.7418 3.24167 18.3252 5.175 18.3252H14.825C16.7583 18.3252 18.3333 16.7418 18.3333 14.8168V8.75017C18.3333 7.74181 17.6583 6.45014 16.8333 5.87514L11.6833 2.26681C10.5167 1.45014 8.64167 1.49181 7.51667 2.36681Z" stroke="#BFD7F9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M13.75 13.75L10.25 10.25L8.91667 12.25L6.25 9.58334" stroke="#BFD7F9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M12.0833 13.75H13.75V12.0833" stroke="#BFD7F9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M6.01333 1.89344L2.42 4.69344C1.82 5.1601 1.33333 6.15344 1.33333 6.9068V11.8468C1.33333 13.3935 2.59333 14.6601 4.14 14.6601H11.86C13.4067 14.6601 14.6667 13.3935 14.6667 11.8535V7.00013C14.6667 6.19344 14.1267 5.1601 13.4667 4.7001L9.34667 1.81344C8.41333 1.1601 6.91333 1.19344 6.01333 1.89344Z" stroke="#BFD7F9" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M11 11L8.2 8.19999L7.13334 9.79999L5 7.66666" stroke="#BFD7F9" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M9.66667 11H11V9.66666" stroke="#BFD7F9" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 </g>
 <defs>
 <clipPath id="clip0_22976_4143">
-<rect width="20" height="20" fill="white"/>
+<rect width="16" height="16" fill="white"/>
 </clipPath>
 </defs>
 </svg>
