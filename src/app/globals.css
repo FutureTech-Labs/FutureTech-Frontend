@@ -226,6 +226,11 @@
     background: linear-gradient(133.264deg, #FFFFFF 0%, #7CF6FF 100%);
   }
 
+  /* Button classes */
+  .disable-rings {
+    @apply outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none active:ring-0;
+  }
+
   /* Hide scrollbar for all browsers */
   .scrollbar-hide {
     scrollbar-width: none;

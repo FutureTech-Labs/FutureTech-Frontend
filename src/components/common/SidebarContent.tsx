@@ -18,11 +18,11 @@ const SidebarContent = ({ user, isCollapsed = false }: ISidebarContentProps) => 
     const roleLinks = user.role === "admin" ? adminLinks : cashierLinks;
 
     return (
-        <div className={cn("flex flex-col h-full transition-all duration-300", isCollapsed ? "w-20 items-center px-2" : "w-full")}>
+        <div className={cn("flex flex-col h-full transition-all duration-700 ease-in-out", isCollapsed ? "w-20 items-center px-2" : "w-full")}>
 
             <nav className="flex-1 w-full space-y-4">
                 {roleLinks.map((section, index) => (
-                    <div key={section.title} className="w-full">
+                    <div key={section.title} className="w-full transition-all duration-700 ease-in-out">
                         {!isCollapsed && (
                             <h2 className="mb-2 text-xs uppercase text-primary-300">
                                 {section.title}

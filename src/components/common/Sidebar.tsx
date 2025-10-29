@@ -30,8 +30,9 @@ const Sidebar = ({ user }: ISidebarProps) => {
                                 alt="Logo"
                                 width={100}
                                 height={100}
+                                quality={75}
                                 priority
-                                className="object-cover w-full h-full"
+                                className="object-cover w-full h-full z-10"
                             />
                         </div>
                     ) :
@@ -41,8 +42,9 @@ const Sidebar = ({ user }: ISidebarProps) => {
                                 alt="Logo"
                                 width={100}
                                 height={100}
+                                quality={75}
                                 priority
-                                className="object-cover w-full h-full"
+                                className="object-cover w-full h-full select-none z-10"
                             />
                         </div>
                     }

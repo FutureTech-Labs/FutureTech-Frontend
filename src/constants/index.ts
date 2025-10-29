@@ -66,3 +66,22 @@ export const cashierLinks = [
         ],
     },
 ];
+
+// Dummy Notification
+export const dummyNotifications = [
+    {
+        id: 1,
+        message: "New sale recorded!",
+        time: "2 min ago"
+    },
+    {
+        id: 2,
+        message: "Low Stock",
+        time: "10 min ago"
+    },
+    {
+        id: 3,
+        message: "Cashier John logged in.",
+        time: "30 min ago"
+    },
+];

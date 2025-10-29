@@ -27,7 +27,7 @@ const UsersLayout = async ({ children }: UsersLayoutProps) => {
                     <Header user={user} />
 
                     {/* Main Content */}
-                    <section className="flex-1 h-full rounded-xl overflow-auto p-3">
+                    <section className="flex-1 h-full rounded-xl overflow-auto p-3 md:p-6">
                         {children}
                     </section>
                 </div>
