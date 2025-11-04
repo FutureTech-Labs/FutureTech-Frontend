@@ -1,7 +1,11 @@
+import { getSession } from "@/lib/session";
 import InventoryPage from "@/components/page-components/InventoryPage";
 
-const Inventory = () => {
-    return <InventoryPage />
+const InventoryServerPage = async () => {
+    const session = await getSession();
+    const role = session?.role || null;
+
+    return <InventoryPage role={role} />
 };
 
-export default Inventory;
+export default InventoryServerPage;

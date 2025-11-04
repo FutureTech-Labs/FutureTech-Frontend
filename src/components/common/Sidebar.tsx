@@ -9,8 +9,8 @@ const Sidebar = ({ user }: ISidebarProps) => {
     const { isCollapsed } = useSidebar();
 
     return (
-        <aside className={`relative hidden md:flex h-dvh shadow-xl shadow-white/5 transition-all duration-300 
-        ${isCollapsed ? "md:w-20 items-center py-1.5" : "md:w-64 px-6 py-3"}`}>
+        <aside className={`relative hidden xl:flex h-dvh shadow-xl shadow-white/5 transition-all duration-300 
+        ${isCollapsed ? "xl:w-20 items-center py-1.5" : "xl:w-64 px-6 py-3"}`}>
 
             {/* Gradients */}
             <div className="absolute top-0 left-0 w-50 h-30 gradient-01 pointer-events-none z-0" />
@@ -36,7 +36,7 @@ const Sidebar = ({ user }: ISidebarProps) => {
                             />
                         </div>
                     ) :
-                        <div className="w-50">
+                        <div className="w-48">
                             <Image
                                 src={"/images/LogoFull.png"}
                                 alt="Logo"

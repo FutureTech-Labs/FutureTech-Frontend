@@ -6,6 +6,14 @@ const nextConfig: NextConfig = {
     turbopackFileSystemCacheForDev: true,
     viewTransition: true
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "cwsmgmt.corsair.com"
+      }
+    ]
+  }
 };
 
 export default nextConfig;

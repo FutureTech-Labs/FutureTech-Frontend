@@ -46,7 +46,7 @@ const Header = ({ user }: HeaderProps) => {
 
     useEffect(() => {
         const handleResize = () => {
-            const mobile = window.innerWidth < 768;
+            const mobile = window.innerWidth < 1280;
             setIsMobile(mobile);
             if (!mobile) setOpen(false);
         };
@@ -67,10 +67,10 @@ const Header = ({ user }: HeaderProps) => {
     const currentSegment = pathname.split("/").filter(Boolean).pop();
 
     return (
-        <header className="relative flex items-center w-full py-4 z-50 max-h-17">
+        <header className="relative flex items-center w-full py-5 z-50 max-h-[72px]">
 
-            <div className={`absolute -bottom-1 max-w-dvw w-full ${isCollapsed ? "px-0" : "px-3 md:px-6"}`}>
-                <Separator className="border" />
+            <div className={`absolute bottom-0 max-w-dvw w-full ${isCollapsed ? "px-0" : "px-3 xl:px-6"}`}>
+                <Separator  className="border"/>
             </div>
 
             <div className="flex items-center justify-between w-full h-full px-3 md:px-6">
@@ -88,7 +88,7 @@ const Header = ({ user }: HeaderProps) => {
                         </SheetTrigger>
 
                         {/* current pathname */}
-                        <div className="hidden md:flex items-center mt-1">
+                        <div className="hidden sm:flex items-center mt-1">
                             <Separator orientation="vertical" className="border-secondary-100" />
                             <span className="text-white text-sm uppercase font-medium ml-4">
                                 {currentSegment || "Dashboard"}
@@ -98,7 +98,7 @@ const Header = ({ user }: HeaderProps) => {
 
                     <SheetContent
                         side="left"
-                        className="w-64 text-white border-0 h-full md:hidden [&>button]:hidden gap-0"
+                        className="w-64 text-white border-0 h-full xl:hidden [&>button]:hidden gap-0"
                     >
                         <SheetHeader className="shadow-sm shadow-white/10 mb-2 pb-4.5">
 

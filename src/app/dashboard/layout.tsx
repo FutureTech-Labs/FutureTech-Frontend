@@ -18,14 +18,15 @@ const DashboardLayout = async ({ children }: DashboardLayoutProps) => {
                 <Sidebar user={user} />
 
                 {/* Main Content Wrapper */}
-                <div className="flex flex-1 flex-col rounded-xl">
+                <div className="flex flex-1 flex-col rounded-xl w-full">
                     {/* Header */}
                     <Header user={user} />
 
                     {/* Main Content */}
-                    <section className="flex-1 h-full rounded-xl overflow-auto p-3 md:p-6">
+                    <section className="flex-1 h-full rounded-xl overflow-x-auto overflow-y-auto p-3 md:p-6">
                         {children}
                     </section>
+
                 </div>
             </main>
         </SidebarProvider>
