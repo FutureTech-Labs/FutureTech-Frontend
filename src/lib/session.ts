@@ -1,7 +1,7 @@
+import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
 
-const SECRET = process.env.JWT_SECRET!;
+const SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 interface SessionPayload {
     id: string;
@@ -17,10 +17,10 @@ export async function getSession(): Promise<SessionPayload | null> {
     if (!token) return null;
 
     try {
-        const payload = jwt.verify(token, SECRET) as SessionPayload;
+        const { payload } = await jwtVerify(token, SECRET) as { payload: SessionPayload };
         return payload;
-    } catch (error) {
-        console.error("JWT verification failed:", error);
+    } catch (err) {
+        console.error("JWT verification failed:", err);
         return null;
     }
-}
+};

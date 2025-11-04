@@ -1,7 +1,7 @@
+import InventoryPage from "@/components/page-components/InventoryPage";
+
 const Inventory = () => {
-    return (
-        <div>Inventory</div>
-    )
-}
+    return <InventoryPage />
+};
 
 export default Inventory;

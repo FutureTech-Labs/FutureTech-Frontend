@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { redirect } from "next/navigation";
 import Header from "@/components/common/Header";
 import Sidebar from "@/components/common/Sidebar";
 import { getLoggedInUser } from "@/services/LoggedUser";
@@ -11,8 +10,6 @@ interface DashboardLayoutProps {
 
 const DashboardLayout = async ({ children }: DashboardLayoutProps) => {
     const user = await getLoggedInUser();
-
-    if (!user) redirect("/login");
 
     return (
         <SidebarProvider>

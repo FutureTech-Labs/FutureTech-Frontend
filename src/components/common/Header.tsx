@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { ChevronDown, LogOut, Menu, Settings, X } from "lucide-react";
 import Image from "next/image";
 import {
@@ -42,6 +42,7 @@ const Header = ({ user }: HeaderProps) => {
     const { toggleSidebar, isCollapsed } = useSidebar();
     const [isMobile, setIsMobile] = useState(false);
     const [open, setOpen] = useState(false);
+    const menuId = useId();
 
     useEffect(() => {
         const handleResize = () => {
@@ -177,6 +178,7 @@ const Header = ({ user }: HeaderProps) => {
                             <DropdownMenuContent
                                 align="end"
                                 className="w-44 mt-2 border-2 border-white/5 rounded-xl"
+                                id={menuId}
                             >
                                 <DropdownMenuLabel>
                                     My Account

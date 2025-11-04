@@ -40,6 +40,37 @@ declare global {
     };
 
 
+    // Product Interfaces
+    export interface IProduct {
+        description: Description;
+        _id: string;
+        name: string;
+        brand: Brand;
+        category: Category;
+        sellingPrice: number;
+        warrantyPeriod: string;
+        images: string[];
+        status: string;
+        createdAt: string;
+        updatedAt: string;
+    };
+
+    export interface Description {
+        intro: string;
+        specifications: string[];
+    };
+
+    export interface Brand {
+        _id: string;
+        name: string;
+    };
+
+    export interface Category {
+        _id: string;
+        name: string;
+    };
+
+
     // Types
     type IFormInputProps = {
         name: string;
