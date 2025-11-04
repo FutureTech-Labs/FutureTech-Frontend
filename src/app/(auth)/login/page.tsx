@@ -23,18 +23,13 @@ const SignIn = () => {
 
     const router = useRouter();
 
-
     const onSubmit = async (data: ISignInFormData) => {
         try {
             const res = await login(data.email, data.password);
 
             if (res.success) {
                 toast.success("Login successful!");
-
-                const role = res.user.role;
-                if (role === "admin") router.replace("/admin/dashboard");
-                else if (role === "cashier") router.replace("/cashier/dashboard");
-                else router.replace("/login");
+                router.replace("/dashboard");
             }
         } catch (error: any) {
             const msg = error?.response?.data?.message?.toString().toLowerCase().trim();

@@ -5,8 +5,12 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Separator } from "../ui/separator";
 import { usePathname } from "next/navigation";
-import { adminLinks, cashierLinks } from "@/constants";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { dashboardLinks } from "@/lib/dashboardLinks";
 
 interface ISidebarContentProps {
     user: IUser;
@@ -15,66 +19,84 @@ interface ISidebarContentProps {
 
 const SidebarContent = ({ user, isCollapsed = false }: ISidebarContentProps) => {
     const pathname = usePathname();
-    const roleLinks = user.role === "admin" ? adminLinks : cashierLinks;
+
+    // Filter out sections that have at least one visible link for this user
+    const visibleSections = dashboardLinks.filter((section) =>
+        section.links.some((link) => link.roles.includes(user.role))
+    );
 
     return (
-        <div className={cn("flex flex-col h-full transition-all duration-700 ease-in-out", isCollapsed ? "w-20 items-center px-2" : "w-full")}>
-
+        <div
+            className={cn(
+                "flex flex-col h-full transition-all duration-500 ease-in-out",
+                isCollapsed ? "w-20 items-center px-2" : "w-full"
+            )}
+        >
             <nav className="flex-1 w-full space-y-4">
-                {roleLinks.map((section, index) => (
-                    <div key={section.title} className="w-full transition-all duration-700 ease-in-out">
-                        {!isCollapsed && (
-                            <h2 className="mb-2 text-xs uppercase text-primary-300">
-                                {section.title}
-                            </h2>
-                        )}
+                {visibleSections.map((section, sectionIndex) => {
+                    const visibleLinks = section.links.filter((link) =>
+                        link.roles.includes(user.role)
+                    );
 
-                        {section.links.map((link) => {
-                            const isActive = pathname === link.href;
+                    return (
+                        <div key={section.title} className="w-full">
+                            {/* Section Title */}
+                            {!isCollapsed && (
+                                <h2 className="mb-2 text-xs uppercase text-primary-300 tracking-wider">
+                                    {section.title}
+                                </h2>
+                            )}
 
-                            const Links = (
-                                <Link
-                                    key={link.href}
-                                    href={link.href}
-                                    className={cn(
-                                        "flex items-center gap-4 p-2 my-1 rounded-md transition-colors text-md text-primary-100",
-                                        isCollapsed ? "justify-center" : "",
-                                        isActive
-                                            ? "button-gradient border border-t-2 border-white/20 shadow-xl shadow-primary-900/30"
-                                            : "hover:bg-white/10 hover:text-primary-300"
-                                    )}
-                                >
-                                    <div className="w-5 h-5 relative">
-                                        <Image
-                                            src={link.icon}
-                                            alt={link.label}
-                                            fill
-                                            className="object-contain"
-                                        />
-                                    </div>
-                                    {!isCollapsed && <span>{link.label}</span>}
-                                </Link>
-                            );
+                            {/* Render visible links */}
+                            {visibleLinks.map((link) => {
+                                const isActive = pathname === link.href;
 
-                            return isCollapsed ? (
-                                <Tooltip key={link.href}>
-                                    <TooltipTrigger asChild>{Links}</TooltipTrigger>
-                                    <TooltipContent
-                                        side="right"
-                                        className="text-sm font-medium text-foreground button-gradient border border-white/10">
-                                        {link.label}
-                                    </TooltipContent>
-                                </Tooltip>
-                            ) : (
-                                Links
-                            );
-                        })}
+                                const linkElement = (
+                                    <Link
+                                        key={link.href}
+                                        href={link.href}
+                                        className={cn(
+                                            "flex items-center gap-4 p-2 my-1 rounded-md transition-colors text-sm font-medium",
+                                            isCollapsed && "justify-center",
+                                            isActive
+                                                ? "button-gradient border border-white/20 shadow-md shadow-primary-900/30"
+                                                : "text-primary-100 hover:bg-white/10 hover:text-primary-300"
+                                        )}
+                                    >
+                                        <div className="relative w-5 h-5 shrink-0">
+                                            <Image
+                                                src={link.icon}
+                                                alt={link.label}
+                                                fill
+                                                className="object-contain"
+                                            />
+                                        </div>
 
-                        {index < roleLinks.length - 1 && (
-                            <Separator className="my-3 bg-primary-900" />
-                        )}
-                    </div>
-                ))}
+                                        {!isCollapsed && <span>{link.label}</span>}
+                                    </Link>
+                                );
+
+                                return isCollapsed ? (
+                                    <Tooltip key={link.href} delayDuration={100}>
+                                        <TooltipTrigger asChild>{linkElement}</TooltipTrigger>
+                                        <TooltipContent
+                                            side="right"
+                                            className="text-sm font-medium text-foreground button-gradient border border-white/10"
+                                        >
+                                            {link.label}
+                                        </TooltipContent>
+                                    </Tooltip>
+                                ) : (
+                                    linkElement
+                                );
+                            })}
+
+                            {sectionIndex < visibleSections.length - 1 && (
+                                <Separator className="my-3 bg-primary-900" />
+                            )}
+                        </div>
+                    );
+                })}
             </nav>
         </div>
     );

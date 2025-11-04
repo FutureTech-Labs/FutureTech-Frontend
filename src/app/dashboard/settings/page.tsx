@@ -4,4 +4,4 @@ const AdminSettings = () => {
     )
 }
 
-export default AdminSettings
+export default AdminSettings;

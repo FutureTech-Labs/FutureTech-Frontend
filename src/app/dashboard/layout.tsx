@@ -5,15 +5,14 @@ import Sidebar from "@/components/common/Sidebar";
 import { getLoggedInUser } from "@/services/LoggedUser";
 import { SidebarProvider } from "@/context/SidebarContext";
 
-interface UsersLayoutProps {
+interface DashboardLayoutProps {
     children: ReactNode;
 }
 
-const UsersLayout = async ({ children }: UsersLayoutProps) => {
+const DashboardLayout = async ({ children }: DashboardLayoutProps) => {
     const user = await getLoggedInUser();
 
     if (!user) redirect("/login");
-    if (user.role !== "admin" && user.role !== "cashier") redirect("/unauthorized");
 
     return (
         <SidebarProvider>
@@ -36,4 +35,4 @@ const UsersLayout = async ({ children }: UsersLayoutProps) => {
     );
 }
 
-export default UsersLayout;
+export default DashboardLayout;

@@ -9,9 +9,7 @@ const AuthLayout = async ({ children }: { children: ReactNode }) => {
     const session = await getSession();
 
     if (session) {
-        if (session.role === "admin") redirect("/admin/dashboard");
-        if (session.role === "cashier") redirect("/cashier/dashboard");
-        redirect("/");
+        redirect("/dashboard");
     }
 
     const Year = new Date().getFullYear();
