@@ -1,6 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
+import {
+    flexRender,
+    getCoreRowModel,
+    getSortedRowModel,
+    useReactTable,
+    type ColumnDef,
+    type RowSelectionState,
+    type SortingState,
+} from "@tanstack/react-table";
 import {
     Table,
     TableBody,
@@ -21,10 +30,13 @@ import {
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 
+type AccessorKey<T> = Extract<keyof T, string>;
+
 interface Column<T> {
-    key: string;
-    label: string;
+    key: AccessorKey<T> | string;
+    label: string | React.ReactNode;
     render?: (row: T) => React.ReactNode;
+    enableSorting?: boolean;
 }
 
 interface PaginationProps {
@@ -34,106 +46,234 @@ interface PaginationProps {
     onPageChange: (newPage: number) => void;
 }
 
-interface DataTableProps<T> {
+interface DataTableProps<T extends object> {
     columns: Column<T>[];
     data: T[];
     emptyMessage?: string;
     pagination?: PaginationProps;
     loading?: boolean;
+    getRowId?: (row: T, index: number) => string;
+    className?: string;
+    skeletonRows?: number;
+    rowSelection?: RowSelectionState;
+    onRowSelectionChange?: (state: RowSelectionState) => void;
+    selectable?: boolean;
 }
 
-const DataTable = <T,>({
+const DataTable = <T extends object,>({
     columns,
     data,
     emptyMessage = "No data found.",
     pagination,
     loading = false,
+    getRowId,
+    className,
+    skeletonRows = 10,
+    rowSelection: rowSelectionProp,
+    onRowSelectionChange,
+    selectable = true,
 }: DataTableProps<T>) => {
-    const [selectedRows, setSelectedRows] = useState<number[]>([]);
+    const [internalRowSelection, setInternalRowSelection] = useState<RowSelectionState>({});
+    const rowSelection = rowSelectionProp ?? internalRowSelection;
 
-    const toggleRow = (index: number) => {
-        setSelectedRows((prev) =>
-            prev.includes(index)
-                ? prev.filter((i) => i !== index)
-                : [...prev, index]
-        );
+    const handleRowSelectionChange = (
+        updater: RowSelectionState | ((old: RowSelectionState) => RowSelectionState)
+    ) => {
+        const next =
+            typeof updater === "function"
+                ? (updater as (old: RowSelectionState) => RowSelectionState)(rowSelection)
+                : updater;
+
+        onRowSelectionChange?.(next);
+        if (rowSelectionProp === undefined) setInternalRowSelection(next);
     };
 
-    const allSelected = selectedRows.length === data.length && data.length > 0;
-    const toggleAll = () => {
-        setSelectedRows(allSelected ? [] : data.map((_, i) => i));
-    };
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const memoData = useMemo(() => data ?? [], [data]);
 
-    // Skeleton row generator
-    const skeletonRows = Array.from({ length: 10 }, (_, i) => (
-        <TableRow key={`skeleton-${i}`}>
-            <TableCell className="text-center px-4 py-3">
-                <Skeleton className="h-4 w-4 mx-auto rounded" />
-            </TableCell>
-            {columns.map((_, idx) => (
-                <TableCell key={idx} className="px-4 py-3">
-                    <Skeleton className="h-4 w-24" />
-                </TableCell>
-            ))}
-        </TableRow>
-    ));
+    const defaultGetRowId = useCallback((row: T, index: number) => {
+        // @ts-expect-error probing common id fields
+        const maybe = row.id ?? row.ID ?? row._id ?? row.uuid;
+        return typeof maybe === "string" || typeof maybe === "number" ? String(maybe) : String(index);
+    }, []);
+
+    const tableColumns = useMemo<ColumnDef<T>[]>(() => {
+        const cols: ColumnDef<T>[] = [];
+
+        if (selectable) {
+            cols.push({
+                id: "select",
+                header: ({ table }) => {
+                    const checked: boolean | "indeterminate" = table.getIsAllPageRowsSelected()
+                        ? true
+                        : table.getIsSomePageRowsSelected()
+                            ? "indeterminate"
+                            : false;
+
+                    return (
+                        <div className="flex items-center justify-center">
+                            <Checkbox
+                                checked={checked}
+                                onCheckedChange={(value) => table.toggleAllPageRowsSelected(value === true)}
+                                aria-label="Select all rows on this page"
+                            />
+                        </div>
+                    );
+                },
+                cell: ({ row }) => (
+                    <div className="flex items-center justify-center">
+                        <Checkbox
+                            checked={row.getIsSelected()}
+                            onCheckedChange={(value) => row.toggleSelected(value === true)}
+                            aria-label={`Select row ${row.index + 1}`}
+                        />
+                    </div>
+                ),
+                enableSorting: false,
+                enableHiding: false,
+                size: 48,
+            });
+        }
+
+        const userCols: ColumnDef<T>[] = columns.map((col) => ({
+            accessorKey: col.key as string,
+            header: ({ column }) => {
+                const canSort = col.enableSorting ?? false;
+                const isSorted = column.getIsSorted(); // false | 'asc' | 'desc'
+
+                // Tri-state toggle: unsorted -> asc -> desc -> unsorted
+                return canSort ? (
+                    <button
+                        type="button"
+                        onClick={column.getToggleSortingHandler()}
+                        className="flex w-full items-center justify-between gap-2 select-none"
+                        aria-label={
+                            isSorted === "asc"
+                                ? "Sort descending"
+                                : isSorted === "desc"
+                                    ? "Clear sorting"
+                                    : "Sort ascending"
+                        }
+                    >
+                        <span className="truncate">
+                            {typeof col.label === "string" ? col.label : col.label}
+                        </span>
+                        <span aria-hidden="true" className="text-xs text-muted-foreground">
+                            {isSorted === "asc" ? "▲" : isSorted === "desc" ? "▼" : "⇅"}
+                        </span>
+                    </button>
+                ) : (
+                    <>{typeof col.label === "string" ? col.label : col.label}</>
+                );
+            },
+            enableSorting: col.enableSorting ?? false,
+            enableSortingRemoval: true,
+            sortDescFirst: false,
+            cell: ({ row }) =>
+                col.render
+                    ? col.render(row.original as T)
+                    : ((row.original as Record<string, unknown>)[col.key as string] ?? "—") as React.ReactNode,
+        }));
+
+        return [...cols, ...userCols];
+    }, [columns, selectable]);
+
+    const table = useReactTable({
+        data: memoData,
+        columns: tableColumns,
+        getCoreRowModel: getCoreRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        state: { rowSelection, sorting },
+        onRowSelectionChange: handleRowSelectionChange,
+        onSortingChange: setSorting,
+        enableRowSelection: selectable,
+        getRowId: getRowId ?? defaultGetRowId,
+        enableSortingRemoval: true,
+    });
+
+    const skeleton = useMemo(
+        () =>
+            Array.from({ length: skeletonRows }, (_, i) => (
+                <TableRow key={`skeleton-${i}`}>
+                    {selectable && (
+                        <TableCell className="text-center px-4 py-3">
+                            <Skeleton className="h-4 w-4 mx-auto rounded" />
+                        </TableCell>
+                    )}
+                    {columns.map((_, idx) => (
+                        <TableCell key={idx} className="px-4 py-3">
+                            <Skeleton className="h-4 w-24" />
+                        </TableCell>
+                    ))}
+                </TableRow>
+            )),
+        [columns, skeletonRows, selectable]
+    );
+
+    const visibleRows = table.getRowModel().rows;
+    const colSpan = columns.length + (selectable ? 1 : 0);
 
     return (
-        <div className="w-full overflow-x-auto rounded-lg border border-primary-900">
+        <div className={`w-full overflow-x-auto rounded-lg border-2 border-primary-900/40 ${className ?? ""}`}>
             <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead className="w-12 text-center px-4 py-3">
-                            <Checkbox
-                                checked={allSelected}
-                                onCheckedChange={toggleAll}
-                                aria-label="Select all rows"
-                            />
-                        </TableHead>
+                <TableHeader className="table-header-gradient">
+                    {table.getHeaderGroups().map((headerGroup) => (
+                        <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => {
+                                const isSorted = header.column.getIsSorted();
+                                const ariaSort =
+                                    isSorted === "asc" ? "ascending" : isSorted === "desc" ? "descending" : "none";
 
-                        {columns.map((col) => (
-                            <TableHead
-                                key={String(col.key)}
-                                className="whitespace-nowrap font-semibold px-4 py-3 text-sm"
-                            >
-                                {col.label}
-                            </TableHead>
-                        ))}
-                    </TableRow>
+                                return (
+                                    <TableHead
+                                        key={header.id}
+                                        aria-sort={
+                                            header.column.getCanSort()
+                                                ? (ariaSort as "none" | "ascending" | "descending")
+                                                : undefined
+                                        }
+                                        className={
+                                            header.id === "select"
+                                                ? "w-12 text-center px-4 py-3"
+                                                : "whitespace-nowrap font-semibold px-4 py-3 text-sm"
+                                        }
+                                    >
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(header.column.columnDef.header, header.getContext())}
+                                    </TableHead>
+                                );
+                            })}
+                        </TableRow>
+                    ))}
                 </TableHeader>
 
-                <TableBody>
+                <TableBody aria-busy={loading}>
                     {loading ? (
-                        skeletonRows
-                    ) : data.length > 0 ? (
-                        data.map((row, rowIndex) => (
-                            <TableRow key={rowIndex}>
-                                <TableCell className="text-center px-4 py-3">
-                                    <Checkbox
-                                        checked={selectedRows.includes(rowIndex)}
-                                        onCheckedChange={() => toggleRow(rowIndex)}
-                                        aria-label={`Select row ${rowIndex + 1}`}
-                                    />
-                                </TableCell>
-
-                                {columns.map((col) => (
+                        skeleton
+                    ) : visibleRows.length > 0 ? (
+                        visibleRows.map((row) => (
+                            <TableRow
+                                key={row.id}
+                                data-state={row.getIsSelected() ? "selected" : undefined}
+                            >
+                                {row.getVisibleCells().map((cell) => (
                                     <TableCell
-                                        key={String(col.key)}
-                                        className="whitespace-nowrap px-4 py-3 text-sm"
+                                        key={cell.id}
+                                        className={
+                                            cell.column.id === "select"
+                                                ? "text-center px-4 py-3"
+                                                : "whitespace-nowrap px-4 py-3 text-sm"
+                                        }
                                     >
-                                        {col.render
-                                            ? col.render(row)
-                                            : (row as any)[col.key] ?? "—"}
+                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                     </TableCell>
                                 ))}
                             </TableRow>
                         ))
                     ) : (
                         <TableRow>
-                            <TableCell
-                                colSpan={columns.length + 1}
-                                className="text-center py-8 text-sm text-muted-foreground"
-                            >
+                            <TableCell colSpan={colSpan} className="text-center py-8 text-sm text-muted-foreground">
                                 {emptyMessage}
                             </TableCell>
                         </TableRow>
@@ -148,10 +288,9 @@ const DataTable = <T,>({
                             <PaginationItem>
                                 <PaginationPrevious
                                     onClick={() =>
-                                        pagination.page > 1 &&
-                                        pagination.onPageChange(pagination.page - 1)
+                                        pagination.page > 1 && pagination.onPageChange(pagination.page - 1)
                                     }
-                                    className={pagination.page === 1 ? "pointer-events-none opacity-50" : ""}
+                                    className={pagination.page === 1 ? "cursor-not-allowed opacity-50" : "cursor-pointer"}
                                 />
                             </PaginationItem>
 
@@ -167,6 +306,7 @@ const DataTable = <T,>({
                                             <PaginationLink
                                                 isActive={pagination.page === pageNumber}
                                                 onClick={() => pagination.onPageChange(pageNumber)}
+                                                className="cursor-pointer"
                                             >
                                                 {pageNumber}
                                             </PaginationLink>
@@ -186,8 +326,8 @@ const DataTable = <T,>({
                                     }
                                     className={
                                         pagination.page === pagination.totalPages
-                                            ? "pointer-events-none opacity-50"
-                                            : ""
+                                            ? "cursor-not-allowed opacity-50"
+                                            : "cursor-pointer"
                                     }
                                 />
                             </PaginationItem>

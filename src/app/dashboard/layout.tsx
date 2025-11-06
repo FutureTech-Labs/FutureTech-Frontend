@@ -24,7 +24,7 @@ const DashboardLayout = async ({ children }: DashboardLayoutProps) => {
 
                     {/* Main Content */}
                     <section className="relative flex-1 overflow-auto rounded-xl p-3 md:p-6">
-                        <div className="absolute top-1/2 left-1/2 translate-x-20 -translate-y-1/2 w-30 h-30 gradient-01 pointer-events-none z-0" />
+                        <div className="absolute top-1/2 left-1/2 lg:translate-x-20 -translate-y-1/2 w-30 h-30 gradient-01 pointer-events-none z-0" />
                         {children}
                     </section>
                 </div>

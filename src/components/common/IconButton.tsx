@@ -32,7 +32,7 @@ export default function IconButton({
         xs: { p: "p-1", icon: "h-3 w-3" },
         sm: { p: "p-1.5", icon: "h-3.5 w-3.5" },
         md: { p: "p-2", icon: "h-4 w-4" },
-        lg: { p: "p-3", icon: "h-6 w-6" },
+        lg: { p: "p-1", icon: "h-6 w-6" },
     };
 
     const sz = sizeMap[size] ?? sizeMap["lg"];
@@ -40,26 +40,27 @@ export default function IconButton({
 
     return (
         <Button
+            type="button"
             variant={variant as any}
-            className={`${btnClass} cursor-pointer `}
+            className={`${btnClass} inline-flex items-center justify-center cursor-pointer shrink-0 w-10 h-10 transition-all duration-200`}
             onClick={onClick}
             disabled={disabled}
             aria-label={ariaLabel}
             title={title}
         >
             {Icon ? (
-                <Icon className={`${sz.icon}`} aria-hidden />
+                <Icon className={`${sz.icon} shrink-0`} aria-hidden />
             ) : iconSrc ? (
                 <Image
                     src={iconSrc}
                     alt={ariaLabel || "icon"}
                     width={20}
                     height={20}
-                    className={`object-contain ${sz.icon}`}
+                    className={`object-contain ${sz.icon} shrink-0`}
                 />
             ) : null}
 
-            {children ? <span className="ml-2">{children}</span> : null}
+            {children ? <span className="ml-2 whitespace-nowrap">{children}</span> : null}
         </Button>
     );
 };

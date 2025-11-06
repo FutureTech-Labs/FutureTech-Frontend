@@ -9,10 +9,12 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "cwsmgmt.corsair.com"
-      }
-    ]
+        protocol: 'https',
+        hostname: 'files.edgestore.dev',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   }
 };
 
