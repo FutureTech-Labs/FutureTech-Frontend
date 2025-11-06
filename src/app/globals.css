@@ -111,6 +111,15 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+*::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* CUSTOM COLOR THEME */
 @theme {
   /* Bg color */
@@ -226,6 +235,41 @@
     background: linear-gradient(133.264deg, #FFFFFF 0%, #7CF6FF 100%);
   }
 
+  .table-bg-gradient {
+    background: linear-gradient(79.74deg, rgba(48, 125, 237, 5%) 0%, rgba(0, 0, 0, 12%) 100%);
+  }
+
+  .border-gradient {
+    position: relative;
+    border-radius: 20px;
+    z-index: 0;
+    isolation: isolate;
+  }
+
+  .border-gradient {
+    position: relative;
+    border-radius: 20px;
+    z-index: 0;
+  }
+
+  .border-gradient::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    padding: 1.2px;
+    background: linear-gradient(90deg,
+        rgba(48, 125, 237, 0.3) 0%,
+        rgba(0, 0, 0, 0.5) 100%);
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask-composite: exclude;
+    z-index: -1;
+    box-sizing: border-box;
+  }
+
   /* Button classes */
   .disable-rings {
     @apply outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none active:ring-0;
@@ -240,5 +284,4 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
-
 }

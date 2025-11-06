@@ -13,24 +13,24 @@ const DashboardLayout = async ({ children }: DashboardLayoutProps) => {
 
     return (
         <SidebarProvider>
-            <main className="flex h-dvh overflow-clip">
+            <main className="flex h-dvh w-full overflow-hidden">
                 {/* Sidebar */}
                 <Sidebar user={user} />
 
                 {/* Main Content Wrapper */}
-                <div className="flex flex-1 flex-col rounded-xl w-full">
+                <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
                     {/* Header */}
                     <Header user={user} />
 
                     {/* Main Content */}
-                    <section className="flex-1 h-full rounded-xl overflow-x-auto overflow-y-auto p-3 md:p-6">
+                    <section className="relative flex-1 overflow-auto rounded-xl p-3 md:p-6">
+                        <div className="absolute top-1/2 left-1/2 translate-x-20 -translate-y-1/2 w-30 h-30 gradient-01 pointer-events-none z-0" />
                         {children}
                     </section>
-
                 </div>
             </main>
         </SidebarProvider>
     );
-}
+};
 
 export default DashboardLayout;

@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { Label } from '../ui/label'
 import { Controller } from 'react-hook-form'
 
@@ -26,7 +24,7 @@ const SelectField = ({ name, label, placeholder, options, control, error, requir
                 }}
                 render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger className="w-full !h-12 px-3 py-3 text-base border-gray-600 bg-gray-800 text-white rounded-lg">
+                        <SelectTrigger className="w-full h-12! px-3 py-3 text-base border-gray-600 bg-gray-800 text-white rounded-lg">
                             <SelectValue placeholder={placeholder} />
                         </SelectTrigger>
                         <SelectContent className='bg-gray-800 border-gray-600 text-white'>

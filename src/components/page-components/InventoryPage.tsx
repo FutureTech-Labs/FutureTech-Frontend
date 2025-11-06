@@ -4,6 +4,10 @@ import DataTable from "../common/Table";
 import { useEffect, useState } from "react";
 import { getProducts } from "@/services/productService";
 import ProductDetailsDialog from "../common/ProductDetailsDialog";
+import { ScrollableTabs } from "../common/ScrollableTabs";
+import { cn, toSentenceCase } from "@/lib/utils";
+import IconButton from "../common/IconButton";
+import { Eye } from "lucide-react";
 
 interface InventoryPageProps {
     role: "admin" | "cashier" | null;
@@ -78,24 +82,41 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
         {
             key: "status",
             label: "Status",
-            render: (p: IProduct) => p.status || "—",
+            render: (p: IProduct) => (
+                <span
+                    className={cn(
+                        "px-3 py-1 text-sm font-medium rounded-full border transition-colors duration-200",
+                        p.status === "active"
+                            ? "bg-green-500/15 text-green-500 border-green-500/30"
+                            : "bg-zinc-700/20 text-zinc-400 border-zinc-500/30"
+                    )}
+                >
+                    {toSentenceCase(p.status)}
+                </span>
+            ),
         },
+
         {
             key: "actions",
             label: "Actions",
             render: (p: IProduct) => (
-                <div className="flex gap-2">
-                    <button
-                        className="px-2 py-1 bg-green-500 text-white rounded"
+                <div className="flex">
+                    <IconButton
+                        iconSrc="/icons/Eye.svg"
+                        ariaLabel="view"
                         onClick={() => handleViewProduct(p)}
-                    >
-                        View
-                    </button>
+                    />
 
                     {role === "admin" && (
                         <>
-                            <button className="px-2 py-1 bg-blue-500 text-white rounded">Edit</button>
-                            <button className="px-2 py-1 bg-red-500 text-white rounded">Delete</button>
+                            <IconButton
+                                iconSrc="/icons/Edit.svg"
+                                ariaLabel="Edit"
+                            />
+                            <IconButton
+                                iconSrc="/icons/Delete.svg"
+                                ariaLabel="Delete"
+                            />
                         </>
                     )}
                 </div>
@@ -103,9 +124,17 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
         },
     ];
 
+    const tabs = Array.from({ length: 15 }).map((_, i) => ({
+        value: `tab${i + 1}`,
+        label: `All products ${i + 1}`,
+    }))
+
     return (
-        <div>
-            <h1 className="text-2xl font-semibold mb-4">Inventory</h1>
+        <div className=" p-5 rounded-xl border-2 border-primary-900/40 table-bg-gradient shadow-lg shadow-primary-900/15">
+            <div className="w-full mb-5">
+                <ScrollableTabs tabs={tabs} />
+            </div>
+
             <DataTable
                 columns={columns}
                 data={products}
@@ -118,7 +147,6 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
                 }}
             />
 
-            {/* ✅ Reusable Dialog */}
             <ProductDetailsDialog
                 product={selectedProduct}
                 open={dialogOpen}

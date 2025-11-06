@@ -79,7 +79,7 @@ const DataTable = <T,>({
     ));
 
     return (
-        <div className="w-full overflow-x-auto rounded-lg border">
+        <div className="w-full overflow-x-auto rounded-lg border border-primary-900">
             <Table>
                 <TableHeader>
                     <TableRow>
