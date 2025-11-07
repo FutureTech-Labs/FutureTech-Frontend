@@ -21,12 +21,16 @@ interface ScrollableTabsProps {
     tabs: Tab[];
     defaultValue?: string;
     className?: string;
+    activeTab?: string;
+    onTabChange?: (value: string) => void;
 }
 
 export function ScrollableTabs({
     tabs,
     defaultValue,
     className,
+    activeTab,
+    onTabChange,
 }: ScrollableTabsProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const listRef = useRef<HTMLDivElement>(null);
@@ -34,6 +38,8 @@ export function ScrollableTabs({
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
     const [isScrollable, setIsScrollable] = useState(false);
+    const [internalValue, setInternalValue] = useState(defaultValue || tabs[0]?.value);
+    const currentValue = activeTab ?? internalValue;
 
     const EPS = 4;
 
@@ -126,7 +132,7 @@ export function ScrollableTabs({
         smoothScrollTo(target);
     };
 
-    const handleTabClick = (index: number) => {
+    const handleTabClick = (index: number, value: string) => {
         const el = scrollRef.current;
         const list = listRef.current;
         if (!el || !list) return;
@@ -150,11 +156,19 @@ export function ScrollableTabs({
 
         targetScroll = Math.max(0, Math.min(targetScroll, maxScrollLeft));
         smoothScrollTo(targetScroll);
+
+        setInternalValue(value);
+        onTabChange?.(value);
     };
 
     return (
         <Tabs
             defaultValue={defaultValue || tabs[0]?.value}
+            value={currentValue}
+            onValueChange={(val) => {
+                setInternalValue(val);
+                onTabChange?.(val);
+            }}
             className={cn("w-full flex gap-2", className)}
         >
             <div className="flex items-center gap-2">
@@ -164,7 +178,7 @@ export function ScrollableTabs({
                         size="icon"
                         onClick={() => handleScroll("left")}
                         className={cn(
-                            "button-gradient shrink-0 h-12 w-8 border-primary-500/30 hover:bg-primary-900/10 cursor-pointer"
+                            "button-gradient shrink-0 h-10 w-8 border-primary-500/30 hover:bg-primary-900/10 cursor-pointer"
                         )}
                         aria-label="Scroll left"
                     >
@@ -191,10 +205,10 @@ export function ScrollableTabs({
                             <div key={tab.value} className="flex items-center h-full">
                                 <TabsTrigger
                                     value={tab.value}
-                                    onClick={() => handleTabClick(index)}
+                                    onClick={() => handleTabClick(index, tab.value)}
                                     className={cn(
                                         "px-5 md:px-20 md:mx-2 mx-1 text-center border! border-transparent! snap-center transition-all cursor-pointer",
-                                        "data-[state=active]:bg-primary-900/25! data-[state=active]:border-primary-500/30! data-[state=active]:button-gradient!",
+                                        "data-[state=active]:bg-primary-900/25! data-[state=active]:border-primary-500/30! data-[state=active]:button-gradient! hover:bg-primary-900/30",
                                         isScrollable ? "flex-none" : "flex-1"
                                     )}
                                 >
@@ -219,7 +233,7 @@ export function ScrollableTabs({
                         size="icon"
                         onClick={() => handleScroll("right")}
                         className={cn(
-                            "button-gradient shrink-0 h-12 w-8 border-primary-500/30 hover:bg-primary-900/10 cursor-pointer"
+                            "button-gradient shrink-0 h-10 w-8 border-primary-500/30 hover:bg-primary-900/10 cursor-pointer"
                         )}
                         aria-label="Scroll right"
                     >

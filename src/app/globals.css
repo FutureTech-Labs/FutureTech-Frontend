@@ -226,6 +226,10 @@
     background: linear-gradient(79.906deg, rgba(48, 125, 237, 35%) 0%, rgba(0, 0, 0, 0%) 100%);
   }
 
+  .search-gradient {
+    background: linear-gradient(79.906deg, rgba(48, 125, 237, 10%) 0%, rgba(0, 0, 0, 60%) 100%);
+  }
+
   .gradient-01 {
     background-image: radial-gradient(circle at top left,
         #307DED 0%,
@@ -263,7 +267,7 @@
     position: absolute;
     inset: 0;
     border-radius: 20px;
-    padding: 1.2px;
+    padding: 1px;
     background: linear-gradient(90deg,
         rgba(48, 125, 237, 0.3) 0%,
         rgba(0, 0, 0, 0.5) 100%);

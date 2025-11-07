@@ -2,11 +2,13 @@
 
 import DataTable from "../common/Table";
 import { useEffect, useState } from "react";
-import { getProducts } from "@/services/productService";
-import ProductDetailsDialog from "../common/ProductDetailsDialog";
-import { ScrollableTabs } from "../common/ScrollableTabs";
-import { cn, toSentenceCase, formatCurrencyLKR } from "@/lib/utils";
 import IconButton from "../common/IconButton";
+import SearchField from "../forms/SearchField";
+import DropdownField from "../forms/DropDownField";
+import { ScrollableTabs } from "../common/ScrollableTabs";
+import ProductDetailsDialog from "../common/ProductDetailsDialog";
+import { cn, toSentenceCase, formatCurrencyLKR } from "@/lib/utils";
+import { getCategoriesAndBrands, getProducts } from "@/services/productService";
 
 interface InventoryPageProps {
     role: "admin" | "cashier" | null;
@@ -17,28 +19,42 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
     const [totalPages, setTotalPages] = useState(1);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [brands, setBrands] = useState<Brand[]>([]);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [products, setProducts] = useState<IProduct[]>([]);
+    const [selectedBrand, setSelectedBrand] = useState("all");
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [selectedCategory, setSelectedCategory] = useState("all");
     const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
 
     useEffect(() => {
-        const fetchProducts = async () => {
+        const fetchData = async () => {
             setLoading(true);
             try {
-                const res = await getProducts({ page });
-                if (res.success) {
-                    setProducts(res.products);
-                    setTotalPages(res.totalPages);
-                    setTotal(res.total);
+                const [productRes, categoryBrandRes] = await Promise.all([
+                    getProducts({ page }),
+                    getCategoriesAndBrands(),
+                ]);
+
+                if (productRes.success) {
+                    setProducts(productRes.products);
+                    setTotalPages(productRes.totalPages);
+                    setTotal(productRes.total);
+                }
+
+                if (categoryBrandRes.success) {
+                    setCategories(categoryBrandRes.categories);
+                    setBrands(categoryBrandRes.brands);
                 }
             } catch (error) {
-                console.error("Failed to fetch products:", error);
+                console.error("Failed to fetch data:", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchProducts();
+        fetchData();
     }, [page]);
 
     const handleViewProduct = (product: IProduct) => {
@@ -121,20 +137,69 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
         },
     ];
 
-    const tabs = Array.from({ length: 15 }).map((_, i) => ({
-        value: `tab${i + 1}`,
-        label: `All products ${i + 1}`,
-    }));
+    const tabs = [
+        { value: "all", label: "All Products" },
+        ...categories.map((cat) => ({
+            value: cat._id,
+            label: toSentenceCase(cat.name)
+        })),
+    ];
+
+    const filteredProducts = products.filter((p) => {
+        const matchesCategory =
+            selectedCategory === "all" || !selectedCategory
+                ? true
+                : p.category && p.category._id === selectedCategory;
+
+        const matchesBrand =
+            selectedBrand === "all" || !selectedBrand
+                ? true
+                : p.brand && p.brand._id === selectedBrand;
+
+        const search = searchTerm.toLowerCase();
+
+        const matchesSearch = search
+            ? p.name.toLowerCase().includes(search) ||
+            p.category?.name.toLowerCase().includes(search) ||
+            p.brand?.name.toLowerCase().includes(search)
+            : true;
+
+        return matchesCategory && matchesBrand && matchesSearch;
+    });
+
+
 
     return (
-        <div className="p-5 rounded-xl border-2 border-primary-900/40 table-bg-gradient shadow-lg shadow-primary-900/15">
-            <div className="w-full mb-5">
-                <ScrollableTabs tabs={tabs} />
+        <div className="flex flex-col gap-6 p-5 rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient shadow-lg shadow-primary-900/15">
+
+            <div className="flex md:flex-row flex-col gap-5 items-center justify-between w-full">
+                <SearchField
+                    placeholder="Search products, brands or categories..."
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                    onClear={() => setSearchTerm("")}
+                    className="md:max-w-md"
+                />
+                <DropdownField
+                    label="Brand"
+                    items={brands}
+                    selected={selectedBrand}
+                    onChange={(value) => setSelectedBrand(value)}
+                    placeholder="Select a brand"
+                />
+            </div>
+
+            <div className="w-full">
+                <ScrollableTabs
+                    activeTab={selectedCategory}
+                    onTabChange={setSelectedCategory}
+                    tabs={tabs}
+                />
             </div>
 
             <DataTable
                 columns={columns}
-                data={products}
+                data={filteredProducts}
                 loading={loading}
                 pagination={{
                     page,
