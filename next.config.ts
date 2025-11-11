@@ -4,7 +4,10 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   experimental: {
     turbopackFileSystemCacheForDev: true,
-    viewTransition: true
+    viewTransition: true,
+    serverActions: {
+      bodySizeLimit: '4mb',
+    },
   },
   images: {
     remotePatterns: [
@@ -15,6 +18,7 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+
   }
 };
 

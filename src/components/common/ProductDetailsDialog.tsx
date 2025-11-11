@@ -7,6 +7,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import Image from "next/image";
 
 interface ProductDetailsDialogProps {
     product: IProduct | null;
@@ -32,9 +33,11 @@ const ProductDetailsDialog = ({ product, open, onOpenChange }: ProductDetailsDia
                     {product?.images && product.images.length > 0 ? (
                         <div className="grid grid-cols-2 gap-2 ">
                             {product.images.map((img, i) => (
-                                <img
+                                <Image
                                     key={i}
                                     src={img}
+                                    width={300}
+                                    height={50}
                                     alt={`Product image ${i + 1}`}
                                     className="object-contain rounded"
                                 />
@@ -59,10 +62,10 @@ const ProductDetailsDialog = ({ product, open, onOpenChange }: ProductDetailsDia
                     {product.description && (
                         <div className="mt-3">
                             <p className="font-semibold">Description</p>
-                            <p className="text-gray-600 text-sm mt-1">{product.description.intro}</p>
+                            <p className="text-sm mt-1">{product.description.intro}</p>
 
                             {product.description.specifications && (
-                                <ul className="list-disc ml-5 mt-2 text-sm text-gray-700">
+                                <ul className="list-disc ml-5 mt-2 text-sm">
                                     {product.description.specifications.map((spec, i) => (
                                         <li key={i}>{spec}</li>
                                     ))}

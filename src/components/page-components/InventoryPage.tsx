@@ -1,14 +1,22 @@
 "use client";
 
+import Image from "next/image";
+import { toast } from "sonner";
+import { Button } from "../ui/button";
 import DataTable from "../common/Table";
+import DialogBox from "../common/DialogBox";
 import { useEffect, useState } from "react";
 import IconButton from "../common/IconButton";
+import { useEdgeStore } from "@/lib/edgestore";
 import SearchField from "../forms/SearchField";
-import DropdownField from "../forms/DropDownField";
+import SelectField from "../forms/SelectField";
+import AddProducts from "../forms/AddProducts";
+import ExportPDFButton from "../common/ExportPdfButton";
 import { ScrollableTabs } from "../common/ScrollableTabs";
 import ProductDetailsDialog from "../common/ProductDetailsDialog";
 import { cn, toSentenceCase, formatCurrencyLKR } from "@/lib/utils";
-import { getCategoriesAndBrands, getProducts } from "@/services/productService";
+import { deleteProduct, getCategoriesAndBrands, getProducts } from "@/services/productService";
+
 
 interface InventoryPageProps {
     role: "admin" | "cashier" | null;
@@ -22,45 +30,86 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [brands, setBrands] = useState<Brand[]>([]);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [addDialogOpen, setAddDialogOpen] = useState(false);
     const [products, setProducts] = useState<IProduct[]>([]);
     const [selectedBrand, setSelectedBrand] = useState("all");
     const [categories, setCategories] = useState<Category[]>([]);
     const [selectedCategory, setSelectedCategory] = useState("all");
     const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const [productRes, categoryBrandRes] = await Promise.all([
-                    getProducts({ page }),
-                    getCategoriesAndBrands(),
-                ]);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [productToDelete, setProductToDelete] = useState<IProduct | null>(null);
 
-                if (productRes.success) {
-                    setProducts(productRes.products);
-                    setTotalPages(productRes.totalPages);
-                    setTotal(productRes.total);
-                }
+    const { edgestore } = useEdgeStore();
 
-                if (categoryBrandRes.success) {
-                    setCategories(categoryBrandRes.categories);
-                    setBrands(categoryBrandRes.brands);
-                }
-            } catch (error) {
-                console.error("Failed to fetch data:", error);
-            } finally {
-                setLoading(false);
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const [productRes, categoryBrandRes] = await Promise.all([
+                getProducts({ page }),
+                getCategoriesAndBrands(),
+            ]);
+
+            if (productRes.success) {
+                setProducts(productRes.products);
+                setTotalPages(productRes.totalPages);
+                setTotal(productRes.total);
             }
-        };
 
+            if (categoryBrandRes.success) {
+                setCategories(categoryBrandRes.categories);
+                setBrands(categoryBrandRes.brands);
+            }
+        } catch (error) {
+            console.error("Failed to fetch data:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchData();
     }, [page]);
+
 
     const handleViewProduct = (product: IProduct) => {
         setSelectedProduct(product);
         setDialogOpen(true);
     };
+
+    const handleDeleteClick = (product: IProduct) => {
+        setProductToDelete(product);
+        setDeleteDialogOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!productToDelete) return;
+        const toastId = toast.loading("Deleting product...");
+
+        try {
+            if (productToDelete.images && productToDelete.images.length > 0) {
+                await Promise.all(
+                    productToDelete.images.map(async (url) => {
+                        try {
+                            await edgestore.productImages.delete({ url });
+                        } catch (err) {
+                            console.warn("Failed to delete image:", url, err);
+                        }
+                    })
+                );
+            }
+
+            await deleteProduct(productToDelete._id);
+
+            toast.success("Product and images deleted successfully", { id: toastId });
+            setDeleteDialogOpen(false);
+            setProductToDelete(null);
+            await fetchData();
+        } catch (error: any) {
+            toast.error(error.message || "Failed to delete product", { id: toastId });
+        }
+    };
+
 
     const columns = [
         {
@@ -82,13 +131,15 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
             label: "Image",
             render: (p: IProduct) =>
                 p.images?.[0] ? (
-                    <img
-                        src={p.images[0]}
-                        alt={p.name}
-                        width={50}
-                        height={50}
-                        className="object-cover rounded-lg"
-                    />
+                    <div className="relative w-[60px] h-10">
+                        <Image
+                            src={p.images[0]}
+                            alt={p.name || "Product Image"}
+                            fill
+                            className="object-cover rounded"
+                            priority={false}
+                        />
+                    </div>
                 ) : (
                     "—"
                 ),
@@ -129,7 +180,8 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
                     {role === "admin" && (
                         <>
                             <IconButton iconSrc="/icons/Edit.svg" ariaLabel="Edit" />
-                            <IconButton iconSrc="/icons/Delete.svg" ariaLabel="Delete" />
+                            <IconButton iconSrc="/icons/Delete.svg" ariaLabel="Delete"
+                                onClick={() => handleDeleteClick(p)} />
                         </>
                     )}
                 </div>
@@ -167,12 +219,11 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
         return matchesCategory && matchesBrand && matchesSearch;
     });
 
-
-
     return (
-        <div className="flex flex-col gap-6 p-5 rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient shadow-lg shadow-primary-900/15">
+        <div className="relative flex flex-col gap-6 p-5 rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient shadow-lg shadow-primary-900/15">
 
             <div className="flex md:flex-row flex-col gap-5 items-center justify-between w-full">
+                {/* Search filter */}
                 <SearchField
                     placeholder="Search products, brands or categories..."
                     value={searchTerm}
@@ -180,16 +231,49 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
                     onClear={() => setSearchTerm("")}
                     className="md:max-w-md"
                 />
-                <DropdownField
-                    label="Brand"
-                    items={brands}
-                    selected={selectedBrand}
-                    onChange={(value) => setSelectedBrand(value)}
-                    placeholder="Select a brand"
-                />
+                <div className="flex md:flex-row flex-col gap-5 w-full items-center justify-end">
+                    {/* Brand Select filter */}
+                    <SelectField
+                        placeholder="Select a brand"
+                        value={selectedBrand}
+                        onChange={setSelectedBrand}
+                        options={[
+                            { value: "all", label: "All Brands" },
+                            ...brands.map((b) => ({
+                                value: b._id,
+                                label: b.name,
+                            })),
+                        ]}
+                        width="md:w-[150px]"
+                        className="bg-black-500! border border-white focus:ring-1! focus:ring-primary-800! text-xs md:text-sm"
+                    />
+                    {/* Export button */}
+                    <ExportPDFButton
+                        title="Product Inventory Report"
+                        fileName="products.pdf"
+                        columns={[
+                            { header: "Name", key: "name" },
+                            { header: "Price", key: "sellingPrice", format: (v) => formatCurrencyLKR(v) },
+                            { header: "Category", key: "category.name" },
+                            { header: "Status", key: "status" },
+                        ]}
+                        data={filteredProducts}
+                    />
+
+                    {/* Add Products Button comes here to open the dialogBox */}
+                    {role === "admin" && (
+                        <Button
+                            onClick={() => setAddDialogOpen(true)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-md"
+                        >
+                            + Add Product
+                        </Button>
+                    )}
+                </div>
             </div>
 
             <div className="w-full">
+                {/* Category Filter */}
                 <ScrollableTabs
                     activeTab={selectedCategory}
                     onTabChange={setSelectedCategory}
@@ -197,6 +281,7 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
                 />
             </div>
 
+            {/* Table */}
             <DataTable
                 columns={columns}
                 data={filteredProducts}
@@ -209,10 +294,47 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
                 }}
             />
 
+            {/* Dialog */}
             <ProductDetailsDialog
                 product={selectedProduct}
                 open={dialogOpen}
                 onOpenChange={setDialogOpen}
+            />
+
+            {/* Add Product Dialog */}
+            <DialogBox
+                open={addDialogOpen}
+                onOpenChange={setAddDialogOpen}
+                title="Add New Product"
+                description="Fill in the product details and upload images."
+                widthClass="max-w-3xl"
+            >
+                <AddProducts
+                    brands={brands}
+                    categories={categories}
+                    products={products}
+                    onSuccess={() => {
+                        setAddDialogOpen(false);
+                        fetchData();
+                    }}
+                    onCancel={() => setAddDialogOpen(false)}
+                />
+            </DialogBox>
+
+
+            {/* 🆕 Delete Confirmation Dialog */}
+            <DialogBox
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                title="Delete Product"
+                description={`Are you sure you want to delete ${productToDelete?.name}"? 
+                This action cannot be undone.`}
+                showFooter
+                confirmText="Delete"
+                cancelText="Cancel"
+                variant="danger"
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleteDialogOpen(false)}
             />
         </div>
     );

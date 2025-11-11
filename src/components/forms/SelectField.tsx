@@ -1,6 +1,5 @@
 import { Label } from '../ui/label'
 import { Controller } from 'react-hook-form'
-
 import {
     Select,
     SelectContent,
@@ -9,37 +8,61 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 
-const SelectField = ({ name, label, placeholder, options, control, error, required = false }: ISelectFieldProps) => {
-    return (
-        <div className='space-y-2'>
-            <Label htmlFor={name} className='text-sm font-medium text-gray-400'>
-                {label}
-            </Label>
+const SelectField = ({
+    name,
+    label,
+    placeholder,
+    options,
+    control,
+    error,
+    required = false,
+    value,
+    onChange,
+    width,
+    className,
+    iconColor = "text-white"
+}: ISelectFieldProps) => {
+    const selectElement = (selectedValue: string, onValueChange: (value: string) => void) => (
+        <Select value={selectedValue} onValueChange={onValueChange}>
+            <SelectTrigger iconColor={iconColor} className={`disable-rings w-full px-3 h-10! rounded-xl cursor-pointer ${className}`}>
+                <SelectValue placeholder={placeholder} />
+            </SelectTrigger>
+            <SelectContent className='text-white mt-1'>
+                {options.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
+    )
 
-            <Controller
-                name={name}
-                control={control}
-                rules={{
-                    required: required ? `Please select a ${label.toLowerCase()}` : false,
-                }}
-                render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger className="w-full h-12! px-3 py-3 text-base border-gray-600 bg-gray-800 text-white rounded-lg">
-                            <SelectValue placeholder={placeholder} />
-                        </SelectTrigger>
-                        <SelectContent className='bg-gray-800 border-gray-600 text-white'>
-                            {options.map((option) => (
-                                <SelectItem value={option.value} key={option.value} className="focus:bg-gray-600 focus:text-white">
-                                    {option.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                        {error && <p className='text-sm text-error-500'>{error.message}</p>}
-                    </Select>
-                )}
-            />
+    return (
+        <div className={`space-y-2 w-full ${width}`}>
+            {label && (
+                <Label htmlFor={name} className='text-sm font-medium text-gray-400'>
+                    {label}
+                </Label>
+            )}
+
+            {control && name ? (
+                <Controller
+                    name={name}
+                    control={control}
+                    rules={{
+                        required: required ? `Please select a ${label?.toLowerCase()}` : false,
+                    }}
+                    render={({ field }) =>
+                        selectElement(field.value, field.onChange)
+                    }
+                />
+            ) : (
+                selectElement(value ?? "", onChange ?? (() => { }))
+            )}
+
+            {error && <p className='text-sm text-error-500'>{error.message}</p>}
         </div>
     )
 }
 
-export default SelectField;
+export default SelectField

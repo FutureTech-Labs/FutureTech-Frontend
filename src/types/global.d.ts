@@ -85,14 +85,37 @@ declare global {
         autoComplete?: string;
     };
 
-    type ISelectFieldProps = {
+    type IFormTextareaProps = {
         name: string;
-        label: string;
+        label?: string;
         placeholder: string;
-        options: readonly Option[];
-        control: Control;
+        register: UseFormRegister<any>;
         error?: FieldError;
-        required?: boolean;
+        validation?: RegisterOptions;
+        disabled?: boolean;
+        value?: string;
+        rows?: number;
+        maxWords?: number;
     };
 
+
+    type ISelectFieldProps = {
+        name?: string
+        label?: string
+        placeholder?: string
+        options: Option[]
+        control?: any
+        error?: any
+        required?: boolean
+        value?: string
+        className?: string
+        iconColor?: string
+        width?: string
+        onChange?: (value: string) => void
+    }
+
+    type Option = {
+        value: string
+        label: string
+    }
 }

@@ -55,7 +55,7 @@ const SearchField = ({
     return (
         <div
             className={cn(
-                "relative flex items-center w-full max-w-xs text-xs md:text-sm text-white",
+                "relative flex items-center w-full text-xs md:text-sm text-white",
                 className
             )}
         >

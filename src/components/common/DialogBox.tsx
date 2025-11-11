@@ -10,13 +10,15 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface DialogBoxProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     title?: string;
     description?: string;
-    children: React.ReactNode;
+    children?: React.ReactNode;
     showFooter?: boolean;
     confirmText?: string;
     cancelText?: string;
@@ -24,9 +26,11 @@ interface DialogBoxProps {
     onCancel?: () => void;
     disableConfirm?: boolean;
     widthClass?: string;
+    showCloseIcon?: boolean;
+    variant?: "default" | "danger" | "success" | "warning" | "info";
 }
 
-export const DialogBox: React.FC<DialogBoxProps> = ({
+const DialogBox = ({
     open,
     onOpenChange,
     title,
@@ -38,39 +42,80 @@ export const DialogBox: React.FC<DialogBoxProps> = ({
     onConfirm,
     onCancel,
     disableConfirm = false,
-    widthClass = "max-w-md",
-}) => {
+    widthClass = "w-full max-w-2xl",
+    showCloseIcon = true,
+    variant = "default",
+}: DialogBoxProps) => {
+    const variantStyles = {
+        default: "bg-blue-600 hover:bg-blue-700 text-white border-blue-700",
+        danger: "bg-red-700 hover:bg-red-500 text-white border-red-700",
+        success: "bg-green-600 hover:bg-green-700 text-white border-green-700",
+        warning: "bg-yellow-500 hover:bg-yellow-600 text-black border-yellow-600",
+        info: "bg-gray-600 hover:bg-gray-700 text-white border-gray-700",
+    };
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
-                className={`bg-[#0B0B0B] text-gray-100 border border-gray-800 rounded-xl p-6 ${widthClass}`}
+                className={cn(
+                    "text-gray-100 border border-gray-800 rounded-xl p-0 z-50 shadow-lg min-w-2xl",
+                    widthClass
+                )}
             >
-                {(title || description) && (
-                    <DialogHeader>
-                        {title && <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>}
-                        {description && (
-                            <DialogDescription className="text-sm text-gray-400">
-                                {description}
-                            </DialogDescription>
-                        )}
+                {!title && (
+                    <VisuallyHidden>
+                        <DialogTitle>Dialog Window</DialogTitle>
+                    </VisuallyHidden>
+                )}
+
+                {/* Header */}
+                {(title || description || showCloseIcon) && (
+                    <DialogHeader className="border-b border-gray-800 px-6 py-4 flex justify-between items-start">
+                        <div>
+                            {title && (
+                                <DialogTitle className="text-lg font-semibold">
+                                    {title}
+                                </DialogTitle>
+                            )}
+                            {description && (
+                                <DialogDescription className="text-sm text-gray-400 mt-1">
+                                    {description}
+                                </DialogDescription>
+                            )}
+                        </div>
                     </DialogHeader>
                 )}
 
-                <div className="py-3">{children}</div>
+                {/* Scrollable content area */}
+                {children && (
+                    <div
+                        className="px-6 overflow-y-auto"
+                        style={{
+                            maxHeight: "calc(80vh - 6rem)",
+                        }}
+                    >
+                        {children}
+                    </div>
+                )}
 
+                {/* Footer */}
                 {showFooter && (
-                    <DialogFooter className="flex gap-2 pt-4">
+                    <DialogFooter className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full border-t border-gray-800 px-6 py-4">
                         <Button
                             variant="outline"
                             onClick={onCancel ?? (() => onOpenChange(false))}
-                            className="border-gray-700 hover:bg-gray-800"
+                            className="flex-1 border-gray-700 hover:bg-gray-800"
                         >
                             {cancelText}
                         </Button>
+
                         <Button
                             onClick={onConfirm}
                             disabled={disableConfirm}
-                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                            className={cn(
+                                "sm:w-auto flex-1 transition-colors border",
+                                variantStyles[variant]
+                            )}
                         >
                             {confirmText}
                         </Button>
@@ -80,3 +125,5 @@ export const DialogBox: React.FC<DialogBoxProps> = ({
         </Dialog>
     );
 };
+
+export default DialogBox;

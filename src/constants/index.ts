@@ -37,3 +37,13 @@ export const dummyNotifications = [
         time: "30 min ago"
     },
 ];
+
+export const WARRANTY_PERIODS = [
+    "no warranty",
+    "6 months",
+    "12 months",
+    "24 months",
+];
+
+export const PRODUCT_STATUSES = ["active", "inactive"];
+
