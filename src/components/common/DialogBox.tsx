@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { Loader2 } from "lucide-react";
 
 interface DialogBoxProps {
     open: boolean;
@@ -25,9 +26,11 @@ interface DialogBoxProps {
     onConfirm?: () => void;
     onCancel?: () => void;
     disableConfirm?: boolean;
+    confirmLoading?: boolean;
     widthClass?: string;
     showCloseIcon?: boolean;
     variant?: "default" | "danger" | "success" | "warning" | "info";
+    centerTitle?: boolean;
 }
 
 const DialogBox = ({
@@ -42,9 +45,11 @@ const DialogBox = ({
     onConfirm,
     onCancel,
     disableConfirm = false,
+    confirmLoading = false,
     widthClass = "w-full max-w-2xl",
     showCloseIcon = true,
     variant = "default",
+    centerTitle = false,
 }: DialogBoxProps) => {
     const variantStyles = {
         default: "bg-blue-600 hover:bg-blue-700 text-white border-blue-700",
@@ -70,19 +75,32 @@ const DialogBox = ({
 
                 {/* Header */}
                 {(title || description || showCloseIcon) && (
-                    <DialogHeader className="border-b border-gray-800 px-6 py-4 flex justify-between items-start">
-                        <div>
-                            {title && (
-                                <DialogTitle className="text-lg font-semibold">
-                                    {title}
-                                </DialogTitle>
-                            )}
-                            {description && (
-                                <DialogDescription className="text-sm text-gray-400 mt-1">
-                                    {description}
-                                </DialogDescription>
-                            )}
-                        </div>
+                    <DialogHeader
+                        className={cn(
+                            "border-b border-gray-800 px-6 py-4 flex flex-col items-start justify-center",
+                            centerTitle && "items-center text-center"
+                        )}
+                    >
+                        {title && (
+                            <DialogTitle
+                                className={cn(
+                                    "text-lg font-semibold",
+                                    centerTitle && "text-center w-full"
+                                )}
+                            >
+                                {title}
+                            </DialogTitle>
+                        )}
+                        {description && (
+                            <DialogDescription
+                                className={cn(
+                                    "text-sm text-gray-400 mt-1 whitespace-pre-line",
+                                    centerTitle && "text-center w-full"
+                                )}
+                            >
+                                {description}
+                            </DialogDescription>
+                        )}
                     </DialogHeader>
                 )}
 
@@ -105,19 +123,23 @@ const DialogBox = ({
                             variant="outline"
                             onClick={onCancel ?? (() => onOpenChange(false))}
                             className="flex-1 border-gray-700 hover:bg-gray-800"
+                            disabled={confirmLoading}
                         >
                             {cancelText}
                         </Button>
 
                         <Button
                             onClick={onConfirm}
-                            disabled={disableConfirm}
+                            disabled={disableConfirm || confirmLoading}
                             className={cn(
-                                "sm:w-auto flex-1 transition-colors border",
+                                "sm:w-auto flex-1 transition-colors border flex items-center justify-center gap-2",
                                 variantStyles[variant]
                             )}
                         >
-                            {confirmText}
+                            {confirmLoading && (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            )}
+                            {confirmLoading ? "Processing..." : confirmText}
                         </Button>
                     </DialogFooter>
                 )}

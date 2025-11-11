@@ -1,31 +1,37 @@
 "use client";
 
+import React,
+{
+    useState,
+    useRef,
+    useEffect
+} from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import React, { useState, useRef, useEffect } from "react";
 import { Image as ImageIcon } from "lucide-react";
 
 interface EdgeStoreUploaderProps {
     maxFiles?: number;
     maxSizeMB?: number;
-    onFilesChange: (files: File[], urls: string[]) => void;
-    initialUrls?: string[]; // existing image URLs for edit mode
+    value?: (File | string)[];
+    onChange?: (value: (File | string)[]) => void;
+    error?: string;
+    initialUrls?: string[];
 }
 
 export const EdgeStoreUploader: React.FC<EdgeStoreUploaderProps> = ({
     maxFiles = 4,
     maxSizeMB = 4,
-    onFilesChange,
+    value = [],
+    onChange,
+    error,
     initialUrls = [],
 }) => {
-    const [fileSlots, setFileSlots] = useState<(File | string | null)[]>(
-        Array(maxFiles).fill(null)
-    );
-    const [errors, setErrors] = useState<(string | null)[]>(Array(maxFiles).fill(null));
-
+    const [fileSlots, setFileSlots] = useState<(File | string | null)[]>(Array(maxFiles).fill(null));
+    const [slotErrors, setSlotErrors] = useState<(string | null)[]>(Array(maxFiles).fill(null));
+    const [globalError, setGlobalError] = useState<string | null>(null);
     const multiInputRef = useRef<HTMLInputElement>(null);
 
-    // 🧠 Load existing images (for edit)
     useEffect(() => {
         if (initialUrls.length > 0) {
             const filled = Array(maxFiles)
@@ -35,13 +41,41 @@ export const EdgeStoreUploader: React.FC<EdgeStoreUploaderProps> = ({
         }
     }, [initialUrls, maxFiles]);
 
-    // ✅ Handle multiple files at once
+    useEffect(() => {
+        if (onChange) {
+            const filtered = fileSlots.filter(Boolean) as (File | string)[];
+            onChange(filtered);
+        }
+    }, [fileSlots, onChange]);
+
+
+    const isDuplicateImage = (file: File, excludeIndex?: number) => {
+        return (
+            fileSlots.some((existing, i) => {
+                if (i === excludeIndex) return false;
+                if (existing instanceof File)
+                    return existing.name === file.name && existing.size === file.size;
+                if (typeof existing === "string")
+                    return existing.split("/").pop() === file.name;
+                return false;
+            }) ||
+            initialUrls.some((url) => url.split("/").pop() === file.name)
+        );
+    };
+
+
     const handleMultipleFileSelect = (files: FileList) => {
         const validFiles = Array.from(files).slice(0, maxFiles);
         const newSlots = [...fileSlots];
-        const newErrors = [...errors];
+        const newErrors = [...slotErrors];
+        let foundDuplicate = false;
 
         validFiles.forEach((file) => {
+            if (isDuplicateImage(file)) {
+                foundDuplicate = true;
+                return;
+            }
+
             const emptyIndex = newSlots.findIndex((f) => f === null);
             if (emptyIndex !== -1) {
                 const sizeMB = file.size / (1024 * 1024);
@@ -54,48 +88,52 @@ export const EdgeStoreUploader: React.FC<EdgeStoreUploaderProps> = ({
             }
         });
 
-        setErrors(newErrors);
-        setFileSlots(newSlots);
-        emitChanges(newSlots);
+        setSlotErrors(newErrors);
+        setFileSlots([...newSlots]);
+        if (foundDuplicate) setGlobalError("This image is already uploaded.");
+        else setGlobalError(null);
+
+
+        if (multiInputRef.current) multiInputRef.current.value = "";
     };
 
-    // ✅ Handle single file replace
-    const handleSingleFileChange = (index: number, file: File | null) => {
+    const handleSingleFileChange = (index: number, file: File | null, inputEl: HTMLInputElement | null) => {
         const newSlots = [...fileSlots];
-        const newErrors = [...errors];
+        const newErrors = [...slotErrors];
+        let foundDuplicate = false;
 
         if (file) {
-            const sizeMB = file.size / (1024 * 1024);
-            if (sizeMB > maxSizeMB) {
-                newErrors[index] = `File exceeds ${maxSizeMB} MB limit.`;
-                newSlots[index] = null;
+            if (isDuplicateImage(file, index)) {
+                foundDuplicate = true;
+                // block adding
             } else {
-                newErrors[index] = null;
-                newSlots[index] = file;
+                const sizeMB = file.size / (1024 * 1024);
+                if (sizeMB > maxSizeMB) {
+                    newErrors[index] = `File exceeds ${maxSizeMB} MB limit.`;
+                    newSlots[index] = null;
+                } else {
+                    newErrors[index] = null;
+                    newSlots[index] = file;
+                }
             }
         } else {
             newErrors[index] = null;
             newSlots[index] = null;
         }
 
-        setErrors(newErrors);
-        setFileSlots(newSlots);
-        emitChanges(newSlots);
+        setSlotErrors(newErrors);
+        setFileSlots([...newSlots]);
+        setGlobalError(foundDuplicate ? "This image is already uploaded." : null);
+
+
+        if (inputEl) inputEl.value = "";
     };
 
-    // ✅ Remove file or URL
     const handleRemove = (index: number) => {
         const newSlots = [...fileSlots];
         newSlots[index] = null;
         setFileSlots(newSlots);
-        emitChanges(newSlots);
-    };
-
-    // Helper to emit current state
-    const emitChanges = (slots: (File | string | null)[]) => {
-        const files = slots.filter((f) => f instanceof File) as File[];
-        const urls = slots.filter((f) => typeof f === "string") as string[];
-        onFilesChange(files, urls);
+        setGlobalError(null);
     };
 
     return (
@@ -107,7 +145,6 @@ export const EdgeStoreUploader: React.FC<EdgeStoreUploaderProps> = ({
                 </p>
             </div>
 
-            {/* Hidden multiple input */}
             <input
                 type="file"
                 accept="image/*"
@@ -128,7 +165,6 @@ export const EdgeStoreUploader: React.FC<EdgeStoreUploaderProps> = ({
                                     : "border-blue-400/30 hover:border-blue-400"
                             )}
                             onClick={() => {
-                                // 🧠 If there are empty slots, allow multi-select
                                 const hasEmpty = fileSlots.some((f) => f === null);
                                 if (hasEmpty) multiInputRef.current?.click();
                                 else document.getElementById(`file-input-${index}`)?.click();
@@ -140,7 +176,7 @@ export const EdgeStoreUploader: React.FC<EdgeStoreUploaderProps> = ({
                                         src={
                                             typeof slot === "string"
                                                 ? slot
-                                                : URL.createObjectURL(slot as File)
+                                                : URL.createObjectURL(slot)
                                         }
                                         alt={`Image ${index + 1}`}
                                         fill
@@ -164,26 +200,36 @@ export const EdgeStoreUploader: React.FC<EdgeStoreUploaderProps> = ({
                                 </div>
                             )}
 
-                            {/* Per-box upload */}
                             <input
                                 id={`file-input-${index}`}
                                 type="file"
                                 accept="image/*"
                                 className="hidden"
                                 onChange={(e) =>
-                                    handleSingleFileChange(index, e.target.files?.[0] || null)
+                                    handleSingleFileChange(index, e.target.files?.[0] || null, e.target)
                                 }
                             />
                         </div>
 
-                        {errors[index] && (
+                        {slotErrors[index] && (
                             <p className="text-xs text-red-400 mt-1 text-center w-full">
-                                {errors[index]}
+                                {slotErrors[index]}
                             </p>
                         )}
                     </div>
                 ))}
             </div>
+
+            {globalError && (
+                <p className="text-sm text-red-500 font-semibold mt-3 text-center">
+                    {globalError}
+                </p>
+            )}
+            {!globalError && error && (
+                <p className="text-sm text-red-400 font-medium mt-2 text-center">
+                    {error}
+                </p>
+            )}
         </div>
     );
 };

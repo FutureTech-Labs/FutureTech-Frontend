@@ -1,12 +1,13 @@
-import { Label } from '../ui/label'
-import { Controller } from 'react-hook-form'
+import { Label } from "../ui/label";
+import { Controller } from "react-hook-form";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 const SelectField = ({
     name,
@@ -20,14 +21,24 @@ const SelectField = ({
     onChange,
     width,
     className,
-    iconColor = "text-white"
+    iconColor = "text-white",
 }: ISelectFieldProps) => {
-    const selectElement = (selectedValue: string, onValueChange: (value: string) => void) => (
-        <Select value={selectedValue} onValueChange={onValueChange}>
-            <SelectTrigger iconColor={iconColor} className={`disable-rings w-full px-3 h-10! rounded-xl cursor-pointer ${className}`}>
-                <SelectValue placeholder={placeholder} />
+    const renderSelect = (selectedValue: string, onValueChange: (value: string) => void) => (
+        <Select
+            key={selectedValue}
+            value={selectedValue ?? ""}
+            onValueChange={onValueChange}
+        >
+            <SelectTrigger
+                iconColor={iconColor}
+                className={cn("disable-rings w-full px-3 h-10! rounded-xl cursor-pointer", className)}
+            >
+                <SelectValue
+                    placeholder={placeholder}
+                    key={`value-${selectedValue}`}
+                />
             </SelectTrigger>
-            <SelectContent className='text-white mt-1'>
+            <SelectContent className="text-white mt-1">
                 {options.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                         {option.label}
@@ -35,12 +46,12 @@ const SelectField = ({
                 ))}
             </SelectContent>
         </Select>
-    )
+    );
 
     return (
-        <div className={`space-y-2 w-full ${width}`}>
+        <div className={cn("space-y-2 w-full", width)}>
             {label && (
-                <Label htmlFor={name} className='text-sm font-medium text-gray-400'>
+                <Label htmlFor={name} className="text-sm font-medium text-gray-400">
                     {label}
                 </Label>
             )}
@@ -52,17 +63,15 @@ const SelectField = ({
                     rules={{
                         required: required ? `Please select a ${label?.toLowerCase()}` : false,
                     }}
-                    render={({ field }) =>
-                        selectElement(field.value, field.onChange)
-                    }
+                    render={({ field }) => renderSelect(field.value, field.onChange)}
                 />
             ) : (
-                selectElement(value ?? "", onChange ?? (() => { }))
+                renderSelect(value ?? "", onChange ?? (() => { }))
             )}
 
-            {error && <p className='text-sm text-error-500'>{error.message}</p>}
+            {error && <p className="text-sm text-error-500">{error.message}</p>}
         </div>
-    )
-}
+    );
+};
 
-export default SelectField
+export default SelectField;

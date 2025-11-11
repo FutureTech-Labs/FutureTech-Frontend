@@ -10,7 +10,7 @@ import IconButton from "../common/IconButton";
 import { useEdgeStore } from "@/lib/edgestore";
 import SearchField from "../forms/SearchField";
 import SelectField from "../forms/SelectField";
-import AddProducts from "../forms/AddProducts";
+import ProductForm from "../forms/AddProducts";
 import ExportPDFButton from "../common/ExportPdfButton";
 import { ScrollableTabs } from "../common/ScrollableTabs";
 import ProductDetailsDialog from "../common/ProductDetailsDialog";
@@ -38,6 +38,7 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
     const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [productToDelete, setProductToDelete] = useState<IProduct | null>(null);
 
     const { edgestore } = useEdgeStore();
@@ -71,7 +72,6 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
         fetchData();
     }, [page]);
 
-
     const handleViewProduct = (product: IProduct) => {
         setSelectedProduct(product);
         setDialogOpen(true);
@@ -84,10 +84,9 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
 
     const confirmDelete = async () => {
         if (!productToDelete) return;
-        const toastId = toast.loading("Deleting product...");
-
+        setDeleting(true);
         try {
-            if (productToDelete.images && productToDelete.images.length > 0) {
+            if (productToDelete.images?.length) {
                 await Promise.all(
                     productToDelete.images.map(async (url) => {
                         try {
@@ -100,16 +99,18 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
             }
 
             await deleteProduct(productToDelete._id);
-
-            toast.success("Product and images deleted successfully", { id: toastId });
+            toast.success("Product and images deleted successfully");
             setDeleteDialogOpen(false);
             setProductToDelete(null);
             await fetchData();
         } catch (error: any) {
-            toast.error(error.message || "Failed to delete product", { id: toastId });
+            toast.error(error.message || "Failed to delete product");
+        } finally {
+            setDeleting(false);
         }
     };
 
+    const totalProducts = categories.reduce((sum, cat) => sum + (cat.count || 0), 0);
 
     const columns = [
         {
@@ -179,7 +180,15 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
 
                     {role === "admin" && (
                         <>
-                            <IconButton iconSrc="/icons/Edit.svg" ariaLabel="Edit" />
+                            <IconButton
+                                iconSrc="/icons/Edit.svg"
+                                ariaLabel="Edit"
+                                onClick={() => {
+                                    setSelectedProduct(p);
+                                    setAddDialogOpen(true);
+                                }}
+                            />
+
                             <IconButton iconSrc="/icons/Delete.svg" ariaLabel="Delete"
                                 onClick={() => handleDeleteClick(p)} />
                         </>
@@ -190,10 +199,10 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
     ];
 
     const tabs = [
-        { value: "all", label: "All Products" },
+        { value: "all", label: `All Products (${totalProducts})` },
         ...categories.map((cat) => ({
             value: cat._id,
-            label: toSentenceCase(cat.name)
+            label: `${toSentenceCase(cat.name)} (${cat.count || 0})`,
         })),
     ];
 
@@ -231,7 +240,7 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
                     onClear={() => setSearchTerm("")}
                     className="md:max-w-md"
                 />
-                <div className="flex md:flex-row flex-col gap-5 w-full items-center justify-end">
+                <div className="flex md:flex-row flex-col gap-5 w-full justify-end">
                     {/* Brand Select filter */}
                     <SelectField
                         placeholder="Select a brand"
@@ -263,11 +272,15 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
                     {/* Add Products Button comes here to open the dialogBox */}
                     {role === "admin" && (
                         <Button
-                            onClick={() => setAddDialogOpen(true)}
+                            onClick={() => {
+                                setSelectedProduct(null);
+                                setAddDialogOpen(true);
+                            }}
                             className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-md"
                         >
                             + Add Product
                         </Button>
+
                     )}
                 </div>
             </div>
@@ -305,37 +318,53 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
             <DialogBox
                 open={addDialogOpen}
                 onOpenChange={setAddDialogOpen}
-                title="Add New Product"
-                description="Fill in the product details and upload images."
+                title={selectedProduct ? "Edit Product" : "Add New Product"}
+                description={
+                    selectedProduct
+                        ? "Update the product details below."
+                        : "Fill in the product details and upload images."
+                }
                 widthClass="max-w-3xl"
             >
-                <AddProducts
+                <ProductForm
                     brands={brands}
                     categories={categories}
-                    products={products}
+                    product={selectedProduct}
                     onSuccess={() => {
                         setAddDialogOpen(false);
+                        setSelectedProduct(null);
                         fetchData();
                     }}
-                    onCancel={() => setAddDialogOpen(false)}
+                    onCancel={() => {
+                        setAddDialogOpen(false);
+                        setSelectedProduct(null);
+                    }}
                 />
             </DialogBox>
 
-
-            {/* 🆕 Delete Confirmation Dialog */}
+            {/* Delete Confirmation Dialog */}
             <DialogBox
                 open={deleteDialogOpen}
                 onOpenChange={setDeleteDialogOpen}
                 title="Delete Product"
-                description={`Are you sure you want to delete ${productToDelete?.name}"? 
-                This action cannot be undone.`}
+                centerTitle
                 showFooter
                 confirmText="Delete"
                 cancelText="Cancel"
                 variant="danger"
                 onConfirm={confirmDelete}
                 onCancel={() => setDeleteDialogOpen(false)}
-            />
+                confirmLoading={deleting}
+            >
+                <div className="text-center text-sm text-gray-400 mt-2 whitespace-pre-line">
+                    Are you sure you want to delete "{productToDelete?.name}"?
+                    {"\n"}This action cannot be undone.
+                </div>
+            </DialogBox>
+
+
+
+
         </div>
     );
 };

@@ -60,15 +60,18 @@ declare global {
         specifications: string[];
     };
 
-    export interface Brand {
+    interface Category {
         _id: string;
         name: string;
-    };
+        count?: number;
+    }
 
-    export interface Category {
+    interface Brand {
         _id: string;
         name: string;
-    };
+        count?: number;
+    }
+
 
 
     // Types

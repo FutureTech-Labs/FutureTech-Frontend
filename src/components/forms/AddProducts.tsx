@@ -1,24 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import {
+    useEffect,
+    useState
+} from "react";
 import { toast } from "sonner";
-import { useForm } from "react-hook-form";
-import { useEdgeStore } from "@/lib/edgestore";
-import { Button } from "@/components/ui/button";
-import { createProduct } from "@/services/productService";
-import { EdgeStoreUploader } from "../common/EdgeStoreUploader";
-import { PRODUCT_STATUSES, WARRANTY_PERIODS } from "@/constants";
-
 import InputField from "./InputField";
 import SelectField from "./SelectField";
 import TextareaField from "./TextAreaField";
+import { useEdgeStore } from "@/lib/edgestore";
+import { Button } from "@/components/ui/button";
+import { Controller, useForm } from "react-hook-form";
+import { EdgeStoreUploader } from "../common/EdgeStoreUploader";
+import { PRODUCT_STATUSES, WARRANTY_PERIODS } from "@/constants";
+import { createProduct, updateProduct } from "@/services/productService";
 
-interface AddProductsProps {
-    onSuccess?: () => void;
-    onCancel?: () => void;
+interface ProductFormProps {
+    product?: IProduct | null;
     brands: Brand[];
     categories: Category[];
-    products: IProduct[];
+    onSuccess?: () => void;
+    onCancel?: () => void;
 }
 
 interface ProductFormValues {
@@ -30,9 +32,16 @@ interface ProductFormValues {
     intro: string;
     specifications: string;
     status: string;
+    images: (string | File)[];
 }
 
-const AddProducts = ({ onSuccess, onCancel, brands, categories }: AddProductsProps) => {
+const ProductForm = ({
+    product,
+    brands,
+    categories,
+    onSuccess,
+    onCancel,
+}: ProductFormProps) => {
     const {
         register,
         handleSubmit,
@@ -50,36 +59,71 @@ const AddProducts = ({ onSuccess, onCancel, brands, categories }: AddProductsPro
             intro: "",
             specifications: "",
             status: PRODUCT_STATUSES[0],
+            images: [],
         },
-        mode: "onSubmit",
     });
 
     const [loading, setLoading] = useState(false);
-    const [images, setImages] = useState<File[]>([]);
     const { edgestore } = useEdgeStore();
+
+    useEffect(() => {
+        if (product) {
+            reset({
+                name: product.name || "",
+                category: product.category?._id || "",
+                brand: product.brand?._id || "",
+                sellingPrice: product.sellingPrice || 0,
+                warrantyPeriod: product.warrantyPeriod || WARRANTY_PERIODS[0],
+                intro: product.description?.intro || "",
+                specifications:
+                    product.description?.specifications?.join("\n") || "",
+                status: product.status || PRODUCT_STATUSES[0],
+                images: product.images || [],
+            });
+        } else {
+            reset({
+                name: "",
+                category: "",
+                brand: "",
+                sellingPrice: 0,
+                warrantyPeriod: WARRANTY_PERIODS[0],
+                intro: "",
+                specifications: "",
+                status: PRODUCT_STATUSES[0],
+                images: [],
+            });
+        }
+    }, [product, reset]);
 
     const onSubmit = async (data: ProductFormValues) => {
         try {
-            if (images.length === 0) {
+            if (!data.images || data.images.length === 0) {
                 toast.warning("Please upload at least one product image.");
                 return;
             }
 
             setLoading(true);
 
-            const uploadedImageUrls: string[] = [];
-            for (const file of images) {
-                const res = await edgestore.productImages.upload({
-                    file,
-                    onProgressChange: (p) => console.log("Uploading:", p + "%"),
-                });
-                if (res?.url) uploadedImageUrls.push(res.url);
+            const uploadedUrls: string[] = [];
+
+            for (let i = 0; i < data.images.length; i++) {
+                const item = data.images[i];
+
+                if (item instanceof File) {
+                    const oldUrl = product?.images?.[i] || null;
+
+                    const res = await edgestore.productImages.upload({
+                        file: item,
+                        options: oldUrl ? { replaceTargetUrl: oldUrl } : undefined,
+                    });
+
+                    if (res?.url) uploadedUrls.push(res.url);
+                } else {
+                    uploadedUrls.push(item);
+                }
             }
 
-            if (uploadedImageUrls.length === 0) {
-                toast.error("No image URLs received from EdgeStore.");
-                return;
-            }
+            const finalImageUrls = uploadedUrls;
 
             const selectedBrand = brands.find((b) => b._id === data.brand);
             const selectedCategory = categories.find((c) => c._id === data.category);
@@ -104,37 +148,49 @@ const AddProducts = ({ onSuccess, onCancel, brands, categories }: AddProductsPro
                 sellingPrice: Number(data.sellingPrice),
                 warrantyPeriod: data.warrantyPeriod,
                 description,
-                images: uploadedImageUrls,
+                images: finalImageUrls,
                 status: data.status,
             };
 
-            const product = await createProduct(payload);
-            if (product) {
-                toast.success("Product added successfully!");
-                reset();
-                setImages([]);
-                onSuccess?.();
-            }
-        } catch (error: any) {
-            console.error("Create product error:", error);
-
-            const msg = error?.response?.data?.message?.toString().toLowerCase().trim();
-
-            // Server-side field-specific error handling
-            if (msg?.includes("name")) {
-                setError("name", { type: "server", message: error.response.data.message });
-            } else if (msg?.includes("category")) {
-                setError("category", { type: "server", message: error.response.data.message });
-            } else if (msg?.includes("brand")) {
-                setError("brand", { type: "server", message: error.response.data.message });
-            } else if (msg?.includes("price")) {
-                setError("sellingPrice", { type: "server", message: error.response.data.message });
-            } else if (msg?.includes("intro")) {
-                setError("intro", { type: "server", message: error.response.data.message });
-            } else if (msg?.includes("specification")) {
-                setError("specifications", { type: "server", message: error.response.data.message });
+            if (product?._id) {
+                await updateProduct(product._id, payload);
+                toast.success("Product updated successfully!");
             } else {
-                toast.error(error.response?.data?.message || "Failed to add product.");
+                await createProduct(payload);
+                toast.success("Product added successfully!");
+            }
+
+            reset();
+            onSuccess?.();
+        } catch (error: any) {
+            const msg = (error?.response?.data?.message || "").toLowerCase();
+
+            if (msg.includes("name")) {
+                setError("name", {
+                    type: "server",
+                    message:
+                        error.response?.data?.message ||
+                        "Product name already exists",
+                });
+            } else if (msg.includes("category")) {
+                setError("category", {
+                    type: "server",
+                    message: error.response?.data?.message,
+                });
+            } else if (msg.includes("brand")) {
+                setError("brand", {
+                    type: "server",
+                    message: error.response?.data?.message,
+                });
+            } else if (msg.includes("price")) {
+                setError("sellingPrice", {
+                    type: "server",
+                    message: error.response?.data?.message,
+                });
+            } else {
+                toast.error(
+                    error.response?.data?.message || "Failed to save product."
+                );
             }
         } finally {
             setLoading(false);
@@ -227,15 +283,33 @@ const AddProducts = ({ onSuccess, onCancel, brands, categories }: AddProductsPro
             <TextareaField
                 name="specifications"
                 label="Specifications"
-                placeholder="Enter specifications"
+                placeholder="Enter specifications (each line = one item)"
                 register={register}
                 error={errors.specifications}
                 validation={{ required: "At least one specification is required" }}
                 maxWords={100}
             />
 
-            {/* Product Images */}
-            <EdgeStoreUploader maxFiles={4} onFilesChange={setImages} />
+            {/* Images */}
+            <Controller
+                name="images"
+                control={control}
+                rules={{
+                    validate: (value) =>
+                        value && value.length > 0
+                            ? true
+                            : "Please upload at least one product image.",
+                }}
+                render={({ field, fieldState }) => (
+                    <EdgeStoreUploader
+                        maxFiles={4}
+                        value={field.value}
+                        onChange={field.onChange}
+                        error={fieldState.error?.message}
+                        initialUrls={product?.images || []}
+                    />
+                )}
+            />
 
             {/* Status */}
             <SelectField
@@ -265,11 +339,17 @@ const AddProducts = ({ onSuccess, onCancel, brands, categories }: AddProductsPro
                     disabled={loading}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                    {loading ? "Saving..." : "Save Product"}
+                    {loading
+                        ? product
+                            ? "Updating..."
+                            : "Saving..."
+                        : product
+                            ? "Update Product"
+                            : "Save Product"}
                 </Button>
             </div>
         </form>
     );
 };
 
-export default AddProducts;
+export default ProductForm;
