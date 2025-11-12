@@ -1,5 +1,3 @@
-export { };
-
 declare global {
 
     // Interfaces
@@ -41,11 +39,11 @@ declare global {
 
 
     // Product Interfaces
-    export interface IProduct {
-        description: Description;
+    interface IProduct {
         _id: string;
         name: string;
         brand: Brand;
+        description: Description;
         category: Category;
         sellingPrice: number;
         warrantyPeriod: string;
@@ -55,7 +53,7 @@ declare global {
         updatedAt: string;
     };
 
-    export interface Description {
+    interface Description {
         intro: string;
         specifications: string[];
     };
@@ -70,6 +68,29 @@ declare global {
         _id: string;
         name: string;
         count?: number;
+    }
+
+
+    // Supplier Interfaces
+    interface ISupplier {
+        _id: string;
+        name: string;
+        contact: string;
+        email: string;
+        company: string;
+        address: string;
+        status: string;
+        paymentTerms: string;
+        bankDetails: BankDetails;
+        outstandingBalance: number;
+        purchaseHistory: any[];
+        createdAt: string;
+        updatedAt: string;
+    }
+
+    interface BankDetails {
+        bankName: string;
+        accountNumber: string;
     }
 
 
@@ -122,3 +143,5 @@ declare global {
         label: string
     }
 }
+
+export { };
