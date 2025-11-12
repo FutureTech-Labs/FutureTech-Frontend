@@ -210,7 +210,7 @@ const ProductForm = ({
             />
 
             {/* Category & Brand */}
-            <div className="flex flex-row gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
                 <SelectField
                     name="category"
                     label="Category"

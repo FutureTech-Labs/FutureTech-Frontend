@@ -63,7 +63,7 @@ const DialogBox = ({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
                 className={cn(
-                    "text-gray-100 border border-gray-800 rounded-xl p-0 z-50 shadow-lg min-w-2xl",
+                    "text-gray-100 border border-gray-800 rounded-xl p-0 z-50 shadow-lg lg:min-w-2xl",
                     widthClass
                 )}
             >

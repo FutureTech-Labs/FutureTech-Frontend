@@ -11,9 +11,9 @@ import { useEdgeStore } from "@/lib/edgestore";
 import SearchField from "../forms/SearchField";
 import SelectField from "../forms/SelectField";
 import ProductForm from "../forms/AddProducts";
+import ProductDetails from "../common/ProductDetails";
 import ExportPDFButton from "../common/ExportPdfButton";
 import { ScrollableTabs } from "../common/ScrollableTabs";
-import ProductDetailsDialog from "../common/ProductDetailsDialog";
 import { cn, toSentenceCase, formatCurrencyLKR } from "@/lib/utils";
 import { deleteProduct, getCategoriesAndBrands, getProducts } from "@/services/productService";
 
@@ -29,7 +29,7 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
     const [totalPages, setTotalPages] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
     const [brands, setBrands] = useState<Brand[]>([]);
-    const [dialogOpen, setDialogOpen] = useState(false);
+    const [viewDialogOpen, setviewDialogOpen] = useState(false);
     const [addDialogOpen, setAddDialogOpen] = useState(false);
     const [products, setProducts] = useState<IProduct[]>([]);
     const [selectedBrand, setSelectedBrand] = useState("all");
@@ -74,7 +74,7 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
 
     const handleViewProduct = (product: IProduct) => {
         setSelectedProduct(product);
-        setDialogOpen(true);
+        setviewDialogOpen(true);
     };
 
     const handleDeleteClick = (product: IProduct) => {
@@ -307,13 +307,6 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
                 }}
             />
 
-            {/* Dialog */}
-            <ProductDetailsDialog
-                product={selectedProduct}
-                open={dialogOpen}
-                onOpenChange={setDialogOpen}
-            />
-
             {/* Add Product Dialog */}
             <DialogBox
                 open={addDialogOpen}
@@ -342,6 +335,18 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
                 />
             </DialogBox>
 
+            {/* View product Dialog */}
+            <DialogBox
+                open={viewDialogOpen}
+                onOpenChange={setviewDialogOpen}
+                title="Product Details"
+                widthClass="max-w-3xl"
+            >
+                <ProductDetails
+                    product={selectedProduct}
+                />
+            </DialogBox>
+
             {/* Delete Confirmation Dialog */}
             <DialogBox
                 open={deleteDialogOpen}
@@ -361,10 +366,6 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
                     {"\n"}This action cannot be undone.
                 </div>
             </DialogBox>
-
-
-
-
         </div>
     );
 };
