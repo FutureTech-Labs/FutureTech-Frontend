@@ -81,7 +81,7 @@ const ExportPDFButton = <T extends Record<string, any>>({
 
         // Report Title Section (Right aligned)
         doc.setFontSize(16)
-        doc.setTextColor(255, 255, 255) // Pure white for emphasis
+        doc.setTextColor(255, 255, 255)
         doc.text(title, pageWidth - 40, 35, { align: "right" })
 
         // Contact info in smaller, muted text
@@ -103,14 +103,16 @@ const ExportPDFButton = <T extends Record<string, any>>({
         doc.line(40, 80, pageWidth - 40, 80)
 
         // Table Content
-        const head = [columns.map((c) => c.header)]
-        const body: RowInput[] = data.map((row) =>
-            columns.map((cdef) => {
+        const head = [["#", ...columns.map((c) => c.header)]]
+
+        const body: RowInput[] = data.map((row, index) => [
+            String(index + 1),
+            ...columns.map((cdef) => {
                 const raw = getValue(row, cdef.key as string)
                 const val = cdef.format ? cdef.format(raw, row) : raw
                 return String(val ?? "—")
-            })
-        )
+            }),
+        ])
 
         autoTable(doc, {
             startY: 110,
@@ -168,10 +170,10 @@ const ExportPDFButton = <T extends Record<string, any>>({
         <Button
             onClick={handleExport}
             variant="ghost"
-            className={`w-full md:w-[150px] rounded-xl bg-black-500! border border-white! px-8! h-10! cursor-pointer ${className ?? ""}`}
+            className={`max:w-[150px] rounded-xl bg-black-500! border border-white/50 px-5! h-10! cursor-pointer ${className ?? ""}`}
         >
             <span className="text-sm font-medium mx-2">{buttonLabel}</span>
-            <Download size={20} className="opacity-70" />
+            <Download size={20} />
         </Button>
     )
 }

@@ -47,7 +47,7 @@ const ThumbSlider: React.FC<IThumbSlider> = ({ images, name }) => {
             >
                 {images.map((img, index) => (
                     <SwiperSlide key={index}>
-                        <div className="relative w-full h-full min-h-60 transition-all duration-300 rounded-xl overflow-hidden">
+                        <div className="relative w-full h-full min-h-60 transition-all duration-300 rounded-lg overflow-hidden">
                             <Image
                                 src={img}
                                 alt={`${name || 'Product'} image ${index + 1}`}
@@ -61,7 +61,7 @@ const ThumbSlider: React.FC<IThumbSlider> = ({ images, name }) => {
             </Swiper>
 
             {/* Thumbnail Slider */}
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[85%] sm:w-[70%] max-w-full p-2 rounded-xl bg-[rgba(131,131,131,0.6)] backdrop-blur-md z-999 border border-[#606060] box-border">
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[85%] sm:w-[70%] max-w-full p-2 rounded-lg bg-[rgba(131,131,131,0.2)] backdrop-blur-lg z-999 border border-[#606060] box-border">
                 <Swiper
                     className="w-full"
                     onSwiper={setThumbsSwiper}
@@ -75,7 +75,7 @@ const ThumbSlider: React.FC<IThumbSlider> = ({ images, name }) => {
                     {images.map((img, id) => (
                         <SwiperSlide key={id}>
                             <div
-                                className={`relative w-full h-[35px] rounded-md overflow-hidden ${id === activeIndex ? 'border border-white' : ''
+                                className={`relative w-full h-[35px] rounded overflow-hidden ${id === activeIndex ? 'border border-white' : ''
                                     }`}
                             >
                                 <Image

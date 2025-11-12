@@ -31,7 +31,7 @@ const SelectField = ({
         >
             <SelectTrigger
                 iconColor={iconColor}
-                className={cn("disable-rings w-full px-3 h-10! rounded-xl cursor-pointer", className)}
+                className={cn("disable-rings w-full px-3 h-10! rounded-lg cursor-pointer", className)}
             >
                 <SelectValue
                     placeholder={placeholder}

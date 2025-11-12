@@ -256,6 +256,8 @@ const DataTable = <T extends object,>({
                             <TableRow
                                 key={row.id}
                                 data-state={row.getIsSelected() ? "selected" : undefined}
+                                className="last:border!"
+
                             >
                                 {row.getVisibleCells().map((cell) => (
                                     <TableCell

@@ -56,7 +56,7 @@ const TextareaField = ({
                 disabled={disabled}
                 rows={rows}
                 className={cn(
-                    "text-white max-h-[200px]! overflow-y-auto text-base placeholder:text-gray-500 border-[0.3px] border-gray-500/20 backdrop-blur-2xl bg-gray-500/15! rounded-lg",
+                    "text-white max-h-[200px]! overflow-y-auto text-base placeholder:text-gray-500 border-gray-500/20 backdrop-blur-2xl rounded-lg",
                     { 'opacity-50 cursor-not-allowed': disabled },
                     error && 'border-red-500 focus:border-red-500 focus:ring-red-500'
                 )}

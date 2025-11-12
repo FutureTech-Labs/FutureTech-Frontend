@@ -12,21 +12,36 @@ interface JwtPayload {
 
 export async function proxy(req: NextRequest) {
     const token = req.cookies.get("token")?.value;
+    const { pathname } = req.nextUrl;
+
+    // No token = redirect to login
     if (!token) return NextResponse.redirect(new URL("/login", req.url));
 
     try {
         const { payload } = (await jwtVerify(token, SECRET)) as { payload: JwtPayload };
-        const path = req.nextUrl.pathname;
+        const userRole = payload.role;
 
-        // Get all admin-only routes from dashbord links
-        const adminOnlyRoutes = dashboardLinks
-            .flatMap((group) => group.links)
-            .filter((link) => !link.roles.includes("cashier"))
+        // Flatten dashboard links for all role-based routes
+        const allLinks = dashboardLinks.flatMap((group) => group.links);
+
+        // Determine allowed routes for this user's role
+        const allowedRoutes = allLinks
+            .filter((link) => link.roles.includes(userRole))
             .map((link) => link.href);
 
-        // Block cashier from admin-only pages
-        if (payload.role === "cashier" && adminOnlyRoutes.some((route) => path.startsWith(route))) {
+        // Determine restricted routes for this user's role
+        const restrictedRoutes = allLinks
+            .filter((link) => !link.roles.includes(userRole))
+            .map((link) => link.href);
+
+        // Block access to restricted routes
+        if (restrictedRoutes.some((route) => pathname.startsWith(route))) {
             return NextResponse.redirect(new URL("/unauthorized", req.url));
+        }
+
+        // Allow if route matches allowed routes or subpaths
+        if (allowedRoutes.some((route) => pathname.startsWith(route))) {
+            return NextResponse.next();
         }
 
     } catch (err) {
@@ -34,9 +49,10 @@ export async function proxy(req: NextRequest) {
         return NextResponse.redirect(new URL("/login", req.url));
     }
 
+    // Default: Allow dashboard home
     return NextResponse.next();
 }
 
 export const config = {
-    matcher: ["/dashboard/:path*"],
+    matcher: ["/dashboard/:path*", "/unauthorized"],
 };

@@ -9,10 +9,10 @@ import {
     DialogDescription,
     DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface DialogBoxProps {
     open: boolean;
@@ -94,7 +94,7 @@ const DialogBox = ({
                         {description && (
                             <DialogDescription
                                 className={cn(
-                                    "text-sm text-gray-400 mt-1 whitespace-pre-line",
+                                    "text-sm text-gray-400 whitespace-pre-line",
                                     centerTitle && "text-center w-full"
                                 )}
                             >
@@ -107,11 +107,7 @@ const DialogBox = ({
                 {/* Scrollable content area */}
                 {children && (
                     <div
-                        className="px-6 overflow-y-auto"
-                        style={{
-                            maxHeight: "calc(80vh - 6rem)",
-                        }}
-                    >
+                        className="px-6 overflow-y-auto max-h-[80dvh]">
                         {children}
                     </div>
                 )}

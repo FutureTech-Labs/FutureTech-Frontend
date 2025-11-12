@@ -1,41 +1,50 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
+
 import { toast } from "sonner";
 import { Button } from "../ui/button";
+import { Boxes, CircleDollarSign, PackageCheck, PackageX, Plus } from "lucide-react";
+
 import DataTable from "../common/Table";
+import StatCard from "../cards/StatCard";
 import DialogBox from "../common/DialogBox";
-import { useEffect, useState } from "react";
 import IconButton from "../common/IconButton";
-import { useEdgeStore } from "@/lib/edgestore";
 import SearchField from "../forms/SearchField";
 import SelectField from "../forms/SelectField";
 import ProductForm from "../forms/AddProducts";
 import ProductDetails from "../common/ProductDetails";
 import ExportPDFButton from "../common/ExportPdfButton";
 import { ScrollableTabs } from "../common/ScrollableTabs";
+import PaginationSlider from "../sliders/PaginationSlider";
+
+import { useEdgeStore } from "@/lib/edgestore";
 import { cn, toSentenceCase, formatCurrencyLKR } from "@/lib/utils";
 import { deleteProduct, getCategoriesAndBrands, getProducts } from "@/services/productService";
-
 
 interface InventoryPageProps {
     role: "admin" | "cashier" | null;
 }
 
 const InventoryPage = ({ role }: InventoryPageProps) => {
+    const [products, setProducts] = useState<IProduct[]>([]);
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
     const [totalPages, setTotalPages] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
+
     const [brands, setBrands] = useState<Brand[]>([]);
-    const [viewDialogOpen, setviewDialogOpen] = useState(false);
-    const [addDialogOpen, setAddDialogOpen] = useState(false);
-    const [products, setProducts] = useState<IProduct[]>([]);
     const [selectedBrand, setSelectedBrand] = useState("all");
     const [categories, setCategories] = useState<Category[]>([]);
     const [selectedCategory, setSelectedCategory] = useState("all");
     const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
+
+    const [stats, setStats] = useState({ totalProducts: 0, activeProducts: 0, inactiveProducts: 0, totalValue: 0, });
+
+    const [viewDialogOpen, setviewDialogOpen] = useState(false);
+    const [addDialogOpen, setAddDialogOpen] = useState(false);
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
@@ -47,7 +56,12 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
         setLoading(true);
         try {
             const [productRes, categoryBrandRes] = await Promise.all([
-                getProducts({ page }),
+                getProducts({
+                    page,
+                    search: searchTerm || undefined,
+                    category: selectedCategory !== "all" ? selectedCategory : undefined,
+                    brand: selectedBrand !== "all" ? selectedBrand : undefined,
+                }),
                 getCategoriesAndBrands(),
             ]);
 
@@ -55,6 +69,7 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
                 setProducts(productRes.products);
                 setTotalPages(productRes.totalPages);
                 setTotal(productRes.total);
+                if (productRes.stats) setStats(productRes.stats);
             }
 
             if (categoryBrandRes.success) {
@@ -70,7 +85,8 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
 
     useEffect(() => {
         fetchData();
-    }, [page]);
+    }, [page, searchTerm, selectedCategory, selectedBrand]);
+
 
     const handleViewProduct = (product: IProduct) => {
         setSelectedProduct(product);
@@ -110,7 +126,9 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
         }
     };
 
-    const totalProducts = categories.reduce((sum, cat) => sum + (cat.count || 0), 0);
+    const totalProductsByCategory = categories.reduce((sum, cat) => sum + (cat.count || 0), 0);
+
+    const { totalProducts, activeProducts, inactiveProducts, totalValue } = stats;
 
     const columns = [
         {
@@ -132,7 +150,7 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
             label: "Image",
             render: (p: IProduct) =>
                 p.images?.[0] ? (
-                    <div className="relative w-[60px] h-10">
+                    <div className="relative w-[60px] h-9">
                         <Image
                             src={p.images[0]}
                             alt={p.name || "Product Image"}
@@ -199,173 +217,198 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
     ];
 
     const tabs = [
-        { value: "all", label: `All Products (${totalProducts})` },
+        { value: "all", label: `All Products (${totalProductsByCategory})` },
         ...categories.map((cat) => ({
             value: cat._id,
             label: `${toSentenceCase(cat.name)} (${cat.count || 0})`,
         })),
     ];
 
-    const filteredProducts = products.filter((p) => {
-        const matchesCategory =
-            selectedCategory === "all" || !selectedCategory
-                ? true
-                : p.category && p.category._id === selectedCategory;
+    const cards = [
+        <StatCard
+            key="total"
+            title="Total Products"
+            value={totalProducts}
+            icon={<Boxes className="w-5 h-5 text-lime-400" />}
+            iconBg="bg-lime-500/10"
+            gradient="linear-gradient(79.74deg, rgba(166, 255, 0, 0.12) 0%, rgba(0, 0, 0, 0.12) 100%)"
+        />,
+        <StatCard
+            key="active"
+            title="Active Products"
+            value={activeProducts}
+            icon={<PackageCheck className="w-5 h-5 text-green-400" />}
+            iconBg="bg-green-500/10"
+            gradient="linear-gradient(79.74deg, rgba(0, 255, 132, 0.12) 0%, rgba(0, 0, 0, 0.12) 100%)"
+        />,
+        <StatCard
+            key="inactive"
+            title="Inactive Products"
+            value={inactiveProducts}
+            icon={<PackageX className="w-5 h-5 text-red-400" />}
+            iconBg="bg-red-500/10"
+            gradient="linear-gradient(79.74deg, rgba(255, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.12) 100%)"
+        />,
+        <StatCard
+            key="value"
+            title="Inventory Value"
+            value={formatCurrencyLKR(totalValue, false)}
+            icon={<CircleDollarSign className="w-5 h-5 text-amber-400" />}
+            iconBg="bg-amber-500/10"
+            gradient="linear-gradient(79.74deg, rgba(255, 230, 0, 0.12) 0%, rgba(0, 0, 0, 0.12) 100%)"
+        />,
+    ];
 
-        const matchesBrand =
-            selectedBrand === "all" || !selectedBrand
-                ? true
-                : p.brand && p.brand._id === selectedBrand;
-
-        const search = searchTerm.toLowerCase();
-
-        const matchesSearch = search
-            ? p.name.toLowerCase().includes(search) ||
-            p.category?.name.toLowerCase().includes(search) ||
-            p.brand?.name.toLowerCase().includes(search)
-            : true;
-
-        return matchesCategory && matchesBrand && matchesSearch;
-    });
 
     return (
-        <div className="relative flex flex-col gap-6 p-5 rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient shadow-lg shadow-primary-900/15">
-
-            <div className="flex md:flex-row flex-col gap-5 items-center justify-between w-full">
-                {/* Search filter */}
-                <SearchField
-                    placeholder="Search products, brands or categories..."
-                    value={searchTerm}
-                    onChange={setSearchTerm}
-                    onClear={() => setSearchTerm("")}
-                    className="md:max-w-md"
-                />
-                <div className="flex md:flex-row flex-col gap-5 w-full justify-end">
-                    {/* Brand Select filter */}
-                    <SelectField
-                        placeholder="Select a brand"
-                        value={selectedBrand}
-                        onChange={setSelectedBrand}
-                        options={[
-                            { value: "all", label: "All Brands" },
-                            ...brands.map((b) => ({
-                                value: b._id,
-                                label: b.name,
-                            })),
-                        ]}
-                        width="md:w-[150px]"
-                        className="bg-black-500! border border-white focus:ring-1! focus:ring-primary-800! text-xs md:text-sm"
-                    />
-                    {/* Export button */}
-                    <ExportPDFButton
-                        title="Product Inventory Report"
-                        fileName="products.pdf"
-                        columns={[
-                            { header: "Name", key: "name" },
-                            { header: "Price", key: "sellingPrice", format: (v) => formatCurrencyLKR(v) },
-                            { header: "Category", key: "category.name" },
-                            { header: "Status", key: "status" },
-                        ]}
-                        data={filteredProducts}
-                    />
-
-                    {/* Add Products Button comes here to open the dialogBox */}
-                    {role === "admin" && (
-                        <Button
-                            onClick={() => {
-                                setSelectedProduct(null);
-                                setAddDialogOpen(true);
-                            }}
-                            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-md"
-                        >
-                            + Add Product
-                        </Button>
-
-                    )}
-                </div>
+        <div className="relative flex flex-col gap-6">
+            <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+                {cards}
             </div>
 
-            <div className="w-full">
-                {/* Category Filter */}
-                <ScrollableTabs
-                    activeTab={selectedCategory}
-                    onTabChange={setSelectedCategory}
-                    tabs={tabs}
-                />
-            </div>
+            {/* Mobile Slider */}
+            <PaginationSlider>{cards}</PaginationSlider>
 
             {/* Table */}
-            <DataTable
-                columns={columns}
-                data={filteredProducts}
-                loading={loading}
-                pagination={{
-                    page,
-                    totalPages,
-                    total,
-                    onPageChange: (newPage) => setPage(newPage),
-                }}
-            />
+            <div className="flex flex-col gap-6 p-5 rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient shadow-lg 
+            shadow-primary-900/15">
 
-            {/* Add Product Dialog */}
-            <DialogBox
-                open={addDialogOpen}
-                onOpenChange={setAddDialogOpen}
-                title={selectedProduct ? "Edit Product" : "Add New Product"}
-                description={
-                    selectedProduct
-                        ? "Update the product details below."
-                        : "Fill in the product details and upload images."
-                }
-                widthClass="max-w-3xl"
-            >
-                <ProductForm
-                    brands={brands}
-                    categories={categories}
-                    product={selectedProduct}
-                    onSuccess={() => {
-                        setAddDialogOpen(false);
-                        setSelectedProduct(null);
-                        fetchData();
-                    }}
-                    onCancel={() => {
-                        setAddDialogOpen(false);
-                        setSelectedProduct(null);
-                    }}
-                />
-            </DialogBox>
-
-            {/* View product Dialog */}
-            <DialogBox
-                open={viewDialogOpen}
-                onOpenChange={setviewDialogOpen}
-                title="Product Details"
-                widthClass="max-w-3xl"
-            >
-                <ProductDetails
-                    product={selectedProduct}
-                />
-            </DialogBox>
-
-            {/* Delete Confirmation Dialog */}
-            <DialogBox
-                open={deleteDialogOpen}
-                onOpenChange={setDeleteDialogOpen}
-                title="Delete Product"
-                centerTitle
-                showFooter
-                confirmText="Delete"
-                cancelText="Cancel"
-                variant="danger"
-                onConfirm={confirmDelete}
-                onCancel={() => setDeleteDialogOpen(false)}
-                confirmLoading={deleting}
-            >
-                <div className="text-center text-sm text-gray-400 mt-2 whitespace-pre-line">
-                    Are you sure you want to delete "{productToDelete?.name}"?
-                    {"\n"}This action cannot be undone.
+                <div className="flex md:flex-row flex-col gap-5 items-center justify-between w-full">
+                    {/* Search filter */}
+                    <SearchField
+                        placeholder="Search products, brands or categories..."
+                        value={searchTerm}
+                        onChange={setSearchTerm}
+                        onClear={() => setSearchTerm("")}
+                        className="md:max-w-md"
+                    />
+                    <div className="flex md:flex-row flex-col gap-5 w-full justify-end">
+                        {/* Brand Select filter */}
+                        <SelectField
+                            placeholder="Select a brand"
+                            value={selectedBrand}
+                            onChange={setSelectedBrand}
+                            options={[
+                                { value: "all", label: "All Brands" },
+                                ...brands.map((b) => ({
+                                    value: b._id,
+                                    label: b.name,
+                                })),
+                            ]}
+                            width="md:w-[150px]"
+                            className="bg-black-500! border border-white/50 focus:ring-1! focus:ring-primary-800! text-xs md:text-sm"
+                        />
+                        {/* Export button */}
+                        <ExportPDFButton
+                            title="Product Inventory Report"
+                            fileName="products.pdf"
+                            columns={[
+                                { header: "Name", key: "name" },
+                                { header: "Price", key: "sellingPrice", format: (v) => formatCurrencyLKR(v) },
+                                { header: "Category", key: "category.name" },
+                                { header: "Status", key: "status" },
+                            ]}
+                            data={products}
+                            className="hidden md:flex"
+                        />
+                        {/* Add Products Button comes here to open the dialogBox */}
+                        {role === "admin" && (
+                            <Button
+                                onClick={() => {
+                                    setSelectedProduct(null);
+                                    setAddDialogOpen(true);
+                                }}
+                                className="main-button-gradient border-none!"
+                            >
+                                Add New Product
+                                <Plus />
+                            </Button>
+                        )}
+                    </div>
                 </div>
-            </DialogBox>
+
+                <div className="w-full">
+                    {/* Category Filter */}
+                    <ScrollableTabs
+                        activeTab={selectedCategory}
+                        onTabChange={setSelectedCategory}
+                        tabs={tabs}
+                    />
+                </div>
+
+                {/* Table */}
+                <DataTable
+                    columns={columns}
+                    data={products}
+                    loading={loading}
+                    pagination={{
+                        page,
+                        totalPages,
+                        total,
+                        onPageChange: (newPage) => setPage(newPage),
+                    }}
+                />
+
+                {/* Add Product Dialog */}
+                <DialogBox
+                    open={addDialogOpen}
+                    onOpenChange={setAddDialogOpen}
+                    title={selectedProduct ? "Edit Product" : "Add New Product"}
+                    description={
+                        selectedProduct
+                            ? "Update the product details below."
+                            : "Add a new product to your inventory."
+                    }
+                    widthClass="max-w-3xl"
+                >
+                    <ProductForm
+                        brands={brands}
+                        categories={categories}
+                        product={selectedProduct}
+                        onSuccess={() => {
+                            setAddDialogOpen(false);
+                            setSelectedProduct(null);
+                            fetchData();
+                        }}
+                        onCancel={() => {
+                            setAddDialogOpen(false);
+                            setSelectedProduct(null);
+                        }}
+                    />
+                </DialogBox>
+
+                {/* View product Dialog */}
+                <DialogBox
+                    open={viewDialogOpen}
+                    onOpenChange={setviewDialogOpen}
+                    title="Product Details"
+                    widthClass="max-w-3xl"
+                >
+                    <ProductDetails
+                        product={selectedProduct}
+                    />
+                </DialogBox>
+
+                {/* Delete Confirmation Dialog */}
+                <DialogBox
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                    title="Delete Product"
+                    centerTitle
+                    showFooter
+                    confirmText="Delete"
+                    cancelText="Cancel"
+                    variant="danger"
+                    onConfirm={confirmDelete}
+                    onCancel={() => setDeleteDialogOpen(false)}
+                    confirmLoading={deleting}
+                >
+                    <div className="text-center text-sm text-gray-400 mt-2 whitespace-pre-line">
+                        Are you sure you want to delete "{productToDelete?.name}"?
+                        {"\n"}This action cannot be undone.
+                    </div>
+                </DialogBox>
+            </div>
         </div>
     );
 };

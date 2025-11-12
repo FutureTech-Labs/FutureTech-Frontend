@@ -96,6 +96,7 @@ const ProductForm = ({
     }, [product, reset]);
 
     const onSubmit = async (data: ProductFormValues) => {
+        const uploadedUrls: string[] = []; // ✅ define once (accessible in catch)
         try {
             if (!data.images || data.images.length === 0) {
                 toast.warning("Please upload at least one product image.");
@@ -104,27 +105,26 @@ const ProductForm = ({
 
             setLoading(true);
 
-            const uploadedUrls: string[] = [];
+            // ✅ Upload all images in parallel
+            const uploadResults = await Promise.all(
+                data.images.map(async (item, i) => {
+                    if (item instanceof File) {
+                        const oldUrl = product?.images?.[i] || null;
+                        const res = await edgestore.productImages.upload({
+                            file: item,
+                            options: oldUrl ? { replaceTargetUrl: oldUrl } : undefined,
+                        });
+                        if (res?.url) uploadedUrls.push(res.url); // ✅ push into outer array
+                        return res?.url || "";
+                    }
+                    return item; // already a URL
+                })
+            );
 
-            for (let i = 0; i < data.images.length; i++) {
-                const item = data.images[i];
+            // ✅ Filter out any empty URLs
+            const finalImageUrls = uploadResults.filter(Boolean);
 
-                if (item instanceof File) {
-                    const oldUrl = product?.images?.[i] || null;
-
-                    const res = await edgestore.productImages.upload({
-                        file: item,
-                        options: oldUrl ? { replaceTargetUrl: oldUrl } : undefined,
-                    });
-
-                    if (res?.url) uploadedUrls.push(res.url);
-                } else {
-                    uploadedUrls.push(item);
-                }
-            }
-
-            const finalImageUrls = uploadedUrls;
-
+            // Validate brand/category
             const selectedBrand = brands.find((b) => b._id === data.brand);
             const selectedCategory = categories.find((c) => c._id === data.category);
 
@@ -133,6 +133,7 @@ const ProductForm = ({
                 return;
             }
 
+            // Prepare description
             const description = {
                 intro: data.intro,
                 specifications: data.specifications
@@ -141,6 +142,7 @@ const ProductForm = ({
                     .filter(Boolean),
             };
 
+            // Payload
             const payload: Partial<IProduct> = {
                 name: data.name,
                 brand: { _id: selectedBrand._id, name: selectedBrand.name },
@@ -152,6 +154,7 @@ const ProductForm = ({
                 status: data.status,
             };
 
+            // Create or update product
             if (product?._id) {
                 await updateProduct(product._id, payload);
                 toast.success("Product updated successfully!");
@@ -163,191 +166,188 @@ const ProductForm = ({
             reset();
             onSuccess?.();
         } catch (error: any) {
-            const msg = (error?.response?.data?.message || "").toLowerCase();
+            // 🧹 Rollback uploaded images if save fails
+            if (uploadedUrls.length > 0) {
+                await Promise.all(
+                    uploadedUrls.map(async (url) => {
+                        try {
+                            await edgestore.productImages.delete({ url });
+                        } catch (err) {
+                            console.warn("Failed to delete uploaded image:", url, err);
+                        }
+                    })
+                );
+            }
 
-            if (msg.includes("name")) {
-                setError("name", {
+            // 🧩 Field error mapping
+            const msg = (error?.response?.data?.message || "").toLowerCase();
+            const fieldMap: Record<string, keyof ProductFormValues> = {
+                name: "name",
+                category: "category",
+                brand: "brand",
+                price: "sellingPrice",
+            };
+
+            const matchedKey = Object.keys(fieldMap).find((key) => msg.includes(key));
+            if (matchedKey) {
+                setError(fieldMap[matchedKey], {
                     type: "server",
                     message:
-                        error.response?.data?.message ||
-                        "Product name already exists",
-                });
-            } else if (msg.includes("category")) {
-                setError("category", {
-                    type: "server",
-                    message: error.response?.data?.message,
-                });
-            } else if (msg.includes("brand")) {
-                setError("brand", {
-                    type: "server",
-                    message: error.response?.data?.message,
-                });
-            } else if (msg.includes("price")) {
-                setError("sellingPrice", {
-                    type: "server",
-                    message: error.response?.data?.message,
+                        error.response?.data?.message || "Invalid field value.",
                 });
             } else {
-                toast.error(
-                    error.response?.data?.message || "Failed to save product."
-                );
+                toast.error(error.response?.data?.message || "Failed to save product.");
             }
         } finally {
             setLoading(false);
         }
     };
 
+
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Product Name */}
-            <InputField
-                name="name"
-                label="Product Name"
-                placeholder="Enter product name"
-                register={register}
-                error={errors.name}
-                validation={{ required: "Product name is required" }}
-            />
-
-            {/* Category & Brand */}
-            <div className="flex flex-col md:flex-row gap-4">
-                <SelectField
-                    name="category"
-                    label="Category"
-                    placeholder="Select a category"
-                    control={control}
-                    options={categories.map((cat) => ({
-                        value: cat._id,
-                        label: cat.name,
-                    }))}
-                    error={errors.category}
-                    required
-                    className="h-12!"
-                />
-
-                <SelectField
-                    name="brand"
-                    label="Brand"
-                    placeholder="Select a brand"
-                    control={control}
-                    options={brands.map((b) => ({
-                        value: b._id,
-                        label: b.name,
-                    }))}
-                    error={errors.brand}
-                    required
-                    className="h-12!"
-                />
-            </div>
-
-            {/* Selling Price & Warranty */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit(onSubmit)}>
+            <fieldset disabled={loading} className={`space-y-4 ${loading ? "pointer-events-none" : ""}`}>
+                {/* Product Name */}
                 <InputField
-                    name="sellingPrice"
-                    label="Selling Price (LKR)"
-                    type="number"
-                    placeholder="Enter price"
+                    name="name"
+                    label="Product Name"
+                    placeholder="Enter product name"
                     register={register}
-                    error={errors.sellingPrice}
-                    validation={{
-                        required: "Selling price is required",
-                        min: { value: 0, message: "Price cannot be negative" },
-                    }}
+                    error={errors.name}
+                    validation={{ required: "Product name is required" }}
                 />
-
-                <SelectField
-                    name="warrantyPeriod"
-                    label="Warranty Period"
-                    placeholder="Select warranty period"
+                {/* Category & Brand */}
+                <div className="flex flex-col md:flex-row gap-4">
+                    <SelectField
+                        name="brand"
+                        label="Brand"
+                        placeholder="Select a brand"
+                        control={control}
+                        options={brands.map((b) => ({
+                            value: b._id,
+                            label: b.name,
+                        }))}
+                        error={errors.brand}
+                        required
+                        className="h-12!"
+                    />
+                    <SelectField
+                        name="category"
+                        label="Category"
+                        placeholder="Select a category"
+                        control={control}
+                        options={categories.map((cat) => ({
+                            value: cat._id,
+                            label: cat.name,
+                        }))}
+                        error={errors.category}
+                        required
+                        className="h-12!"
+                    />
+                </div>
+                {/* Intro */}
+                <TextareaField
+                    name="intro"
+                    label="Description"
+                    placeholder="Short description about the product"
+                    register={register}
+                    error={errors.intro}
+                    validation={{ required: "Description is required" }}
+                    maxWords={100}
+                />
+                {/* Specifications */}
+                <TextareaField
+                    name="specifications"
+                    label="Specifications"
+                    placeholder="Enter specifications (each line = one item)"
+                    register={register}
+                    error={errors.specifications}
+                    validation={{ required: "At least one specification is required" }}
+                    maxWords={100}
+                />
+                {/* Selling Price & Warranty */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <InputField
+                        name="sellingPrice"
+                        label="Selling Price (LKR)"
+                        type="number"
+                        placeholder="Enter price"
+                        register={register}
+                        error={errors.sellingPrice}
+                        validation={{
+                            required: "Selling price is required",
+                            min: { value: 0, message: "Price cannot be negative" },
+                        }}
+                    />
+                    <SelectField
+                        name="warrantyPeriod"
+                        label="Warranty Period"
+                        placeholder="Select warranty period"
+                        control={control}
+                        options={WARRANTY_PERIODS.map((option) => ({
+                            value: option,
+                            label: option,
+                        }))}
+                        className="h-12!"
+                    />
+                </div>
+                {/* Images */}
+                <Controller
+                    name="images"
                     control={control}
-                    options={WARRANTY_PERIODS.map((option) => ({
+                    rules={{
+                        validate: (value) =>
+                            value && value.length > 0
+                                ? true
+                                : "Please upload at least one product image.",
+                    }}
+                    render={({ field, fieldState }) => (
+                        <EdgeStoreUploader
+                            maxFiles={4}
+                            value={field.value}
+                            onChange={field.onChange}
+                            error={fieldState.error?.message}
+                            initialUrls={product?.images || []}
+                        />
+                    )}
+                />
+                {/* Status */}
+                <SelectField
+                    name="status"
+                    label="Status"
+                    placeholder="Select status"
+                    control={control}
+                    options={PRODUCT_STATUSES.map((option) => ({
                         value: option,
-                        label: option,
+                        label: option.charAt(0).toUpperCase() + option.slice(1),
                     }))}
                     className="h-12!"
                 />
-            </div>
-
-            {/* Intro */}
-            <TextareaField
-                name="intro"
-                label="Intro"
-                placeholder="Short introduction about the product"
-                register={register}
-                error={errors.intro}
-                validation={{ required: "Intro is required" }}
-                maxWords={100}
-            />
-
-            {/* Specifications */}
-            <TextareaField
-                name="specifications"
-                label="Specifications"
-                placeholder="Enter specifications (each line = one item)"
-                register={register}
-                error={errors.specifications}
-                validation={{ required: "At least one specification is required" }}
-                maxWords={100}
-            />
-
-            {/* Images */}
-            <Controller
-                name="images"
-                control={control}
-                rules={{
-                    validate: (value) =>
-                        value && value.length > 0
-                            ? true
-                            : "Please upload at least one product image.",
-                }}
-                render={({ field, fieldState }) => (
-                    <EdgeStoreUploader
-                        maxFiles={4}
-                        value={field.value}
-                        onChange={field.onChange}
-                        error={fieldState.error?.message}
-                        initialUrls={product?.images || []}
-                    />
-                )}
-            />
-
-            {/* Status */}
-            <SelectField
-                name="status"
-                label="Status"
-                placeholder="Select status"
-                control={control}
-                options={PRODUCT_STATUSES.map((option) => ({
-                    value: option,
-                    label: option.charAt(0).toUpperCase() + option.slice(1),
-                }))}
-                className="h-12!"
-            />
-
-            {/* Footer Buttons */}
-            <div className="sticky bottom-0 flex bg-black-500 gap-3 py-4 border-t border-gray-800 w-full">
-                <Button
-                    type="button"
-                    onClick={onCancel}
-                    variant="outline"
-                    className="flex-1 border-gray-700 text-gray-300 hover:bg-gray-800"
-                >
-                    Cancel
-                </Button>
-                <Button
-                    type="submit"
-                    disabled={loading}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                    {loading
-                        ? product
-                            ? "Updating..."
-                            : "Saving..."
-                        : product
-                            ? "Update Product"
-                            : "Save Product"}
-                </Button>
-            </div>
+                {/* Footer Buttons */}
+                <div className="sticky bottom-0 flex bg-black-500 gap-3 py-4 border-t border-gray-800 w-full">
+                    <Button
+                        type="button"
+                        onClick={onCancel}
+                        variant="outline"
+                        className="flex-1 border-gray-700 text-gray-300 hover:bg-gray-800"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="submit"
+                        disabled={loading}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                        {loading
+                            ? product
+                                ? "Updating..."
+                                : "Saving..."
+                            : product
+                                ? "Update Product"
+                                : "Save Product"}
+                    </Button>
+                </div>
+            </fieldset>
         </form>
     );
 };

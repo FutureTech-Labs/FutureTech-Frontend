@@ -31,6 +31,12 @@ export const getProducts = async (params?: GetProductsParams): Promise<{
     page: number;
     totalPages: number;
     products: IProduct[];
+    stats: {
+        totalProducts: number;
+        activeProducts: number;
+        inactiveProducts: number;
+        totalValue: number;
+    };
 }> => {
     const res = await api.get("/shared/products", { params });
     return res.data;

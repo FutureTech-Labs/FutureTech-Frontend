@@ -11,11 +11,13 @@ export function toSentenceCase(str = "") {
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
 };
 
-export function formatCurrencyLKR(amount: number): string {
+export function formatCurrencyLKR(amount: number, showCents: boolean = true): string {
   if (amount == null || isNaN(amount)) return "—";
+
   return new Intl.NumberFormat("en-LK", {
     style: "currency",
     currency: "LKR",
-    minimumFractionDigits: 2,
+    minimumFractionDigits: showCents ? 2 : 0,
+    maximumFractionDigits: showCents ? 2 : 0,
   }).format(amount);
 };
