@@ -3,6 +3,7 @@ import Sidebar from "@/components/common/Sidebar";
 import { getLoggedInUser } from "@/services/LoggedUser";
 import { SidebarProvider } from "@/context/SidebarContext";
 import ClientHeader from "@/components/common/ClientHeader";
+import SocketMount from "@/components/common/SocketMount";
 
 interface DashboardLayoutProps {
     children: ReactNode;
@@ -13,6 +14,9 @@ const DashboardLayout = async ({ children }: DashboardLayoutProps) => {
 
     return (
         <SidebarProvider>
+
+            <SocketMount userId={user._id} />
+
             <main className="flex h-dvh w-full overflow-hidden">
                 {/* Sidebar */}
                 <Sidebar user={user} />

@@ -1,4 +1,6 @@
-import { Bell } from "lucide-react";
+"use client";
+
+import { Bell, CheckCheck, Dot } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuTrigger,
@@ -8,58 +10,125 @@ import {
     DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-interface Notification {
-    id: number;
-    message: string;
-    time: string;
-    createdAt?: string;
-}
+import { useNotificationStore } from "@/context/NotificationStore";
+import { markNotificationRead, markAllRead } from "@/services/notificationService";
 
+export default function NotificationMenu() {
+    const {
+        notifications,
+        unreadCount,
+        markRead,
+        markAllRead: markAllLocal,
+    } = useNotificationStore();
 
-interface NotificationMenuProps {
-    notifications: Notification[];
-}
+    const handleMarkRead = async (id: string) => {
+        markRead(id);
+        await markNotificationRead(id);
+    };
 
-const NotificationMenu = ({ notifications }: NotificationMenuProps) => {
+    const handleMarkAll = async () => {
+        markAllLocal();
+        await markAllRead();
+    };
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="relative rounded-full md:h-10 md:w-10 w-8 h-8 button-gradient border-t-2 border-white/30 text-white hover:bg-white/10 disable-ring"
+                    className="relative rounded-full md:h-10 md:w-10 w-8 h-8 button-gradient border-t-2 border-white/30 hover:bg-white/10 text-white disable-ring"
                 >
                     <Bell size={20} />
-                    {notifications.length > 0 && (
-                        <span className="absolute -top-1 left-6 bg-red-400 text-white text-[10px] font-bold rounded-full px-[5px] py-px">
-                            {notifications.length}
+
+                    {unreadCount > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-semibold rounded-full w-4 h-4 flex items-center justify-center shadow-md">
+                            {unreadCount}
                         </span>
                     )}
                 </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="md:w-64 mt-2">
-                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                <DropdownMenuSeparator />
+            <DropdownMenuContent
+                align="end"
+                className="md:w-80 w-72 mt-2 rounded-xl shadow-lg border border-white/10 backdrop-blur-xl bg-black/70"
+            >
+                {/* Header */}
+                <div className="flex justify-between items-center px-4 py-3">
+                    <DropdownMenuLabel className="text-sm font-semibold text-white">
+                        Notifications
+                    </DropdownMenuLabel>
 
-                {notifications.length === 0 ? (
-                    <p className="text-sm text-gray-500 px-3 py-2">No new notifications</p>
-                ) : (
-                    notifications.map((n) => (
-                        <DropdownMenuItem
-                            key={n.id}
-                            className="flex items-start justify-between text-sm whitespace-normal py-2"
+                    {unreadCount > 0 && (
+                        <button
+                            onClick={handleMarkAll}
+                            className="text-xs text-blue-400 hover:text-blue-300 transition"
                         >
-                            <span>{n.message}</span>
-                            <span className="text-xs text-gray-400 mt-1">{n.time}</span>
-                        </DropdownMenuItem>
-                    ))
-                )}
-            </DropdownMenuContent>
+                            Mark all read
+                        </button>
+                    )}
+                </div>
 
+                <DropdownMenuSeparator className="bg-white/10" />
+
+                {/* Empty State */}
+                {notifications.length === 0 && (
+                    <div className="text-sm text-gray-400 px-4 py-6 text-center">
+                        No notifications yet
+                    </div>
+                )}
+
+                {/* Notifications */}
+                <div className="max-h-80 overflow-y-auto px-2">
+                    {notifications.map((n) => {
+                        const isUnread = !n.isRead;
+
+                        const color =
+                            n.type === "success"
+                                ? "text-green-400"
+                                : n.type === "warning"
+                                    ? "text-yellow-400"
+                                    : n.type === "error"
+                                        ? "text-red-400"
+                                        : "text-blue-400";
+
+                        return (
+                            <DropdownMenuItem
+                                key={n._id}
+                                onClick={() => handleMarkRead(n._id)}
+                                className={cn(
+                                    "flex items-start gap-3 px-3 py-3 rounded-lg cursor-pointer transition",
+                                    "hover:bg-white/5",
+                                    isUnread && "bg-white/5 border border-white/10"
+                                )}
+                            >
+                                {/* Left indicator dot */}
+                                <Dot className={cn("w-5 h-5 mt-1", color)} />
+
+                                {/* Message + Timestamp */}
+                                <div className="flex-1 text-[13px] leading-tight text-gray-200">
+                                    <div className={cn(isUnread && "font-semibold text-white")}>
+                                        {n.message}
+                                    </div>
+
+                                    <div className="text-[11px] text-gray-400 mt-1">
+                                        {new Date(n.createdAt).toLocaleString()}
+                                    </div>
+                                </div>
+
+                                {/* Read checkmark */}
+                                {isUnread ? (
+                                    <CheckCheck className="w-4 h-4 text-blue-400" />
+                                ) : (
+                                    <span className="text-gray-600 text-xs">Read</span>
+                                )}
+                            </DropdownMenuItem>
+                        );
+                    })}
+                </div>
+            </DropdownMenuContent>
         </DropdownMenu>
     );
-};
-
-export default NotificationMenu;
+}

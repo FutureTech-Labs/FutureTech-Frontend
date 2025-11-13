@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { logout } from "@/services/authService";
 import NotificationMenu from "./NotificationMenu";
-import { dummyNotifications } from "@/constants";
 import { usePathname } from "next/navigation";
 
 interface HeaderProps {
@@ -70,7 +69,7 @@ const Header = ({ user }: HeaderProps) => {
         <header className="relative flex items-center w-full py-5 z-50 max-h-[72px]">
 
             <div className={`absolute bottom-0 max-w-dvw w-full ${isCollapsed ? "px-0" : "px-3 xl:px-6"}`}>
-                <Separator  className="border"/>
+                <Separator className="border" />
             </div>
 
             <div className="flex items-center justify-between w-full h-full px-3 md:px-6">
@@ -135,7 +134,7 @@ const Header = ({ user }: HeaderProps) => {
 
                 <div className="flex items-center gap-6">
                     {/* Notifications */}
-                    <NotificationMenu notifications={dummyNotifications} />
+                    <NotificationMenu />
 
                     <div className="flex items-center gap-2 h-full">
                         {/* Avatar */}
