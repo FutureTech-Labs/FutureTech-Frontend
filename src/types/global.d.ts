@@ -1,17 +1,19 @@
+import type { UseFormRegister, FieldError, RegisterOptions } from "react-hook-form";
+
 declare global {
 
-    // Interfaces
+    // Auth
     interface ISignInFormData {
         email: string;
         password: string;
-    };
+    }
 
     interface IForgotPasswordForm {
         email: string;
         otp: string;
         newPassword: string;
         confirmPassword: string;
-    };
+    }
 
     interface IUser {
         id: string;
@@ -19,24 +21,23 @@ declare global {
         email: string;
         role: "admin" | "cashier";
         status: string;
-    };
+    }
 
     interface IAuthContextType {
         user: IUser | null;
         loading: boolean;
         logout: () => Promise<void>;
         refreshUser: () => Promise<void>;
-    };
+    }
 
     interface ISidebarProps {
         user: IUser;
-    };
+    }
 
     interface ISidebarContentProps {
         user: IUser;
         isCollapsed?: boolean;
-    };
-
+    }
 
     // Product Interfaces
     interface IProduct {
@@ -51,12 +52,12 @@ declare global {
         status: string;
         createdAt: string;
         updatedAt: string;
-    };
+    }
 
     interface Description {
         intro: string;
         specifications: string[];
-    };
+    }
 
     interface Category {
         _id: string;
@@ -70,8 +71,34 @@ declare global {
         count?: number;
     }
 
+    // Supplier Invoice (purchaseHistory)
+    interface IPurchaseInvoiceRef {
+        _id: string;
+        invoiceNumber?: string;
+        totalAmount?: number;
+        status?: "pending" | "paid";
+        date?: string;
+    }
 
-    // Supplier Interfaces
+    // Supplier Payment
+    interface ISupplierPayment {
+        _id: string;
+        amount: number;
+        paymentMethod: "cash" | "online_transfer";
+        datePaid: string;
+        notes?: string;
+        appliedInvoices: {
+            invoice: {
+                _id: string;
+                invoiceNumber?: string;
+                totalAmount?: number;
+                status?: string;
+            };
+            amount: number;
+        }[];
+    }
+
+    // Supplier
     interface ISupplier {
         _id: string;
         name: string;
@@ -79,11 +106,12 @@ declare global {
         email: string;
         company: string;
         address: string;
-        status: string;
-        paymentTerms: string;
+        status: "pending" | "paid"; // ✔ correct enum
+        paymentTerms: "COD" | "Net 15" | "Net 30" | "Net 45";
         bankDetails: BankDetails;
         outstandingBalance: number;
-        purchaseHistory: any[];
+        purchaseHistory: IPurchaseInvoiceRef[];
+        payments?: ISupplierPayment[];
         createdAt: string;
         updatedAt: string;
     }
@@ -93,15 +121,13 @@ declare global {
         accountNumber: string;
     }
 
-
-
-    // Types
+    // Inputs
     type IFormInputProps = {
         name: string;
         label?: string;
         placeholder: string;
         type?: string;
-        register: UseFormRegister;
+        register: UseFormRegister<any>;
         error?: FieldError;
         validation?: RegisterOptions;
         disabled?: boolean;
@@ -109,6 +135,7 @@ declare global {
         autoComplete?: string;
     };
 
+    // Textarea
     type IFormTextareaProps = {
         name: string;
         label?: string;
@@ -122,26 +149,27 @@ declare global {
         maxWords?: number;
     };
 
-
+    // Select
     type ISelectFieldProps = {
-        name?: string
-        label?: string
-        placeholder?: string
-        options: Option[]
-        control?: any
-        error?: any
-        required?: boolean
-        value?: string
-        className?: string
-        iconColor?: string
-        width?: string
-        onChange?: (value: string) => void
-    }
+        name?: string;
+        label?: string;
+        placeholder?: string;
+        options: Option[];
+        control?: any;
+        error?: any;
+        required?: boolean;
+        value?: string;
+        className?: string;
+        iconColor?: string;
+        width?: string;
+        disabled?: boolean;
+        onChange?: (value: string) => void;
+    };
 
     type Option = {
-        value: string
-        label: string
-    }
+        value: string;
+        label: string;
+    };
 }
 
 export { };

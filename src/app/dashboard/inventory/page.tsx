@@ -1,9 +1,8 @@
-import { getSession } from "@/lib/session";
+import { getServerRole } from "@/lib/getRole";
 import InventoryPage from "@/components/page-components/InventoryPage";
 
 const InventoryServerPage = async () => {
-    const session = await getSession();
-    const role = session?.role || null;
+    const role = await getServerRole();
 
     return <InventoryPage role={role} />
 };

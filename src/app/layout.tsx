@@ -26,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${jakartaSans.variable} font-sans antialiased`}>
+      <body className={`${jakartaSans.variable} font-sans antialiased scrollbar-hide scroll-container`}>
         <Toaster />
         <AuthProvider>
           <EdgeStoreProvider>

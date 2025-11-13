@@ -1,6 +1,6 @@
 export const dashboardLinks = [
     {
-        title: "Navigation",
+        title: "Main",
         links: [
             {
                 label: "Overview",
@@ -8,8 +8,13 @@ export const dashboardLinks = [
                 icon: "/icons/Dashboard.svg",
                 roles: ["admin", "cashier"]
             },
+        ],
+    },
+    {
+        title: "Inventory",
+        links: [
             {
-                label: "Inventory",
+                label: "Products",
                 href: "/dashboard/inventory",
                 icon: "/icons/Inventory.svg",
                 roles: ["admin", "cashier"]
@@ -20,13 +25,19 @@ export const dashboardLinks = [
                 icon: "/icons/Stocks.svg",
                 roles: ["admin", "cashier"]
             },
+            {
+                label: "Suppliers",
+                href: "/dashboard/suppliers",
+                icon: "/icons/DeliveryTruck.svg",
+                roles: ["admin"]
+            },
         ],
     },
     {
-        title: "Finance",
+        title: "Finance & Sales",
         links: [
             {
-                label: "Sales",
+                label: "Sales Records",
                 href: "/dashboard/sales",
                 icon: "/icons/Sales.svg",
                 roles: ["admin", "cashier"]
@@ -41,10 +52,10 @@ export const dashboardLinks = [
                 label: "Returns",
                 href: "/dashboard/returns",
                 icon: "/icons/Returns.svg",
-                roles: ["cashier", "admin"]
+                roles: ["admin", "cashier"]
             },
             {
-                label: "Reports",
+                label: "Financial Reports",
                 href: "/dashboard/reports",
                 icon: "/icons/Reports.svg",
                 roles: ["admin"]
@@ -58,16 +69,16 @@ export const dashboardLinks = [
         ],
     },
     {
-        title: "Support",
+        title: "Administration",
         links: [
             {
-                label: "Users",
+                label: "User Management",
                 href: "/dashboard/users",
                 icon: "/icons/Users.svg",
                 roles: ["admin"]
             },
             {
-                label: "Settings",
+                label: "System Settings",
                 href: "/dashboard/settings",
                 icon: "/icons/Settings.svg",
                 roles: ["admin"]

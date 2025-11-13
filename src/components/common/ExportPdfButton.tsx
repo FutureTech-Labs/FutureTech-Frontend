@@ -88,8 +88,8 @@ const ExportPDFButton = <T extends Record<string, any>>({
         doc.setFont("helvetica", "normal")
         doc.setFontSize(9)
         doc.setTextColor(...c.textMuted)
-        doc.text("No. 24, Tech Avenue, Colombo 07", 40, 52)
-        doc.text("+94 71 234 5678 • info@futuretech.lk", 40, 64)
+        doc.text("No. 124, Tennekumbura, Kandy", 40, 52)
+        doc.text("+94 76 853 8824 • info@futuretech.lk", 40, 64)
 
         // Date and document info
         doc.text(`Generated: ${currentDate}`, pageWidth - 40, 52, { align: "right" })
@@ -170,7 +170,7 @@ const ExportPDFButton = <T extends Record<string, any>>({
         <Button
             onClick={handleExport}
             variant="ghost"
-            className={`max:w-[150px] rounded-xl bg-black-500! border border-white/50 px-5! h-10! cursor-pointer ${className ?? ""}`}
+            className={`max:w-[150px] rounded-lg bg-black-500! border border-white/50 px-5! h-10! cursor-pointer ${className ?? ""}`}
         >
             <span className="text-sm font-medium mx-2">{buttonLabel}</span>
             <Download size={20} />

@@ -22,6 +22,7 @@ import PaginationSlider from "../sliders/PaginationSlider";
 import { useEdgeStore } from "@/lib/edgestore";
 import { cn, toSentenceCase, formatCurrencyLKR } from "@/lib/utils";
 import { deleteProduct, getCategoriesAndBrands, getProducts } from "@/services/productService";
+import { StatusBadge } from "../common/StatusBadge";
 
 interface InventoryPageProps {
     role: "admin" | "cashier" | null;
@@ -173,17 +174,11 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
             key: "status",
             label: "Status",
             render: (p: IProduct) => (
-                <span
-                    className={cn(
-                        "px-3 py-1 text-sm font-medium rounded-full border transition-colors duration-200",
-                        p.status === "active"
-                            ? "bg-green-500/15 text-green-500 border-green-500/30"
-                            : "bg-zinc-700/20 text-zinc-400 border-zinc-500/30"
-                    )}
-                >
-                    {toSentenceCase(p.status)}
-                </span>
-            ),
+                <StatusBadge
+                    text={toSentenceCase(p.status)}
+                    color={p.status === "active" ? "green" : "gray"}
+                />
+            )
         },
         {
             key: "actions",

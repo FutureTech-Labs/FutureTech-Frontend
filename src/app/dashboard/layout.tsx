@@ -1,8 +1,8 @@
 import { ReactNode } from "react";
-import Header from "@/components/common/Header";
 import Sidebar from "@/components/common/Sidebar";
 import { getLoggedInUser } from "@/services/LoggedUser";
 import { SidebarProvider } from "@/context/SidebarContext";
+import ClientHeader from "@/components/common/ClientHeader";
 
 interface DashboardLayoutProps {
     children: ReactNode;
@@ -20,7 +20,7 @@ const DashboardLayout = async ({ children }: DashboardLayoutProps) => {
                 {/* Main Content Wrapper */}
                 <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
                     {/* Header */}
-                    <Header user={user} />
+                    <ClientHeader user={user} />
 
                     {/* Main Content */}
                     <section className="relative flex-1 overflow-auto rounded-xl p-3 md:p-6">

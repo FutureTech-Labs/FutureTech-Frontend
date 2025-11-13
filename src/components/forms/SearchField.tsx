@@ -69,7 +69,7 @@ const SearchField = ({
                     if (e.key === "Escape") handleClear();
                 }}
                 placeholder={placeholder}
-                className="pl-3 pr-9 disable-rings search-gradient rounded-xl! h-11 focus:ring-1! focus:ring-primary-800! placeholder:text-secondary-100/80 truncate text-xs md:text-sm shadow-lg shadow-primary-900/25"
+                className="pl-3 pr-9 disable-rings search-gradient rounded-lg! h-11 focus:ring-1! focus:ring-primary-800! placeholder:text-secondary-100/80 truncate text-xs md:text-sm shadow-lg shadow-primary-900/25"
             />
 
 

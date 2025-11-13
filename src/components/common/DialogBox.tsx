@@ -107,7 +107,7 @@ const DialogBox = ({
                 {/* Scrollable content area */}
                 {children && (
                     <div
-                        className="px-6 overflow-y-auto max-h-[80dvh]">
+                        className="px-6 overflow-y-auto max-h-[60dvh] md:max-h-[75dvh]">
                         {children}
                     </div>
                 )}

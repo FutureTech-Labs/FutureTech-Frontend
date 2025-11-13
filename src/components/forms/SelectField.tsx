@@ -22,22 +22,30 @@ const SelectField = ({
     width,
     className,
     iconColor = "text-white",
+    disabled = false, // ✅ added
 }: ISelectFieldProps) => {
     const renderSelect = (selectedValue: string, onValueChange: (value: string) => void) => (
         <Select
             key={selectedValue}
             value={selectedValue ?? ""}
             onValueChange={onValueChange}
+            disabled={disabled} // ✅ added
         >
             <SelectTrigger
                 iconColor={iconColor}
-                className={cn("disable-rings w-full px-3 h-10! rounded-lg cursor-pointer", className)}
+                disabled={disabled} // ✅ added
+                className={cn(
+                    "disable-rings w-full px-3 h-10! rounded-lg cursor-pointer",
+                    disabled && "opacity-50 cursor-not-allowed", // ✅ consistent UX
+                    className
+                )}
             >
                 <SelectValue
                     placeholder={placeholder}
                     key={`value-${selectedValue}`}
                 />
             </SelectTrigger>
+
             <SelectContent className="text-white mt-1">
                 {options.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
