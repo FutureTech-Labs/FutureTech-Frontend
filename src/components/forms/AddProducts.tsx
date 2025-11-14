@@ -33,6 +33,7 @@ interface ProductFormValues {
     specifications: string;
     status: string;
     images: (string | File)[];
+    minStock: number;
 }
 
 const ProductForm = ({
@@ -60,6 +61,7 @@ const ProductForm = ({
             specifications: "",
             status: PRODUCT_STATUSES[0],
             images: [],
+            minStock: 5
         },
     });
 
@@ -79,6 +81,7 @@ const ProductForm = ({
                     product.description?.specifications?.join("\n") || "",
                 status: product.status || PRODUCT_STATUSES[0],
                 images: product.images || [],
+                minStock: product.minStock ?? 5
             });
         } else {
             reset({
@@ -91,12 +94,13 @@ const ProductForm = ({
                 specifications: "",
                 status: PRODUCT_STATUSES[0],
                 images: [],
+                minStock: 5
             });
         }
     }, [product, reset]);
 
     const onSubmit = async (data: ProductFormValues) => {
-        const uploadedUrls: string[] = []; // ✅ define once (accessible in catch)
+        const uploadedUrls: string[] = []; // define once (accessible in catch)
         try {
             if (!data.images || data.images.length === 0) {
                 toast.warning("Please upload at least one product image.");
@@ -105,7 +109,7 @@ const ProductForm = ({
 
             setLoading(true);
 
-            // ✅ Upload all images in parallel
+            // Upload all images in parallel
             const uploadResults = await Promise.all(
                 data.images.map(async (item, i) => {
                     if (item instanceof File) {
@@ -114,14 +118,14 @@ const ProductForm = ({
                             file: item,
                             options: oldUrl ? { replaceTargetUrl: oldUrl } : undefined,
                         });
-                        if (res?.url) uploadedUrls.push(res.url); // ✅ push into outer array
+                        if (res?.url) uploadedUrls.push(res.url); //  push into outer array
                         return res?.url || "";
                     }
                     return item; // already a URL
                 })
             );
 
-            // ✅ Filter out any empty URLs
+            // Filter out any empty URLs
             const finalImageUrls = uploadResults.filter(Boolean);
 
             // Validate brand/category
@@ -152,6 +156,7 @@ const ProductForm = ({
                 description,
                 images: finalImageUrls,
                 status: data.status,
+                minStock: Number(data.minStock)
             };
 
             // Create or update product
@@ -166,7 +171,7 @@ const ProductForm = ({
             reset();
             onSuccess?.();
         } catch (error: any) {
-            // 🧹 Rollback uploaded images if save fails
+            //  Rollback uploaded images if save fails
             if (uploadedUrls.length > 0) {
                 await Promise.all(
                     uploadedUrls.map(async (url) => {
@@ -179,7 +184,7 @@ const ProductForm = ({
                 );
             }
 
-            // 🧩 Field error mapping
+            // Field error mapping
             const msg = (error?.response?.data?.message || "").toLowerCase();
             const fieldMap: Record<string, keyof ProductFormValues> = {
                 name: "name",
@@ -202,7 +207,6 @@ const ProductForm = ({
             setLoading(false);
         }
     };
-
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -312,19 +316,35 @@ const ProductForm = ({
                     )}
                 />
                 {/* Status */}
-                <SelectField
-                    name="status"
-                    label="Status"
-                    placeholder="Select status"
-                    control={control}
-                    options={PRODUCT_STATUSES.map((option) => ({
-                        value: option,
-                        label: option.charAt(0).toUpperCase() + option.slice(1),
-                    }))}
-                    className="h-12!"
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <SelectField
+                        name="status"
+                        label="Status"
+                        placeholder="Select status"
+                        control={control}
+                        options={PRODUCT_STATUSES.map((option) => ({
+                            value: option,
+                            label: option.charAt(0).toUpperCase() + option.slice(1),
+                        }))}
+                        className="h-12!"
+                    />
+
+                    <InputField
+                        name="minStock"
+                        label="Minimum Stock Threshold"
+                        type="number"
+                        placeholder="Enter minimum stock for alerts"
+                        register={register}
+                        error={errors.minStock}
+                        validation={{
+                            required: "Minimum stock is required",
+                            min: { value: 0, message: "Cannot be negative" }
+                        }}
+                    />
+
+                </div>
                 {/* Footer Buttons */}
-                <div className="sticky bottom-0 flex bg-black-500 gap-3 py-4 border-t border-gray-800 w-full">
+                <div className="sticky -bottom-px flex bg-black-500 gap-3 py-4 border-t border-gray-800 w-full">
                     <Button
                         type="button"
                         onClick={onCancel}

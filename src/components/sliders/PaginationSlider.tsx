@@ -21,7 +21,7 @@ const PaginationSlider = ({
     if (!children || children.length === 0) return null;
 
     return (
-        <div className={`md:hidden w-full ${className}`}>
+        <div className={`lg:hidden w-full ${className}`}>
             <Swiper
                 modules={[Autoplay, EffectFade]}
                 fadeEffect={{ crossFade: true }}

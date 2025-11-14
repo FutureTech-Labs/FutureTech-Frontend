@@ -1,0 +1,242 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
+import { toast } from "sonner";
+
+import InputField from "./InputField";
+import SelectField from "./SelectField";
+import ComboBoxField from "./ComboField";
+import { Button } from "@/components/ui/button";
+
+import { getProducts } from "@/services/productService";
+import { getSuppliers } from "@/services/supplierServices";
+import { createPurchase } from "@/services/purchaseService";
+
+interface PurchaseFormValues {
+    supplier: string;
+    paymentType: "COD" | "Net 15" | "Net 30" | "Net 45";
+    items: {
+        product: string;
+        quantity: number;
+        costPrice: number;
+        warrantyReference?: string;
+    }[];
+}
+
+const PurchaseForm = ({ onSuccess }: { onSuccess?: () => void }) => {
+    const [loading, setLoading] = useState(false);
+    const [suppliers, setSuppliers] = useState<ISupplier[]>([]);
+    const [products, setProducts] = useState<IProduct[]>([]);
+
+    const {
+        register,
+        control,
+        handleSubmit,
+        formState: { errors },
+        watch,
+    } = useForm<PurchaseFormValues>({
+        defaultValues: {
+            supplier: "",
+            paymentType: "COD",
+            items: [
+                { product: "", quantity: 1, costPrice: 0, warrantyReference: "" },
+            ],
+        },
+    });
+
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: "items",
+    });
+
+    const itemsWatch = watch("items");
+
+    const totalAmount = itemsWatch.reduce(
+        (sum, item) => sum + (item.quantity || 0) * (item.costPrice || 0),
+        0
+    );
+
+    // Fetch suppliers & products
+    useEffect(() => {
+        (async () => {
+            try {
+                const s = await getSuppliers({ limit: 200 });
+                const p = await getProducts({ limit: 200 });
+
+                if (s.success) setSuppliers(s.suppliers);
+                if (p.success) setProducts(p.products);
+            } catch (err) {
+                console.log(err);
+            }
+        })();
+    }, []);
+
+    const onSubmit = async (data: PurchaseFormValues) => {
+        try {
+            setLoading(true);
+
+            const payload = {
+                ...data,
+                date: new Date().toISOString(),
+            };
+
+            await createPurchase(payload);
+
+            toast.success("Purchase created successfully!");
+            onSuccess?.();
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Error creating purchase");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Supplier */}
+                <ComboBoxField
+                    name="supplier"
+                    control={control}
+                    label="Supplier"
+                    placeholder="Select supplier"
+                    required
+                    options={suppliers.map((s) => ({
+                        value: s._id,
+                        label: s.name,
+                    }))}
+                    error={errors.supplier}
+                />
+                {/* Payment Type */}
+                <SelectField
+                    name="paymentType"
+                    label="Payment Type"
+                    control={control}
+                    required
+                    options={[
+                        { value: "COD", label: "Cash On Delivery (COD)" },
+                        { value: "Net 15", label: "Net 15" },
+                        { value: "Net 30", label: "Net 30" },
+                        { value: "Net 45", label: "Net 45" },
+                    ]}
+                    placeholder="Select payment type"
+                    className="h-11!"
+                />
+            </div>
+
+            {/* Purchase Items */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Purchased Items</h3>
+
+                {fields.map((field, index) => (
+                    <div
+                        key={field.id}
+                        className="grid grid-cols-1 md:grid-cols-5 gap-4 p-5 bg-zinc-900/30 rounded-xl border border-zinc-700 shadow-sm"
+                    >
+                        {/* Product */}
+                        <ComboBoxField
+                            label="Product"
+                            placeholder="Select product"
+                            control={control}
+                            name={`items.${index}.product`}
+                            required
+                            options={products.map((p) => ({
+                                value: p._id,
+                                label: p.name,
+                            }))}
+                            error={errors.items?.[index]?.product}
+                            className="w-full"
+                        />
+
+                        {/* Quantity */}
+                        <InputField
+                            placeholder="Qty"
+                            name={`items.${index}.quantity`}
+                            label="Qty"
+                            type="number"
+                            register={register}
+                            error={errors.items?.[index]?.quantity}
+                            validation={{
+                                required: "Quantity required",
+                                min: { value: 1, message: "Minimum 1 qty" },
+                            }}
+                        />
+
+                        {/* Cost Price */}
+                        <InputField
+                            placeholder="Cost Price"
+                            name={`items.${index}.costPrice`}
+                            label="Cost Price"
+                            type="number"
+                            register={register}
+                            error={errors.items?.[index]?.costPrice}
+                            validation={{
+                                required: "Cost price required",
+                                min: { value: 0, message: "Cannot be negative" },
+                            }}
+                        />
+
+                        {/* Warranty */}
+                        <InputField
+                            name={`items.${index}.warrantyReference`}
+                            label="Warranty Ref"
+                            placeholder="Optional"
+                            register={register}
+                        />
+
+                        {/* Remove Button */}
+                        <div className="flex items-end">
+                            {index > 0 && (
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    className="w-full h-10"
+                                    onClick={() => remove(index)}
+                                >
+                                    Remove
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                ))}
+
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="border-blue-600 text-blue-400 hover:bg-blue-600/20"
+                    onClick={() =>
+                        append({
+                            product: "",
+                            quantity: 1,
+                            costPrice: 0,
+                            warrantyReference: "",
+                        })
+                    }
+                >
+                    Add Another Item
+                </Button>
+            </div>
+
+            {/* Total */}
+            <div className="flex justify-between text-xl font-semibold text-gray-300">
+                <span>Total Amount:</span>
+                <span>LKR {totalAmount.toLocaleString()}</span>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="sticky -bottom-px flex gap-3 py-4 border-t border-gray-800 w-full">
+                <Button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                >
+                    {loading ? "Submitting..." : "Submit Purchase"}
+                </Button>
+            </div>
+        </form>
+    );
+};
+
+export default PurchaseForm;

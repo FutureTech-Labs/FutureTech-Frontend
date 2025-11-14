@@ -50,6 +50,8 @@ declare global {
         warrantyPeriod: string;
         images: string[];
         status: string;
+        totalStock: number;
+        minStock: number;
         createdAt: string;
         updatedAt: string;
     }
@@ -106,7 +108,7 @@ declare global {
         email: string;
         company: string;
         address: string;
-        status: "pending" | "paid"; // ✔ correct enum
+        status: "pending" | "paid";
         paymentTerms: "COD" | "Net 15" | "Net 30" | "Net 45";
         bankDetails: BankDetails;
         outstandingBalance: number;
@@ -120,6 +122,65 @@ declare global {
         bankName: string;
         accountNumber: string;
     }
+
+    // Stocks and batches
+    interface IStockResponse {
+        success: boolean;
+        total: number;
+        page: number;
+        pages: number;
+        count: number;
+        batches: IStockBatch[];
+    }
+
+    interface IStockBatch {
+        _id: string;
+        product: IStockProduct | null;
+        supplier: IStockSupplier | null;
+        batchCode: string;
+        costPrice: number;
+        quantityReceived: number;
+        quantityAvailable: number;
+        dateReceived: string;
+    }
+
+    interface IStockProduct {
+        id: string;
+        name: string;
+        sellingPrice: number;
+        minStock: number;
+    }
+
+    interface IStockSupplier {
+        id: string;
+        name: string;
+    }
+
+    // Product-level stock view
+    interface IProductStockResponse {
+        success: boolean;
+        product: {
+            id: string;
+            name: string;
+            sellingPrice: number;
+            totalStock: number;
+        };
+        batches: IProductStockBatch[];
+    }
+
+    interface IProductStockBatch {
+        _id: string;
+        batchCode: string;
+        costPrice: number;
+        quantityReceived: number;
+        quantityAvailable: number;
+        dateReceived: string;
+        supplier: IStockSupplier | null;
+    }
+
+
+
+    // Types
 
     // Inputs
     type IFormInputProps = {

@@ -36,6 +36,7 @@ export const getProducts = async (params?: GetProductsParams): Promise<{
         activeProducts: number;
         inactiveProducts: number;
         totalValue: number;
+        lowStockProducts: number;
     };
 }> => {
     const res = await api.get("/shared/products", { params });
@@ -63,5 +64,11 @@ export const updateProduct = async (id: string, productData: Partial<IProduct>):
 // Delete product (Admin only)
 export const deleteProduct = async (id: string): Promise<{ success: boolean; message: string }> => {
     const res = await api.delete<{ success: boolean; message: string }>(`/admin/product/${id}`);
+    return res.data;
+};
+
+// Get low stock products (Admin Only)
+export const getLowStockProducts = async (params?: { page?: number; limit?: number; search?: string }) => {
+    const res = await api.get("/admin/products/low-stock", { params });
     return res.data;
 };

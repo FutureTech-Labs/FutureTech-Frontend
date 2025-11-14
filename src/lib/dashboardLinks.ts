@@ -37,7 +37,7 @@ export const dashboardLinks = [
         title: "Finance & Sales",
         links: [
             {
-                label: "Sales Records",
+                label: "Sales",
                 href: "/dashboard/sales",
                 icon: "/icons/Sales.svg",
                 roles: ["admin", "cashier"]

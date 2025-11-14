@@ -5,7 +5,7 @@ import Image from "next/image";
 
 import { toast } from "sonner";
 import { Button } from "../ui/button";
-import { Boxes, CircleDollarSign, PackageCheck, PackageX, Plus } from "lucide-react";
+import { AlertTriangle, Boxes, CircleDollarSign, PackageCheck, PackageX, Plus } from "lucide-react";
 
 import DataTable from "../common/Table";
 import StatCard from "../cards/StatCard";
@@ -14,15 +14,15 @@ import IconButton from "../common/IconButton";
 import SearchField from "../forms/SearchField";
 import SelectField from "../forms/SelectField";
 import ProductForm from "../forms/AddProducts";
+import { StatusBadge } from "../common/StatusBadge";
 import ProductDetails from "../common/ProductDetails";
 import ExportPDFButton from "../common/ExportPdfButton";
 import { ScrollableTabs } from "../common/ScrollableTabs";
 import PaginationSlider from "../sliders/PaginationSlider";
 
 import { useEdgeStore } from "@/lib/edgestore";
-import { cn, toSentenceCase, formatCurrencyLKR } from "@/lib/utils";
+import { toSentenceCase, formatCurrencyLKR } from "@/lib/utils";
 import { deleteProduct, getCategoriesAndBrands, getProducts } from "@/services/productService";
-import { StatusBadge } from "../common/StatusBadge";
 
 interface InventoryPageProps {
     role: "admin" | "cashier" | null;
@@ -42,7 +42,7 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
     const [selectedCategory, setSelectedCategory] = useState("all");
     const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
 
-    const [stats, setStats] = useState({ totalProducts: 0, activeProducts: 0, inactiveProducts: 0, totalValue: 0, });
+    const [stats, setStats] = useState({ totalProducts: 0, activeProducts: 0, inactiveProducts: 0, totalValue: 0, lowStockProducts: 0 });
 
     const [viewDialogOpen, setviewDialogOpen] = useState(false);
     const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -129,7 +129,7 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
 
     const totalProductsByCategory = categories.reduce((sum, cat) => sum + (cat.count || 0), 0);
 
-    const { totalProducts, activeProducts, inactiveProducts, totalValue } = stats;
+    const { totalProducts, activeProducts, inactiveProducts, totalValue, lowStockProducts } = stats;
 
     const columns = [
         {
@@ -145,13 +145,12 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
                 <div className="max-w-60 truncate">{p.name || "—"}</div>
             ),
         },
-
         {
             key: "images",
             label: "Image",
             render: (p: IProduct) =>
                 p.images?.[0] ? (
-                    <div className="relative w-[60px] h-9">
+                    <div className="relative w-[50px] h-8">
                         <Image
                             src={p.images[0]}
                             alt={p.name || "Product Image"}
@@ -169,6 +168,38 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
             label: "Selling Price",
             enableSorting: true,
             render: (p: IProduct) => formatCurrencyLKR(p.sellingPrice) || "—",
+        },
+        {
+            key: "stockStatus",
+            label: "Stock",
+            render: (p: IProduct) => {
+                const stock = p.totalStock ?? 0;
+
+                if (stock === 0) {
+                    return (
+                        <StatusBadge
+                            text="Out of Stock"
+                            color="red"
+                        />
+                    );
+                }
+
+                if (stock < p.minStock) {
+                    return (
+                        <StatusBadge
+                            text={`Low (${stock})`}
+                            color="yellow"
+                        />
+                    );
+                }
+
+                return (
+                    <StatusBadge
+                        text={`${stock}`}
+                        color="green"
+                    />
+                );
+            }
         },
         {
             key: "status",
@@ -229,6 +260,14 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
             gradient="linear-gradient(79.74deg, rgba(166, 255, 0, 0.12) 0%, rgba(0, 0, 0, 0.12) 100%)"
         />,
         <StatCard
+            key="lowStock"
+            title="Low Stock Products"
+            value={lowStockProducts}
+            icon={<AlertTriangle className="w-5 h-5 text-red-400" />}
+            iconBg="bg-red-500/10"
+            gradient="linear-gradient(79.74deg, rgba(255, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.12) 100%)"
+        />,
+        <StatCard
             key="active"
             title="Active Products"
             value={activeProducts}
@@ -240,9 +279,9 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
             key="inactive"
             title="Inactive Products"
             value={inactiveProducts}
-            icon={<PackageX className="w-5 h-5 text-red-400" />}
-            iconBg="bg-red-500/10"
-            gradient="linear-gradient(79.74deg, rgba(255, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.12) 100%)"
+            icon={<PackageX className="w-5 h-5 text-orange-400" />}
+            iconBg="bg-orange-500/10"
+            gradient="linear-gradient(79.74deg, rgba(255, 165, 0, 0.12) 0%, rgba(0, 0, 0, 0.12) 100%)"
         />,
         <StatCard
             key="value"
@@ -257,7 +296,7 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
 
     return (
         <div className="relative flex flex-col gap-6">
-            <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+            <div className="hidden lg:grid grid-cols-1 lg:grid-cols-5 gap-6 w-full">
                 {cards}
             </div>
 

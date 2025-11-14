@@ -32,6 +32,8 @@ const ProductDetails = ({ product }: ProductDetailsDialogProps) => {
                     <div className="flex-1 flex flex-col my-2 gap-1 justify-evenly">
                         <Field label="Brand" value={(product.brand)?.name || "—"} />
                         <Field label="Price" value={formatCurrencyLKR(product.sellingPrice, false) || "—"} accent />
+                        <Field label="Total Stock" value={(product.totalStock) || 0} />
+                        <Field label="Min Stock Threshold" value={(product.minStock) || 0} />
                         <Field label="Warranty Peroid" value={(product.warrantyPeriod) || "—"} />
                         <Field label="Status" value={toSentenceCase(product.status) || "-"} />
                     </div>
@@ -73,7 +75,7 @@ function Field({
     accent = false,
 }: {
     label: string;
-    value: string;
+    value: string | number;
     accent?: boolean;
 }) {
     return (
