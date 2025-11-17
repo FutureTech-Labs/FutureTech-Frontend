@@ -10,6 +10,7 @@ interface IconButtonProps {
     ariaLabel?: string;
     disabled?: boolean;
     className?: string;
+    iconColor?: string;
     children?: React.ReactNode;
     size?: "xs" | "sm" | "md" | "lg";
     variant?: "default" | "ghost" | "outline" | "destructive";
@@ -27,6 +28,7 @@ export default function IconButton({
     className = "",
     disabled = false,
     variant = "ghost",
+    iconColor = "",
 }: IconButtonProps) {
     const sizeMap: Record<string, { p: string; icon: string }> = {
         xs: { p: "p-1", icon: "h-3 w-3" },
@@ -49,8 +51,12 @@ export default function IconButton({
             title={title}
         >
             {Icon ? (
-                <Icon className={`${sz.icon} shrink-0`} aria-hidden />
+                <Icon
+                    className={`${sz.icon} shrink-0 ${iconColor ?? ""}`}
+                    aria-hidden
+                />
             ) : iconSrc ? (
+
                 <Image
                     src={iconSrc}
                     alt={ariaLabel || "icon"}

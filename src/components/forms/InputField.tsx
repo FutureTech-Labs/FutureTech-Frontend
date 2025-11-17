@@ -12,7 +12,8 @@ const InputField = ({
     validation,
     disabled,
     value,
-    autoComplete = "on"
+    autoComplete = "on",
+    height = "h-12"
 }: IFormInputProps) => {
 
     return (
@@ -29,8 +30,8 @@ const InputField = ({
                 disabled={disabled}
                 value={value}
                 autoComplete={autoComplete}
-                className={cn("h-12 text-white text-base placeholder:text-gray-500 border border-gray-500/20 backdrop-blur-2xl rounded-lg",
-                    { 'opacity-50 cursor-not-allowed': disabled },
+                className={cn("text-white text-base placeholder:text-gray-500 border border-gray-500/20 backdrop-blur-2xl rounded-lg",
+                    { 'opacity-50 cursor-not-allowed': disabled }, height,
                     error && 'border-red-500 focus:border-red-500 focus:ring-red-500'
                 )}
                 {...register(name, validation)}

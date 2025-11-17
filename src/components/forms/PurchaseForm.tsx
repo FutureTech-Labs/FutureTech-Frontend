@@ -12,6 +12,13 @@ import { Button } from "@/components/ui/button";
 import { getProducts } from "@/services/productService";
 import { getSuppliers } from "@/services/supplierServices";
 import { createPurchase } from "@/services/purchaseService";
+import IconButton from "../common/IconButton";
+import { CircleMinus } from "lucide-react";
+
+interface PurchaseFormProps {
+    onSuccess?: () => void;
+    onCancel?: () => void;
+}
 
 interface PurchaseFormValues {
     supplier: string;
@@ -24,7 +31,7 @@ interface PurchaseFormValues {
     }[];
 }
 
-const PurchaseForm = ({ onSuccess }: { onSuccess?: () => void }) => {
+const PurchaseForm = ({ onSuccess, onCancel }: PurchaseFormProps) => {
     const [loading, setLoading] = useState(false);
     const [suppliers, setSuppliers] = useState<ISupplier[]>([]);
     const [products, setProducts] = useState<IProduct[]>([]);
@@ -83,7 +90,7 @@ const PurchaseForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
             await createPurchase(payload);
 
-            toast.success("Purchase created successfully!");
+            toast.success("Purchase successfull!");
             onSuccess?.();
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Error creating purchase");
@@ -133,7 +140,7 @@ const PurchaseForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                 {fields.map((field, index) => (
                     <div
                         key={field.id}
-                        className="grid grid-cols-1 md:grid-cols-5 gap-4 p-5 bg-zinc-900/30 rounded-xl border border-zinc-700 shadow-sm"
+                        className="relative grid grid-cols-1 md:grid-cols-3 gap-4 p-5 bg-zinc-900/30 rounded-xl border border-zinc-700 shadow-sm"
                     >
                         {/* Product */}
                         <ComboBoxField
@@ -162,6 +169,7 @@ const PurchaseForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                                 required: "Quantity required",
                                 min: { value: 1, message: "Minimum 1 qty" },
                             }}
+                            height="h-11"
                         />
 
                         {/* Cost Price */}
@@ -176,27 +184,18 @@ const PurchaseForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                                 required: "Cost price required",
                                 min: { value: 0, message: "Cannot be negative" },
                             }}
-                        />
-
-                        {/* Warranty */}
-                        <InputField
-                            name={`items.${index}.warrantyReference`}
-                            label="Warranty Ref"
-                            placeholder="Optional"
-                            register={register}
+                            height="h-11"
                         />
 
                         {/* Remove Button */}
-                        <div className="flex items-end">
+                        <div className="absolute top-0 right-0 flex items-end">
                             {index > 0 && (
-                                <Button
-                                    type="button"
-                                    variant="destructive"
-                                    className="w-full h-10"
+                                <IconButton
+                                    icon={CircleMinus}
+                                    iconColor="text-red-400"
+                                    size="lg"
                                     onClick={() => remove(index)}
-                                >
-                                    Remove
-                                </Button>
+                                />
                             )}
                         </div>
                     </div>
@@ -205,7 +204,7 @@ const PurchaseForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                 <Button
                     type="button"
                     variant="outline"
-                    className="border-blue-600 text-blue-400 hover:bg-blue-600/20"
+                    className="main-button-gradient"
                     onClick={() =>
                         append({
                             product: "",
@@ -226,13 +225,21 @@ const PurchaseForm = ({ onSuccess }: { onSuccess?: () => void }) => {
             </div>
 
             {/* Footer Buttons */}
-            <div className="sticky -bottom-px flex gap-3 py-4 border-t border-gray-800 w-full">
+            <div className="sticky -bottom-px bg-black-500 flex gap-3 py-3 border-t border-gray-800">
+                <Button
+                    type="button"
+                    onClick={onCancel}
+                    variant="outline"
+                    className="flex-1 border-gray-700 text-gray-300 hover:bg-gray-800"
+                >
+                    Cancel
+                </Button>
                 <Button
                     type="submit"
                     disabled={loading}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6"
                 >
-                    {loading ? "Submitting..." : "Submit Purchase"}
+                    {loading ? "Purchasing..." : "Purchase"}
                 </Button>
             </div>
         </form>

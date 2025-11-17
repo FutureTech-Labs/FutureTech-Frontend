@@ -344,7 +344,7 @@ const ProductForm = ({
 
                 </div>
                 {/* Footer Buttons */}
-                <div className="sticky -bottom-px flex bg-black-500 gap-3 py-4 border-t border-gray-800 w-full">
+                <div className="sticky -bottom-px bg-black-500 flex gap-3 py-3 border-t border-gray-800">
                     <Button
                         type="button"
                         onClick={onCancel}

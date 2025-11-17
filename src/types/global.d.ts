@@ -80,6 +80,8 @@ declare global {
         totalAmount?: number;
         status?: "pending" | "paid";
         date?: string;
+        paymentType?: "COD" | "Net 15" | "Net 30" | "Net 45";
+        dueDate?: string;
     }
 
     // Supplier Payment
@@ -114,6 +116,7 @@ declare global {
         outstandingBalance: number;
         purchaseHistory: IPurchaseInvoiceRef[];
         payments?: ISupplierPayment[];
+        isActive: boolean;
         createdAt: string;
         updatedAt: string;
     }
@@ -194,6 +197,7 @@ declare global {
         disabled?: boolean;
         value?: string;
         autoComplete?: string;
+        height?: string;
     };
 
     // Textarea

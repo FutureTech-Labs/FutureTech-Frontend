@@ -6,7 +6,7 @@ import { Check, AlertCircle, Plus, CircleCheckBig } from "lucide-react";
 import { StatusBadge } from "../common/StatusBadge";
 import { formatCurrencyLKR, toSentenceCase } from "@/lib/utils";
 
-import { getSupplierById, getSuppliers } from "@/services/supplierServices";
+import { getSupplierById, getSuppliers, toggleSupplierStatus } from "@/services/supplierServices";
 import DataTable from "../common/Table";
 import SearchField from "../forms/SearchField";
 import SelectField from "../forms/SelectField";
@@ -16,6 +16,8 @@ import DialogBox from "../common/DialogBox";
 import SupplierDetails from "../common/SupplierDetails";
 import SupplierForm from "../forms/SupplierForm";
 import PaySupplierForm from "../forms/SupplierPayForm";
+import { toast } from "sonner";
+import { Tab } from "../common/Tab";
 
 const SupplierPage = () => {
     const [suppliers, setSuppliers] = useState<ISupplier[]>([]);
@@ -23,10 +25,11 @@ const SupplierPage = () => {
 
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
-    const [status, setStatus] = useState<"paid" | "pending" | "all">("all");
     const [minBalance, setMinBalance] = useState<number | undefined>();
     const [maxBalance, setMaxBalance] = useState<number | undefined>();
     const [selectedSupplier, setSelectedSupplier] = useState<ISupplier | null>(null);
+    const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<"all" | "paid" | "pending">("all");
+    const [supplierStatus, setSupplierStatus] = useState<"all" | "active" | "inactive">("all");
 
     const [viewDialogOpen, setviewDialogOpen] = useState(false);
     const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -43,7 +46,8 @@ const SupplierPage = () => {
             const res = await getSuppliers({
                 page,
                 search: search || undefined,
-                status: status !== "all" ? status : undefined,
+                status: selectedPaymentStatus !== "all" ? selectedPaymentStatus : undefined,
+                supplierStatus: supplierStatus !== "all" ? supplierStatus : undefined,
                 minBalance,
                 maxBalance,
             });
@@ -62,7 +66,7 @@ const SupplierPage = () => {
 
     useEffect(() => {
         fetchData();
-    }, [page, search, status, minBalance, maxBalance]);
+    }, [page, search, selectedPaymentStatus, supplierStatus, minBalance, maxBalance]);
 
 
     const handleViewSupplier = async (supplier: ISupplier) => {
@@ -78,16 +82,23 @@ const SupplierPage = () => {
         setPayDialogOpen(true);
     };
 
+    const handleDeactivateClick = async (supplier: ISupplier) => {
+        try {
+            const res = await toggleSupplierStatus(supplier._id);
+
+            toast.success(res.message);
+            fetchData();
+
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Failed to update supplier");
+        }
+    };
+
     const supplierColumns = [
         {
             key: "name",
             label: "Name",
             render: (s: ISupplier) => s.name,
-        },
-        {
-            key: "company",
-            label: "Company",
-            render: (s: ISupplier) => s.company || "—",
         },
         {
             key: "phone",
@@ -101,7 +112,7 @@ const SupplierPage = () => {
         },
         {
             key: "status",
-            label: "Status",
+            label: "Payment Status",
             render: (s: ISupplier) => (
                 <StatusBadge
                     text={toSentenceCase(s.status)}
@@ -114,6 +125,22 @@ const SupplierPage = () => {
                         )
                     }
                 />
+            ),
+        },
+        {
+            key: "supplierStatus",
+            label: "Supplier Status",
+            render: (s: ISupplier) => (
+                <StatusBadge
+                    text={s.isActive ? "Active" : "Inactive"}
+                    color={s.isActive ? "purple" : "red"}
+                    icon={
+                        s.isActive
+                            ? <CircleCheckBig className="w-3 h-3" />
+                            : <AlertCircle className="w-3 h-3" />
+                    }
+                />
+
             ),
         },
         {
@@ -136,7 +163,6 @@ const SupplierPage = () => {
             label: "Actions",
             render: (s: ISupplier) => (
                 <div className="flex gap-1">
-
                     {/* View */}
                     <IconButton
                         iconSrc="/icons/Eye.svg"
@@ -154,16 +180,15 @@ const SupplierPage = () => {
                         }}
                     />
 
-                    {/* Delete */}
+                    {/* Activate / Deactivate */}
                     <IconButton
-                        iconSrc="/icons/Delete.svg"
-                        ariaLabel="Delete"
-                        onClick={() => { }}
+                        iconSrc={s.isActive ? "/icons/Minus.svg" : "/icons/UserCheck.svg"}
+                        ariaLabel={s.isActive ? "Deactivate" : "Activate"}
+                        onClick={() => handleDeactivateClick(s)}
                     />
                 </div>
             ),
         }
-
     ];
 
     return (
@@ -171,7 +196,7 @@ const SupplierPage = () => {
             <div className="flex flex-col gap-6 p-5 rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient shadow-lg 
             shadow-primary-900/15">
 
-                <div className="flex md:flex-row flex-col gap-5 items-center justify-between w-full">
+                <div className="flex lg:flex-row flex-col gap-5 items-center justify-between w-full">
 
                     {/* Search filter */}
                     <SearchField
@@ -179,23 +204,24 @@ const SupplierPage = () => {
                         value={search}
                         onChange={setSearch}
                         onClear={() => setSearch("")}
-                        className="md:max-w-md"
+                        className="lg:max-w-md"
                     />
 
-                    <div className="flex md:flex-row flex-col gap-5 w-full justify-end">
+                    <div className="flex lg:flex-row flex-col gap-5 w-full justify-end">
                         {/* Brand Select filter */}
                         <SelectField
-                            placeholder="Filter by status"
-                            value={status}
-                            onChange={(v) => setStatus(v as "paid" | "pending" | "all")}
+                            placeholder="Supplier Status"
+                            value={supplierStatus}
+                            onChange={(value) => setSupplierStatus(value as "all" | "active" | "inactive")}
                             options={[
-                                { value: "all", label: "All Statuses" },
-                                { value: "paid", label: "Paid" },
-                                { value: "pending", label: "Pending" },
+                                { value: "all", label: "All Suppliers" },
+                                { value: "active", label: "Active" },
+                                { value: "inactive", label: "Inactive" },
                             ]}
-                            width="md:w-[150px]"
+                            width="lg:w-[180px]"
                             className="bg-black-500! border border-white/50 focus:ring-1! focus:ring-primary-800! text-xs md:text-sm"
                         />
+
 
                         <ExportPDFButton
                             title="Supplier Report"
@@ -222,8 +248,18 @@ const SupplierPage = () => {
                             <Plus />
                         </Button>
                     </div>
-
                 </div>
+
+                <Tab
+                    activeTab={selectedPaymentStatus}
+                    onChange={(value) => setSelectedPaymentStatus(value as "all" | "paid" | "pending")}
+                    tabs={[
+                        { label: "All", value: "all" },
+                        { label: "Paid", value: "paid" },
+                        { label: "Pending", value: "pending" },
+                    ]}
+                    className="max-w-md"
+                />
 
                 <DataTable
                     columns={supplierColumns}
@@ -243,7 +279,6 @@ const SupplierPage = () => {
                     onOpenChange={setviewDialogOpen}
                     title="Supplier Details"
                     widthClass="md:min-w-4xl!"
-                    showFooter
                 >
                     <SupplierDetails supplier={selectedSupplier} />
                 </DialogBox>

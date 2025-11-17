@@ -22,21 +22,21 @@ const SelectField = ({
     width,
     className,
     iconColor = "text-white",
-    disabled = false, // ✅ added
+    disabled = false,
 }: ISelectFieldProps) => {
     const renderSelect = (selectedValue: string, onValueChange: (value: string) => void) => (
         <Select
             key={selectedValue}
             value={selectedValue ?? ""}
             onValueChange={onValueChange}
-            disabled={disabled} // ✅ added
+            disabled={disabled}
         >
             <SelectTrigger
                 iconColor={iconColor}
-                disabled={disabled} // ✅ added
+                disabled={disabled}
                 className={cn(
                     "disable-rings w-full px-3 h-10! rounded-lg cursor-pointer",
-                    disabled && "opacity-50 cursor-not-allowed", // ✅ consistent UX
+                    disabled && "opacity-50 cursor-not-allowed",
                     className
                 )}
             >

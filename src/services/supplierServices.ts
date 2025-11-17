@@ -3,6 +3,7 @@ import api from "@/lib/api";
 interface GetSuppliersParams {
     search?: string;
     status?: "paid" | "pending";
+    supplierStatus?: "active" | "inactive" | "all";
     minBalance?: number;
     maxBalance?: number;
     page?: number;
@@ -42,8 +43,10 @@ export const updateSupplier = async (id: string, supplierData: Partial<ISupplier
     return res.data.supplier;
 };
 
-// Delete supplier (Admin only)
-export const deleteSupplier = async (id: string): Promise<{ success: boolean; message: string }> => {
-    const res = await api.delete<{ success: boolean; message: string }>(`/admin/supplier/${id}`);
+// Deactivate supplier (Admin only)
+export const toggleSupplierStatus = async (
+    id: string
+): Promise<{ success: boolean; message: string }> => {
+    const res = await api.patch<{ success: boolean; message: string }>(`/admin/supplier/toggle/${id}`);
     return res.data;
 };

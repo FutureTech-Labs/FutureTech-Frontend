@@ -5,17 +5,17 @@ import {
     useEffect
 } from "react";
 
+import { toast } from "sonner";
+import { Plus } from "lucide-react";
+import { Button } from "../ui/button";
 import DataTable from "../common/Table";
+import DialogBox from "../common/DialogBox";
 import IconButton from "../common/IconButton";
 import { formatCurrencyLKR } from "@/lib/utils";
+import SearchField from "../forms/SearchField";
+import PurchaseForm from "../forms/PurchaseForm";
 import { StatusBadge } from "../common/StatusBadge";
 import { deleteBatch, getAllStockBatches } from "@/services/stockService";
-import SearchField from "../forms/SearchField";
-import { Button } from "../ui/button";
-import { Plus } from "lucide-react";
-import DialogBox from "../common/DialogBox";
-import PurchaseForm from "../forms/PurchaseForm";
-import { toast } from "sonner";
 
 const StockPage = () => {
     const [batches, setBatches] = useState<IStockBatch[]>([]);
@@ -70,7 +70,12 @@ const StockPage = () => {
 
         setDeleting(true);
         try {
-            await deleteBatch(batchToDelete._id);
+            const res = await deleteBatch(batchToDelete._id);
+
+            if (!res.success) {
+                toast.error(res.message);
+                return;
+            }
 
             toast.success("Stock batch deleted successfully");
 
@@ -175,7 +180,7 @@ const StockPage = () => {
                         onClick={handlePurchase}
                         className="main-button-gradient border-none!"
                     >
-                        Add New Product
+                        Purchase Products
                         <Plus />
                     </Button>
                 </div>
@@ -197,10 +202,19 @@ const StockPage = () => {
                     open={purchaseDialog}
                     onOpenChange={setPurchaseDialogOpen}
                     title="Product Details"
-                    widthClass="min-w-5xl!"
+                    widthClass="min-w-4xl!"
                 >
                     {/* Here the purchasing form should come */}
-                    <PurchaseForm />
+                    <PurchaseForm
+                        onSuccess={() => {
+                            setPurchaseDialogOpen(false);
+                            fetchStockData();
+                        }}
+                        onCancel={() => {
+                            setPurchaseDialogOpen(false);
+                        }}
+
+                    />
                 </DialogBox>
 
                 {/* Delete Confirmation Dialog */}

@@ -55,7 +55,7 @@ export default function SupplierForm({
             contact: "",
             address: "",
             paymentTerms: "COD",
-            status: "paid", // ✅ CORRECT DEFAULT
+            status: "paid",
             bankName: "",
             accountNumber: "",
         },
@@ -73,7 +73,7 @@ export default function SupplierForm({
                 contact: supplier.contact,
                 address: supplier.address,
                 paymentTerms: supplier.paymentTerms,
-                status: supplier.status as "paid" | "pending", // ensure correct type
+                status: supplier.status as "paid" | "pending",
                 bankName: supplier.bankDetails?.bankName || "",
                 accountNumber: supplier.bankDetails?.accountNumber || "",
             });
@@ -103,7 +103,7 @@ export default function SupplierForm({
                 contact: data.contact.trim(),
                 address: data.address.trim(),
                 paymentTerms: data.paymentTerms,
-                status: supplier ? supplier.status : "paid", // NOT editable
+                status: supplier ? supplier.status : "paid",
                 bankDetails: {
                     bankName: data.bankName.trim(),
                     accountNumber: data.accountNumber.trim(),
@@ -217,7 +217,7 @@ export default function SupplierForm({
                                     { value: "paid", label: "Paid" },
                                     { value: "pending", label: "Pending" },
                                 ]}
-                                disabled // <— works now
+                                disabled
                             />
                         )}
                     />
@@ -239,7 +239,7 @@ export default function SupplierForm({
                     error={errors.accountNumber}
                 />
 
-                <div className="flex gap-3 pt-5 border-t border-gray-800">
+                <div className="sticky -bottom-px bg-black-500 flex gap-3 py-3 border-t border-gray-800">
                     <Button
                         type="button"
                         onClick={onCancel}
