@@ -10,6 +10,7 @@ import { formatCurrencyLKR } from "@/lib/utils";
 
 import { createSupplierPayment } from "@/services/supplierPayments";
 import { getSupplierById } from "@/services/supplierServices";
+import TextareaField from "./TextAreaField";
 
 interface PaySupplierFormProps {
     supplier: ISupplier | null;
@@ -184,24 +185,34 @@ export default function PaySupplierForm({
                 name="notes"
                 control={control}
                 render={({ field }) => (
-                    <div className="flex flex-col gap-1">
-                        <label className="text-sm">Notes (optional)</label>
-                        <textarea
-                            {...field}
-                            rows={3}
-                            className="p-2 bg-black/20 rounded-lg"
-                        />
-                    </div>
+                    <TextareaField
+                        name="notes"
+                        label="Notes (optional)"
+                        placeholder="Enter notes"
+                        register={register}
+                        error={errors.notes}
+                        validation={{}}
+                        disabled={false}
+                        value={field.value}
+                        rows={3}
+                        maxWords={200}
+                    />
                 )}
             />
 
+
             {/* Actions */}
-            <div className="flex gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={onCancel}>
+            <div className="sticky -bottom-px bg-black-500 flex gap-3 py-3 border-t border-gray-800">
+                <Button
+                    type="button"
+                    onClick={onCancel}
+                    variant="outline"
+                    className="flex-1 border-gray-700 text-gray-300 hover:bg-gray-800"
+                >
                     Cancel
                 </Button>
 
-                <Button type="submit" disabled={loading} className="main-button-gradient flex-1">
+                <Button type="submit" disabled={loading} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
                     {loading ? "Processing..." : "Record Payment"}
                 </Button>
             </div>

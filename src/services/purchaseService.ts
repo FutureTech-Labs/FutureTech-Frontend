@@ -14,7 +14,18 @@ export interface CreatePurchasePayload {
     date?: string;
 }
 
-export const createPurchase = async (payload: CreatePurchasePayload) => {
+// CREATE PURCHASE
+export const createPurchase = async (
+    payload: CreatePurchasePayload
+): Promise<IPurchaseCreateResponse> => {
     const res = await api.post("/admin/purchase", payload);
-    return res.data; // invoice + batches
+    return res.data;
+};
+
+// GET PURCHASE INVOICES
+export const getPurchaseInvoice = async (
+    invoiceId: string
+): Promise<IPurchaseInvoiceResponse> => {
+    const res = await api.get(`/admin/purchase/invoice/${invoiceId}`);
+    return res.data;
 };

@@ -16,6 +16,8 @@ import SearchField from "../forms/SearchField";
 import PurchaseForm from "../forms/PurchaseForm";
 import { StatusBadge } from "../common/StatusBadge";
 import { deleteBatch, getAllStockBatches } from "@/services/stockService";
+import { getPurchaseInvoice } from "@/services/purchaseService";
+import Invoice from "../common/Invoice";
 
 const StockPage = () => {
     const [batches, setBatches] = useState<IStockBatch[]>([]);
@@ -29,6 +31,10 @@ const StockPage = () => {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [batchToDelete, setBatchToDelete] = useState<IStockBatch | null>(null);
     const [deleting, setDeleting] = useState(false);
+
+    const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
+    const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
+    const [invoiceData, setInvoiceData] = useState<IPurchaseInvoiceResponse | null>(null);
 
     const fetchStockData = async () => {
         setLoading(true);
@@ -55,6 +61,15 @@ const StockPage = () => {
     useEffect(() => {
         fetchStockData();
     }, [page, searchTerm]);
+
+    useEffect(() => {
+        if (!selectedInvoiceId) return;
+
+        getPurchaseInvoice(selectedInvoiceId).then((res) => {
+            setInvoiceData(res);
+        });
+    }, [selectedInvoiceId]);
+
 
     const handlePurchase = () => {
         setPurchaseDialogOpen(true);
@@ -206,16 +221,36 @@ const StockPage = () => {
                 >
                     {/* Here the purchasing form should come */}
                     <PurchaseForm
-                        onSuccess={() => {
-                            setPurchaseDialogOpen(false);
-                            fetchStockData();
-                        }}
-                        onCancel={() => {
-                            setPurchaseDialogOpen(false);
-                        }}
+                        onSuccess={(data) => {
+                            // data.invoice._id comes from backend
+                            const invoiceId = data.invoice._id;
 
+                            setPurchaseDialogOpen(false);         // close purchase form
+                            setSelectedInvoiceId(invoiceId);      // set invoice ID
+                            setInvoiceDialogOpen(true);           // open invoice dialog
+
+                            fetchStockData();                     // refresh stock table
+                        }}
+                        onCancel={() => setPurchaseDialogOpen(false)}
                     />
                 </DialogBox>
+
+                {/* Invoice Dialog */}
+                <DialogBox
+                    open={invoiceDialogOpen}
+                    onOpenChange={setInvoiceDialogOpen}
+                    title="Purchase Invoice"
+                    widthClass="min-w-3xl!"
+                >
+                    {invoiceData && (
+                        <Invoice
+                            type="purchase"
+                            invoice={invoiceData.invoice}
+                            items={invoiceData.items}
+                        />
+                    )}
+                </DialogBox>
+
 
                 {/* Delete Confirmation Dialog */}
                 <DialogBox
@@ -235,7 +270,6 @@ const StockPage = () => {
                         Are you sure you want to delete this stock batch?
                         {"\n"}This will permanently remove the batch, update product stock levels, and cannot be undone.
                     </div>
-
                 </DialogBox>
 
             </div>

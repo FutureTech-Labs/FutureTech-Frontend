@@ -73,7 +73,16 @@ declare global {
         count?: number;
     }
 
-    // Supplier Invoice (purchaseHistory)
+    // Invoice types
+    interface IInvoiceParty {
+        id: string;
+        name: string;
+        email?: string;
+        contact?: string;
+    }
+
+
+    // Purchase Invoice (purchaseHistory)
     interface IPurchaseInvoiceRef {
         _id: string;
         invoiceNumber?: string;
@@ -83,6 +92,59 @@ declare global {
         paymentType?: "COD" | "Net 15" | "Net 30" | "Net 45";
         dueDate?: string;
     }
+
+    // Full Purchase Invoice
+    interface IPurchaseCreateResponse {
+        success: boolean;
+        message: string;
+        invoice: IPurchaseInvoice;
+        totalAmount: number;
+        batches: {
+            id: string;
+            product: string;
+            batchCode: string;
+            quantityReceived: number;
+            quantityAvailable: number;
+            costPrice: number;
+        }[];
+    }
+
+    interface IPurchaseInvoiceSupplier {
+        id: string;
+        name: string;
+        email?: string;
+        contact?: string;
+    }
+
+    interface IPurchaseInvoiceItem {
+        id: string;
+        product: {
+            id: string;
+            name: string;
+        } | null;
+        quantity: number;
+        costPrice: number;
+        lineTotal: number;
+        warrantyReference?: string | null;
+        batchCode?: string | null;
+    }
+
+    interface IPurchaseInvoice {
+        _id: string;
+        invoiceNumber: string;
+        date: string;
+        paymentType: "COD" | "Net 15" | "Net 30" | "Net 45";
+        status: "pending" | "paid";
+        totalAmount: number;
+        supplier: IInvoiceParty;
+    }
+
+    interface IPurchaseInvoiceResponse {
+        success: boolean;
+        invoice: IPurchaseInvoice;
+        items: IPurchaseInvoiceItem[];
+    }
+
 
     // Supplier Payment
     interface ISupplierPayment {
@@ -179,6 +241,25 @@ declare global {
         quantityAvailable: number;
         dateReceived: string;
         supplier: IStockSupplier | null;
+    }
+
+    // Sales invoice types
+    interface ISalesInvoice {
+        id: string;
+        invoiceNumber: string;
+        date: string;
+        paymentType: string;
+        status: string;
+        totalAmount: number;
+        customer: IInvoiceParty;
+    }
+
+    interface ISalesInvoiceItem {
+        id: string;
+        product: { id: string; name: string } | null;
+        quantity: number;
+        sellingPrice: number;
+        lineTotal: number;
     }
 
 

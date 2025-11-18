@@ -16,7 +16,7 @@ import IconButton from "../common/IconButton";
 import { CircleMinus } from "lucide-react";
 
 interface PurchaseFormProps {
-    onSuccess?: () => void;
+    onSuccess?: (data: IPurchaseCreateResponse) => void;
     onCancel?: () => void;
 }
 
@@ -88,10 +88,10 @@ const PurchaseForm = ({ onSuccess, onCancel }: PurchaseFormProps) => {
                 date: new Date().toISOString(),
             };
 
-            await createPurchase(payload);
+            const response = await createPurchase(payload);
 
             toast.success("Purchase successfull!");
-            onSuccess?.();
+            onSuccess?.(response);
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Error creating purchase");
         } finally {
