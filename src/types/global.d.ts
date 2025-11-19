@@ -249,10 +249,13 @@ declare global {
         invoiceNumber: string;
         date: string;
         paymentType: string;
-        status: string;
-        totalAmount: number;
+        status: "paid" | "pending";
+        subtotal: number;          // before discount
+        discount: number;          // percentage like 5 or 10
+        totalAmount: number;       // after discount
         customer: IInvoiceParty;
     }
+
 
     interface ISalesInvoiceItem {
         id: string;
@@ -261,7 +264,6 @@ declare global {
         sellingPrice: number;
         lineTotal: number;
     }
-
 
 
     // Types

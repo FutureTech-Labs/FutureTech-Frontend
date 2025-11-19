@@ -1,4 +1,4 @@
-import Invoice from "@/components/common/Invoice";
+import TestInvoice from "@/components/common/TestInvoice";
 
 const InvoicePreviewPage = () => {
     const mockInvoice: IPurchaseInvoice = {
@@ -7,11 +7,11 @@ const InvoicePreviewPage = () => {
         date: new Date().toISOString(),
         paymentType: "COD",
         status: "paid",
-        totalAmount: 12345,
+        totalAmount: 9000,
         supplier: {
             id: "1",
             name: "Test Supplier",
-            contact: "0712345678",
+            contact: "+94 75 323 3241",
             email: "supplier@test.com"
         }
     };
@@ -24,12 +24,20 @@ const InvoicePreviewPage = () => {
             costPrice: 3000,
             lineTotal: 9000,
             batchCode: "B123"
-        }
+        },
+        {
+            id: "ITEM2",
+            product: { id: "P2", name: "Mother Board" },
+            quantity: 5,
+            costPrice: 30000,
+            lineTotal: 900000,
+            batchCode: "B121"
+        },
     ];
 
     return (
         <div className="max-w-3xl">
-            <Invoice type="purchase" invoice={mockInvoice} items={mockItems} />
+            <TestInvoice type="purchase" invoice={mockInvoice} items={mockItems} />
         </div>
     );
 }

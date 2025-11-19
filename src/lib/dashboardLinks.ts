@@ -23,7 +23,7 @@ export const dashboardLinks = [
                 label: "Stocks",
                 href: "/dashboard/stocks",
                 icon: "/icons/Stocks.svg",
-                roles: ["admin", "cashier"]
+                roles: ["admin"]
             },
             {
                 label: "Suppliers",

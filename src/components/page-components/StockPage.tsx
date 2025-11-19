@@ -8,16 +8,16 @@ import {
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { Button } from "../ui/button";
+import Invoice from "../common/Invoice";
 import DataTable from "../common/Table";
 import DialogBox from "../common/DialogBox";
 import IconButton from "../common/IconButton";
-import { formatCurrencyLKR } from "@/lib/utils";
 import SearchField from "../forms/SearchField";
+import { formatCurrencyLKR } from "@/lib/utils";
 import PurchaseForm from "../forms/PurchaseForm";
 import { StatusBadge } from "../common/StatusBadge";
-import { deleteBatch, getAllStockBatches } from "@/services/stockService";
 import { getPurchaseInvoice } from "@/services/purchaseService";
-import Invoice from "../common/Invoice";
+import { deleteBatch, getAllStockBatches } from "@/services/stockService";
 
 const StockPage = () => {
     const [batches, setBatches] = useState<IStockBatch[]>([]);
@@ -222,7 +222,6 @@ const StockPage = () => {
                     {/* Here the purchasing form should come */}
                     <PurchaseForm
                         onSuccess={(data) => {
-                            // data.invoice._id comes from backend
                             const invoiceId = data.invoice._id;
 
                             setPurchaseDialogOpen(false);         // close purchase form
@@ -240,7 +239,7 @@ const StockPage = () => {
                     open={invoiceDialogOpen}
                     onOpenChange={setInvoiceDialogOpen}
                     title="Purchase Invoice"
-                    widthClass="min-w-3xl!"
+                    widthClass="md:min-w-3xl!"
                 >
                     {invoiceData && (
                         <Invoice
