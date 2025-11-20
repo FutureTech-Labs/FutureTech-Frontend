@@ -46,7 +46,7 @@ const DialogBox = ({
     onCancel,
     disableConfirm = false,
     confirmLoading = false,
-    widthClass = "w-full max-w-2xl",
+    widthClass = "w-full max-w-4xl!",
     showCloseIcon = true,
     variant = "default",
     centerTitle = false,
@@ -63,7 +63,7 @@ const DialogBox = ({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
                 className={cn(
-                    "text-gray-100 border border-gray-800 rounded-xl p-0 z-50 shadow-lg lg:min-w-2xl",
+                    "text-gray-100 border border-gray-500/30 rounded-xl p-0 z-50 shadow-lg shadow-white/10 lg:min-w-3xl",
                     widthClass
                 )}
             >

@@ -1,5 +1,3 @@
-import type { UseFormRegister, FieldError, RegisterOptions } from "react-hook-form";
-
 declare global {
 
     // Auth
@@ -73,7 +71,7 @@ declare global {
         count?: number;
     }
 
-    // Invoice types
+    // Invoice Party (supplier / customer / shop)
     interface IInvoiceParty {
         id: string;
         name: string;
@@ -81,8 +79,11 @@ declare global {
         contact?: string;
     }
 
+    // ----------------------------------------
+    // PURCHASE INVOICE TYPES
+    // ----------------------------------------
 
-    // Purchase Invoice (purchaseHistory)
+    // Purchase summary inside Supplier record
     interface IPurchaseInvoiceRef {
         _id: string;
         invoiceNumber?: string;
@@ -93,7 +94,7 @@ declare global {
         dueDate?: string;
     }
 
-    // Full Purchase Invoice
+    // Full Purchase Invoice — backend response (create)
     interface IPurchaseCreateResponse {
         success: boolean;
         message: string;
@@ -145,8 +146,10 @@ declare global {
         items: IPurchaseInvoiceItem[];
     }
 
+    // ----------------------------------------
+    // SUPPLIER PAYMENT
+    // ----------------------------------------
 
-    // Supplier Payment
     interface ISupplierPayment {
         _id: string;
         amount: number;
@@ -164,7 +167,10 @@ declare global {
         }[];
     }
 
-    // Supplier
+    // ----------------------------------------
+    // SUPPLIER
+    // ----------------------------------------
+
     interface ISupplier {
         _id: string;
         name: string;
@@ -188,7 +194,10 @@ declare global {
         accountNumber: string;
     }
 
-    // Stocks and batches
+    // ----------------------------------------
+    // STOCKS & BATCHES
+    // ----------------------------------------
+
     interface IStockResponse {
         success: boolean;
         total: number;
@@ -221,7 +230,6 @@ declare global {
         name: string;
     }
 
-    // Product-level stock view
     interface IProductStockResponse {
         success: boolean;
         product: {
@@ -243,32 +251,164 @@ declare global {
         supplier: IStockSupplier | null;
     }
 
-    // Sales invoice types
-    interface ISalesInvoice {
-        id: string;
-        invoiceNumber: string;
-        date: string;
-        paymentType: string;
-        status: "paid" | "pending";
-        subtotal: number;          // before discount
-        discount: number;          // percentage like 5 or 10
-        totalAmount: number;       // after discount
-        customer: IInvoiceParty;
+    // ----------------------------------------
+    // SALES — FIFO BATCH USAGE
+    // ----------------------------------------
+
+    interface ISalesBatchUsage {
+        batch: string;
+        qty: number;
+        costPrice: number;
+        batchCode?: string;
     }
 
+    // ----------------------------------------
+    // SALES — INVOICE ITEM
+    // ----------------------------------------
 
     interface ISalesInvoiceItem {
-        id: string;
         product: { id: string; name: string } | null;
+        productName: string;
         quantity: number;
         sellingPrice: number;
-        lineTotal: number;
+        discount: number;
+        batches: ISalesBatchUsage[];
+        lineTotal?: number;
     }
 
+    // ----------------------------------------
+    // SALES — FULL INVOICE (UI / PDF)
+    // ----------------------------------------
 
-    // Types
+    interface ISalesInvoice {
+        _id: string;
+        invoiceNumber: string;
 
-    // Inputs
+        createdAt: string;
+        createdBy: {
+            id: string;
+            name: string;
+            email: string;
+            role?: "admin" | "cashier";
+        };
+
+        customer: {
+            name: string;
+            email?: string | null;
+            contact?: string | null;
+        };
+
+        items: ISalesInvoiceItem[];
+
+        subtotal: number;
+        discountTotal: number;
+        tax: number;
+        total: number;
+
+        paymentMethod: "cash" | "card";
+        paymentStatus: "paid";
+    }
+
+    // ======================================================
+    // SALES — SERVICE REQUEST / RESPONSE TYPES
+    // ======================================================
+
+    // ---------- Request Payloads ----------
+    interface ICustomerPayload {
+        name: string;
+        email?: string;
+        contact?: string;
+    }
+
+    interface ISaleItemPayload {
+        product: string;       // product ID
+        quantity: number;
+        sellingPrice: number;
+        discount?: number;
+    }
+
+    interface ICreateSaleRequest {
+        customer: ICustomerPayload;
+        items: ISaleItemPayload[];
+        paymentMethod: "cash" | "card";
+        tax?: number;
+    }
+
+    // ---------- Response Types (SHAPED TO MATCH UI EXACTLY) ----------
+    interface IInvoiceItemResponse {
+        product: { id: string; name: string };   // FIXED
+        productName: string;
+        quantity: number;
+        sellingPrice: number;
+        discount: number;
+        batches: {
+            batch: string;
+            qty: number;
+            costPrice: number;
+        }[];
+    }
+
+    interface ISalesInvoiceResponse {
+        _id: string;
+        invoiceNumber: string;
+        createdAt: string;
+        createdBy: {
+            id: string;
+            name: string;
+            email: string;
+            role?: "admin" | "cashier";
+        };
+        customer: {
+            name: string;
+            email?: string;
+            contact?: string;
+        };
+        items: IInvoiceItemResponse[];
+        subtotal: number;
+        discountTotal: number;
+        tax: number;
+        total: number;
+        paymentMethod: "cash" | "card";
+        paymentStatus: "paid";
+    }
+
+    interface ICreateSaleResponse {
+        success: boolean;
+        invoice: ISalesInvoiceResponse;
+    }
+
+    interface ISalesListResponse {
+        success: boolean;
+        data: ISalesInvoiceResponse[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+        };
+    }
+
+    interface IGetSaleByIdResponse {
+        success: boolean;
+        invoice: ISalesInvoiceResponse;
+    }
+
+    interface ISalesByCashierItem {
+        cashierId: string;
+        name: string;
+        email: string;
+        totalSales: number;
+        invoicesCount: number;
+    }
+
+    interface ISalesByCashierResponse {
+        success: boolean;
+        data: ISalesByCashierItem[];
+    }
+
+    // ----------------------------------------
+    // UI FORM TYPES
+    // ----------------------------------------
+
     type IFormInputProps = {
         name: string;
         label?: string;
@@ -283,7 +423,6 @@ declare global {
         height?: string;
     };
 
-    // Textarea
     type IFormTextareaProps = {
         name: string;
         label?: string;
@@ -297,7 +436,6 @@ declare global {
         maxWords?: number;
     };
 
-    // Select
     type ISelectFieldProps = {
         name?: string;
         label?: string;
