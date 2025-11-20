@@ -174,7 +174,7 @@ export default function SupplierForm({
                     validation={{
                         required: "Contact number is required",
                         pattern: {
-                            value: /^[0-9]{10,15}$/,
+                            value: /^[0-9]{10}$/,
                             message: "Enter a valid phone number",
                         },
                     }}

@@ -31,7 +31,7 @@ export function StatusBadge({
         red: "bg-red-400/15 text-red-400 border-red-400/30",
         green: "bg-green-500/15 text-green-500 border-green-500/30",
         yellow: "bg-yellow-500/15 text-yellow-600 border-yellow-500/30",
-        blue: "bg-blue-500/15 text-blue-500 border-blue-500/30",
+        blue: "bg-blue-500/15 text-primary-200 border-blue-500/30",
         gray: "bg-zinc-700/20 text-zinc-400 border-zinc-500/30",
         orange: "bg-orange-500/15 text-orange-500 border-orange-500/30",
         purple: "bg-purple-500/15 text-purple-500 border-purple-500/30",

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Controller } from "react-hook-form";
-import { ChevronsUpDown, Check } from "lucide-react";
+import { ChevronsUpDown, Check, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
@@ -70,23 +70,35 @@ export default function ComboBoxField({
                         className
                     )}
                 >
-                    <span className="truncate">
-                        {selectedLabel || (
-                            <span className="text-gray-400">{placeholder}</span>
+                    {/* show close icon when selected */}
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <span className="truncate">
+                            {selectedLabel || (
+                                <span className="text-gray-400">{placeholder}</span>
+                            )}
+                        </span>
+
+                        {selected && (
+                            <X
+                                className="h-4 w-4 text-red-400 hover:text-white"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelected("");
+                                }}
+                            />
                         )}
-                    </span>
-                    <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                    </div>
+
+                    <ChevronsUpDown className="h-4 w-4 opacity-50 ml-2 shrink-0" />
                 </PopoverTrigger>
 
                 <PopoverContent
                     align="start"
                     className="w-(--radix-popover-trigger-width) p-0"
                 >
-
                     <Command>
                         <CommandInput placeholder="Search..." />
 
-                        {/* native scrolling inside CommandList */}
                         <CommandList className="max-h-60 overflow-y-auto p-1">
                             <CommandEmpty>No results found.</CommandEmpty>
 

@@ -6,12 +6,17 @@ import { createSale, getSaleById } from "@/services/salesServices";
 import { useForm } from "react-hook-form";
 import InputField from "./InputField";
 import SelectField from "./SelectField";
+import { toast } from "sonner";
+import { useState } from "react";
+import { Button } from "../ui/button";
+import { FileText } from "lucide-react";
 
 interface SalesFormProps {
     onSuccess: (data: IGetSaleByIdResponse) => void;
 }
 
 export default function SalesForm({ onSuccess }: SalesFormProps) {
+    const [loading, setLoading] = useState(false);
     const { items, clear } = useSalesCart();
 
     const {
@@ -32,9 +37,12 @@ export default function SalesForm({ onSuccess }: SalesFormProps) {
 
     const onSubmit = async (formData: any) => {
         if (items.length === 0) {
-            alert("Cart is empty.");
+            toast.error("Cart is empty.");
             return;
         }
+
+        setLoading(true);
+        let loadingToast: string | number | undefined = undefined;
 
         try {
             const payload: ICreateSaleRequest = {
@@ -53,25 +61,39 @@ export default function SalesForm({ onSuccess }: SalesFormProps) {
                 tax: 0,
             };
 
+            // Show loading toast
+            loadingToast = toast.loading("Processing sale...");
+
             // Create sale
             const res = await createSale(payload);
 
-            // Fetch full invoice with product name fixed from backend
+            // Fetch full invoice with normalized product name
             const invoiceFull = await getSaleById(res.invoice._id);
+
+            toast.success("Sale created successfully!", {
+                id: loadingToast,
+            });
 
             clear();
             reset();
-
             onSuccess(invoiceFull);
 
         } catch (err: any) {
-            alert(err?.response?.data?.message || "Error creating sale");
+            toast.error(
+                err?.response?.data?.message ||
+                err?.message ||
+                "Something went wrong",
+                { id: loadingToast }
+            );
+        }
+        finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="bg-gray-900/40 p-4 border border-gray-700 rounded-lg flex flex-col gap-4">
-            <h2 className="text-lg font-semibold">Create Sale</h2>
+        <div className="p-4 border-2 border-gradient border-primary-900/40 table-bg-gradient rounded-lg flex flex-col gap-4">
+            <h2 className="text-xl font-semibold">Customer Details</h2>
 
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
 
@@ -98,35 +120,50 @@ export default function SalesForm({ onSuccess }: SalesFormProps) {
                     error={errors.customerEmail}
                 />
 
-                <InputField
-                    name="customerContact"
-                    label="Contact Number"
-                    placeholder="Enter contact"
-                    register={register}
-                    validation={{ required: "Contact number is required" }}
-                    error={errors.customerContact}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <InputField
+                        name="customerContact"
+                        label="Contact Number"
+                        placeholder="Enter contact number"
+                        register={register}
+                        validation={{
+                            required: "Contact number is required",
+                            pattern: {
+                                value: /^[0-9]{10}$/,
+                                message: "Enter a valid phone number",
+                            },
+                        }}
+                        error={errors.customerContact}
+                    />
+                    <SelectField
+                        name="paymentMethod"
+                        label="Payment Method"
+                        placeholder="Select payment type"
+                        control={control}
+                        options={[
+                            { value: "cash", label: "Cash" },
+                            { value: "card", label: "Card" },
+                        ]}
+                        required
+                        error={errors.paymentMethod}
+                        className="h-12!"
+                    />
+                </div>
 
-                <SelectField
-                    name="paymentMethod"
-                    label="Payment Method"
-                    placeholder="Select payment type"
-                    control={control}
-                    options={[
-                        { value: "cash", label: "Cash" },
-                        { value: "card", label: "Card" },
-                    ]}
-                    required
-                    error={errors.paymentMethod}
-                />
-
-                <button
+                <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-600"
+                    className="main-button-gradient text-white rounded-lg hover:bg-blue-700 border border-white/50 cursor-pointer transition disabled:opacity-35"
                 >
-                    {isSubmitting ? "Processing..." : "Create Sale"}
-                </button>
+                    {isSubmitting ? (
+                        "Processing..."
+                    ) : (
+                        <>
+                            Create Sale
+                            <FileText className="w-4 h-4" />
+                        </>
+                    )}
+                </Button>
 
             </form>
         </div>

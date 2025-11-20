@@ -13,7 +13,7 @@ export default function SalesPage() {
     const [invoiceData, setInvoiceData] = useState<IGetSaleByIdResponse | null>(null);
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             {/* LEFT SIDE — ComboBox + Product Grid */}
             <SalesProductSelector />
