@@ -22,21 +22,28 @@ export default function SalesProductSelector() {
     useEffect(() => {
         (async () => {
             const res = await getProducts();
-            const all = res.products;
 
-            setProducts(all);
+            // ✅ FILTER ONLY ACTIVE PRODUCTS
+            const activeProducts = res.products.filter((p) => p.status === "active");
+
+            setProducts(activeProducts);
+
             setOptions(
-                all.map((p) => ({
+                activeProducts.map((p) => ({
                     value: p._id,
                     label: `${p.name} - (${p.totalStock})`,
                 }))
             );
 
-            // Generate 4 random products once and store
-            const random = [...all].sort(() => Math.random() - 0.5).slice(0, 4);
+            // Generate 4 random active products only once
+            const random = [...activeProducts]
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 4);
+
             setFeatured(random);
         })();
     }, []);
+
 
     // Selected product
     const selectedProduct = products.find((p) => p._id === selected);
