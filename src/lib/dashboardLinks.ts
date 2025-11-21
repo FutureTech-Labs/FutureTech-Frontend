@@ -43,16 +43,22 @@ export const dashboardLinks = [
                 roles: ["admin", "cashier"]
             },
             {
-                label: "Invoices",
-                href: "/dashboard/invoices",
+                label: "Sales Invoices",
+                href: "/dashboard/sales-invoices",
                 icon: "/icons/Invoices.svg",
                 roles: ["admin", "cashier"]
+            },
+            {
+                label: "Purchase Invoices",
+                href: "/dashboard/purchase-invoices",
+                icon: "/icons/PurchaseInvoice.svg",
+                roles: ["admin"]
             },
             {
                 label: "Returns",
                 href: "/dashboard/returns",
                 icon: "/icons/Returns.svg",
-                roles: ["admin", "cashier"]
+                roles: ["admin"]
             },
             {
                 label: "Financial Reports",

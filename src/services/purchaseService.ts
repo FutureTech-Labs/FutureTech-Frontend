@@ -22,10 +22,32 @@ export const createPurchase = async (
     return res.data;
 };
 
-// GET PURCHASE INVOICES
+// GET A PURCHASE INVOICE
 export const getPurchaseInvoice = async (
     invoiceId: string
 ): Promise<IPurchaseInvoiceResponse> => {
     const res = await api.get(`/admin/purchase/invoice/${invoiceId}`);
+    return res.data;
+};
+
+// GET ALL PURCHASE INVOICES
+export const getAllPurchases = async (params?: {
+    page?: number;
+    limit?: number;
+    from?: string;
+    to?: string;
+    invoiceNumber?: string;
+}): Promise<{
+    success: boolean;
+    data: IPurchaseInvoice[];
+    meta: {
+        total: number;
+        page: number;
+        limit: number;
+    };
+}> => {
+    const res = await api.get(`/admin/purchase/invoices`, {
+        params,
+    });
     return res.data;
 };

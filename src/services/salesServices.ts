@@ -33,6 +33,7 @@ export const getAllSales = async (
         limit?: number;
         from?: string;
         to?: string;
+        invoiceNumber: string;
     }
 ): Promise<ISalesListResponse> => {
     const { data } = await api.get<ISalesListResponse>("/admin/sales", {

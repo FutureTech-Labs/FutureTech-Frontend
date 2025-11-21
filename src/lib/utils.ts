@@ -67,4 +67,11 @@ export function formatReadableDate(dateString: string): string {
     month: "long",
     day: "numeric",
   });
-}
+};
+
+export function formatLocalDate(date?: Date) {
+  if (!date) return "";
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+    .toISOString()
+    .split("T")[0];
+};

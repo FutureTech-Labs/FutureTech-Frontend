@@ -405,6 +405,92 @@ declare global {
         data: ISalesByCashierItem[];
     }
 
+    // ======================================================
+    // RETURNS — RETURN TYPES
+    // ======================================================
+    interface IReturn {
+        _id: string;
+
+        invoice: string | ISalesInvoice;
+        invoiceNumber: string;
+
+        invoiceItemIndex: number;
+
+        product: string | IProduct;
+        productName: string;
+
+        quantity: number;
+
+        returnType: "replacement" | "refund";
+
+        reason:
+        | "defective"
+        | "dead on arrival"
+        | "wrong item"
+        | "physical damage"
+        | "customer remorse"
+        | "other";
+
+        refundAmount: number;
+
+        processedBy: {
+            _id: string;
+            name: string;
+            email?: string;
+        };
+
+        warrantyEndDate: string;
+
+        status: "processed" | "sent-to-supplier" | "completed";
+
+        notes?: string | null;
+
+        createdAt: string;
+        updatedAt: string;
+    }
+
+    interface IReturnListResponse {
+        success: boolean;
+        data: IReturn[];
+        total?: number;
+        page?: number;
+        limit?: number;
+    }
+
+    interface IReturnSingleResponse {
+        success: boolean;
+        data: IReturn;
+    }
+
+    // --------------------------------------------
+    // Create Return Payload (admin)
+    // --------------------------------------------
+    interface ICreateReturnRequest {
+        invoiceId: string;
+        invoiceItemIndex: number;
+        quantity: number;
+
+        returnType: "replacement" | "refund";
+
+        reason:
+        | "defective"
+        | "dead on arrival"
+        | "wrong item"
+        | "physical damage"
+        | "customer remorse"
+        | "other";
+
+        refundAmount?: number;
+        notes?: string;
+    }
+
+    interface ICreateReturnResponse {
+        success: boolean;
+        data: IReturn;
+    }
+
+
+
     // ----------------------------------------
     // UI FORM TYPES
     // ----------------------------------------

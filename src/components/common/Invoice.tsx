@@ -190,7 +190,7 @@ export default function Invoice({ type, invoice, items }: InvoiceProps) {
                     <SimpleInvoiceTable data={items} columns={getInvoiceColumns(isPurchase)} />
 
                     {/* TOTALS */}
-                    <div className="flex flex-col md:flex-row justify-between gap-2.5">
+                    <div className="flex flex-col md:flex-row justify-between items-end gap-2.5">
 
                         <div className="text-white/70 text-xs">
                             <h3 className="font-normal text-white mb-1 underline underline-offset-3">Special Notice</h3>
