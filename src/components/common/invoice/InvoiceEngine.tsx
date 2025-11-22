@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { formatCurrencyLKR } from "@/lib/utils";
+import { getWarrantyMessage } from "@/lib/warranty";
 
 type InvoiceItem = IPurchaseInvoiceItem | ISalesInvoiceItem;
 
@@ -14,11 +15,9 @@ export default function InvoiceEngine({ type, invoice, items }: InvoiceEnginePro
     const purchaseItems = items as IPurchaseInvoiceItem[];
     const salesItems = items as ISalesInvoiceItem[];
 
-    /** TYPE GUARD */
     const isSalesItem = (item: InvoiceItem): item is ISalesInvoiceItem =>
         (item as ISalesInvoiceItem).sellingPrice !== undefined;
 
-    /** PARTIES */
     const fromParty = isPurchase
         ? {
             name: (invoice as IPurchaseInvoice).supplier.name,
@@ -45,10 +44,8 @@ export default function InvoiceEngine({ type, invoice, items }: InvoiceEnginePro
             contact: (invoice as ISalesInvoice).customer.contact || "",
         };
 
-
     const sales = invoice as ISalesInvoice;
 
-    /** DATE / STATUS / TOTAL / METHOD */
     const displayDate = isPurchase
         ? new Date((invoice as IPurchaseInvoice).date).toLocaleDateString()
         : new Date(sales.createdAt).toLocaleDateString();
@@ -64,6 +61,11 @@ export default function InvoiceEngine({ type, invoice, items }: InvoiceEnginePro
     const displayPaymentMethod = isPurchase
         ? (invoice as IPurchaseInvoice).paymentType
         : sales.paymentMethod;
+
+    /* ============================================================
+       WARRANTY TEXT (sales only)
+       ============================================================ */
+    const warrantyText = !isPurchase ? getWarrantyMessage(items) : "";
 
     return (
         <div
@@ -129,7 +131,7 @@ export default function InvoiceEngine({ type, invoice, items }: InvoiceEnginePro
                     <div style={{ lineHeight: "1.6" }}>
                         <strong>Invoice number:</strong> {invoice.invoiceNumber} <br />
                         <strong>Date:</strong> {displayDate} <br />
-                        {/* SALES ONLY — Issued By + Payment Method */}
+
                         {!isPurchase && (
                             <>
                                 <br />
@@ -139,6 +141,7 @@ export default function InvoiceEngine({ type, invoice, items }: InvoiceEnginePro
                                 <br />
                             </>
                         )}
+
                         <strong>Status:</strong>{" "}
                         <span
                             style={{
@@ -153,7 +156,6 @@ export default function InvoiceEngine({ type, invoice, items }: InvoiceEnginePro
                         >
                             {displayStatus}
                         </span>
-
                     </div>
                 </div>
             </div>
@@ -180,7 +182,6 @@ export default function InvoiceEngine({ type, invoice, items }: InvoiceEnginePro
                         {fromParty.email}<br />
                         {fromParty.contact}
                     </div>
-
                 </div>
 
                 {/* TO */}
@@ -203,7 +204,6 @@ export default function InvoiceEngine({ type, invoice, items }: InvoiceEnginePro
                         {toParty.email}<br />
                         {toParty.contact}
                     </div>
-
                 </div>
             </div>
 
@@ -233,7 +233,6 @@ export default function InvoiceEngine({ type, invoice, items }: InvoiceEnginePro
                             {isPurchase ? "Cost" : "Price"}
                         </th>
 
-                        {/* NEW — DISCOUNT COLUMN (SALES ONLY) */}
                         {!isPurchase && (
                             <th style={{ padding: "12px 8px", width: "120px", textAlign: "center" }}>
                                 Discount
@@ -275,7 +274,6 @@ export default function InvoiceEngine({ type, invoice, items }: InvoiceEnginePro
                                     {formatCurrencyLKR(price)}
                                 </td>
 
-                                {/* NEW — DISCOUNT CELL */}
                                 {!isPurchase && (
                                     <td style={{ padding: "12px 8px", textAlign: "center", color: "#dc2626" }}>
                                         {discount > 0 ? `${formatCurrencyLKR(discount)}` : "—"}
@@ -296,6 +294,32 @@ export default function InvoiceEngine({ type, invoice, items }: InvoiceEnginePro
                     })}
                 </tbody>
             </table>
+
+            {/* =====================
+                WARRANTY SECTION
+               ===================== */}
+            {!isPurchase && (() => {
+                const normalizedWarranty =
+                    Array.isArray(warrantyText)
+                        ? warrantyText.join("\n")
+                        : warrantyText;
+
+                return (
+                    <div style={{ marginBottom: "25px", color: "#666" }}>
+                        <h3 style={{ margin: "0 0 5px", fontSize: "10pt" }}>
+                            Warranty Information
+                        </h3>
+
+                        <div style={{ fontSize: "9pt", lineHeight: "1.4", whiteSpace: "pre-line" }}>
+                            {normalizedWarranty
+                                .split("\n")
+                                .map((line, idx) => (
+                                    <div key={idx}>{line}</div>
+                                ))}
+                        </div>
+                    </div>
+                );
+            })()}
 
 
             {/* TOTALS */}

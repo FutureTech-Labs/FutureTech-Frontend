@@ -6,14 +6,16 @@ import api from "@/lib/api";
 export const createReturn = async (
     payload: ICreateReturnRequest
 ): Promise<ICreateReturnResponse> => {
-    const { data } = await api.post<ICreateReturnResponse>("/admin/return", payload);
+    const { data } = await api.post<ICreateReturnResponse>(
+        "/admin/return",
+        payload
+    );
     return data;
 };
 
 // ======================================================
-// Get All Returns (Admin Only) — (GET /admin/returns)
-// Filters supported in backend:
-// ?invoiceNumber=INV-1&status=processed
+// Get All Returns (GET /admin/returns)
+// Supports: invoiceNumber, status, page, limit, dateFrom, dateTo
 // ======================================================
 export const getReturns = async (
     params?: {
@@ -32,11 +34,13 @@ export const getReturns = async (
 };
 
 // ======================================================
-// Get Return by ID — (GET /admin/return/:id)
+// Get Single Return (GET /admin/return/:id)
 // ======================================================
 export const getReturnById = async (
     returnId: string
 ): Promise<IReturnSingleResponse> => {
-    const { data } = await api.get<IReturnSingleResponse>(`/admin/return/${returnId}`);
+    const { data } = await api.get<IReturnSingleResponse>(
+        `/admin/return/${returnId}`
+    );
     return data;
 };

@@ -18,6 +18,7 @@ import {
 } from "@/services/salesServices";
 
 import { formatCurrencyLKR, formatLocalDate } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 interface SalesInvoicesPageProps {
     role: "admin" | "cashier" | null;
@@ -28,7 +29,6 @@ export default function SalesInvoicesPage({ role }: SalesInvoicesPageProps) {
     const [loading, setLoading] = useState(true);
 
     const [page, setPage] = useState(1);
-    const [limit] = useState(20);
     const [total, setTotal] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
 
@@ -51,7 +51,7 @@ export default function SalesInvoicesPage({ role }: SalesInvoicesPageProps) {
     const fetchInvoices = async (selectedPage = 1) => {
         try {
             setLoading(true);
-            const params: any = { page: selectedPage, limit };
+            const params: any = { page: selectedPage };
 
             if (from) params.from = from;
             if (to) params.to = to;
@@ -126,6 +126,46 @@ export default function SalesInvoicesPage({ role }: SalesInvoicesPageProps) {
                 new Date(row.createdAt).toLocaleString(),
         },
         {
+            key: "returnStatus",
+            label: "Return",
+            render: (row: ISalesInvoiceResponse) => {
+                const totalReturned = row.items.reduce(
+                    (sum, it) => sum + (it.returnedQty ?? 0),
+                    0
+                );
+
+                const totalQty = row.items.reduce(
+                    (sum, it) => sum + it.quantity,
+                    0
+                );
+
+                let color = "text-green-500";
+                let message = "No returned items";
+
+                if (totalReturned > 0 && totalReturned < totalQty) {
+                    color = "text-yellow-400";
+                    message = `${totalReturned} of ${totalQty} items returned`;
+                }
+
+                if (totalReturned === totalQty) {
+                    color = "text-red-500";
+                    message = "Fully returned";
+                }
+
+                return (
+                    <Tooltip>
+                        <TooltipTrigger>
+                            <span className={`${color} text-xl cursor-default`}>●</span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{message}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                );
+            },
+        },
+
+        {
             key: "actions",
             label: "Actions",
             render: (row: ISalesInvoiceResponse) => (
@@ -186,7 +226,7 @@ export default function SalesInvoicesPage({ role }: SalesInvoicesPageProps) {
                 open={invoiceDialogOpen}
                 onOpenChange={setInvoiceDialogOpen}
                 title="Sales Invoice"
-                widthClass="md:min-w-3xl!"
+                widthClass="min-w-5xl!"
             >
                 {dialogLoading ? (
                     <div className="py-10 text-center text-white/70">Loading…</div>

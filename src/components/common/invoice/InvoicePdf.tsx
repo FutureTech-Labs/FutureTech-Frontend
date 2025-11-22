@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { formatCurrencyLKR } from "@/lib/utils";
+import { getWarrantyMessage } from "@/lib/warranty";
 
 type InvoiceItem = IPurchaseInvoiceItem | ISalesInvoiceItem;
 
@@ -11,6 +12,9 @@ interface PDFParams {
 }
 
 export function generateInvoicePDF({ type, invoice, items }: PDFParams) {
+
+    const warrantyLines = getWarrantyMessage(items);
+
     const doc = new jsPDF();
     const isPurchase = type === "purchase";
 
@@ -241,6 +245,31 @@ export function generateInvoicePDF({ type, invoice, items }: PDFParams) {
     // TOTALS SECTION
     // =========================
     let finalY = (doc as any).lastAutoTable.finalY + 10;
+
+    // =========================
+    // WARRANTY INFO (SALES ONLY)
+    // =========================
+    if (!isPurchase) {
+        // --- Title ---
+        doc.setFontSize(10);
+        doc.setTextColor(60, 60, 60);
+        doc.text("Warranty Information", margin, finalY);
+        finalY += 6; // spacing after title
+
+        // --- Warranty lines ---
+        doc.setFontSize(9);
+        doc.setTextColor(80, 80, 80);
+
+        warrantyLines.forEach((line) => {
+            const split = doc.splitTextToSize(line, pageWidth - margin * 2);
+            doc.text(split, margin, finalY);
+            finalY += split.length * 4.5 + 2;
+        });
+
+        finalY += 6;
+    }
+
+
 
     if (finalY > 250) {
         doc.addPage();

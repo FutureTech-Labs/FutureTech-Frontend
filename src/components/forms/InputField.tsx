@@ -13,7 +13,8 @@ const InputField = ({
     disabled,
     value,
     autoComplete = "on",
-    height = "h-12"
+    height = "h-12",
+    readonly = false
 }: IFormInputProps) => {
 
     return (
@@ -30,7 +31,9 @@ const InputField = ({
                 disabled={disabled}
                 value={value}
                 autoComplete={autoComplete}
+                readOnly={readonly}
                 className={cn("text-white text-base placeholder:text-gray-500 border border-gray-500/20 backdrop-blur-2xl rounded-lg",
+                    { 'pointer-events-none disable-rings!': readonly },
                     { 'opacity-50 cursor-not-allowed': disabled }, height,
                     error && 'border-red-500 focus:border-red-500 focus:ring-red-500'
                 )}

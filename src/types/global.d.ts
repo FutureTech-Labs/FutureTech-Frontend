@@ -272,9 +272,11 @@ declare global {
         quantity: number;
         sellingPrice: number;
         discount: number;
+        warrantyPeriod: string;
         batches: ISalesBatchUsage[];
         lineTotal?: number;
     }
+
 
     // ----------------------------------------
     // SALES — FULL INVOICE (UI / PDF)
@@ -336,17 +338,22 @@ declare global {
 
     // ---------- Response Types (SHAPED TO MATCH UI EXACTLY) ----------
     interface IInvoiceItemResponse {
-        product: { id: string; name: string };   // FIXED
+        _id?: string;
+        product: { id: string; name: string };
         productName: string;
         quantity: number;
         sellingPrice: number;
         discount: number;
+        warrantyPeriod: string;
         batches: {
             batch: string;
             qty: number;
             costPrice: number;
         }[];
+        returnedQty?: number;
+        returned?: boolean;
     }
+
 
     interface ISalesInvoiceResponse {
         _id: string;
@@ -405,23 +412,20 @@ declare global {
         data: ISalesByCashierItem[];
     }
 
-    // ======================================================
-    // RETURNS — RETURN TYPES
-    // ======================================================
-    interface IReturn {
-        _id: string;
+    // ===== RETURN TYPES =====
 
-        invoice: string | ISalesInvoice;
-        invoiceNumber: string;
+    interface IReturnItem {
+        saleItemId: string;
 
-        invoiceItemIndex: number;
+        product: {
+            id: string;
+            name: string;
+        };
 
-        product: string | IProduct;
         productName: string;
+        warrantyPeriod: string;
 
         quantity: number;
-
-        returnType: "replacement" | "refund";
 
         reason:
         | "defective"
@@ -431,19 +435,54 @@ declare global {
         | "customer remorse"
         | "other";
 
-        refundAmount: number;
+        returnType: "replacement" | "refund";
 
-        processedBy: {
+        refundAmount: number;
+        replacementIssued: boolean;
+
+        replacementBatches?: {
+            batch: {
+                _id?: string;
+                batchCode: string;
+            };
+            qty: number;
+            costPrice: number;
+        }[];
+    }
+
+    interface IReturn {
+        _id: string;
+
+        returnInvoiceNumber: string;
+
+        saleInvoice: {
+            _id: string;
+            invoiceNumber: string;
+            total?: number;
+            customer?: {
+                name: string;
+                email?: string;
+                contact?: string;
+            };
+        };
+
+        returnedBy: {
             _id: string;
             name: string;
             email?: string;
         };
 
-        warrantyEndDate: string;
+        customer: {
+            name: string;
+            email?: string;
+            contact?: string;
+        };
+
+        items: IReturnItem[];
+
+        refundTotal: number;
 
         status: "processed" | "sent-to-supplier" | "completed";
-
-        notes?: string | null;
 
         createdAt: string;
         updatedAt: string;
@@ -452,9 +491,9 @@ declare global {
     interface IReturnListResponse {
         success: boolean;
         data: IReturn[];
-        total?: number;
-        page?: number;
-        limit?: number;
+        total: number;
+        page: number;
+        totalPages: number;
     }
 
     interface IReturnSingleResponse {
@@ -462,12 +501,10 @@ declare global {
         data: IReturn;
     }
 
-    // --------------------------------------------
-    // Create Return Payload (admin)
-    // --------------------------------------------
+    // ===== CREATE RETURN =====
     interface ICreateReturnRequest {
-        invoiceId: string;
-        invoiceItemIndex: number;
+        saleInvoiceId: string;
+        itemId: string;
         quantity: number;
 
         returnType: "replacement" | "refund";
@@ -479,14 +516,11 @@ declare global {
         | "physical damage"
         | "customer remorse"
         | "other";
-
-        refundAmount?: number;
-        notes?: string;
     }
 
     interface ICreateReturnResponse {
         success: boolean;
-        data: IReturn;
+        returnInvoice: IReturn;
     }
 
 
@@ -507,6 +541,7 @@ declare global {
         value?: string;
         autoComplete?: string;
         height?: string;
+        readonly?: boolean;
     };
 
     type IFormTextareaProps = {

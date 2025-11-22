@@ -75,3 +75,18 @@ export function formatLocalDate(date?: Date) {
     .toISOString()
     .split("T")[0];
 };
+
+export const warrantyStringToMonths = (period: string) => {
+    if (!period) return 0;
+    if (period === "no warranty") return 0;
+    return Number(period.split(" ")[0]);
+};
+
+export const computeWarrantyEndDate = (saleDate: string | Date, warrantyPeriod: string) => {
+    const months = warrantyStringToMonths(warrantyPeriod);
+    if (!months) return null;
+
+    const date = new Date(saleDate);
+    date.setMonth(date.getMonth() + months);
+    return date;
+};

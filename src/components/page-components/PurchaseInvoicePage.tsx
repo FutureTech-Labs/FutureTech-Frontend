@@ -25,7 +25,6 @@ const PurchaseInvoicePage = () => {
 
     // Pagination
     const [page, setPage] = useState(1);
-    const [limit] = useState(20);
     const [total, setTotal] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
 
@@ -54,7 +53,7 @@ const PurchaseInvoicePage = () => {
         try {
             setLoading(true);
 
-            const params: any = { page: selectedPage, limit };
+            const params: any = { page: selectedPage };
             if (from) params.from = from;
             if (to) params.to = to;
             if (searchValue.trim()) params.invoiceNumber = searchValue.trim();
