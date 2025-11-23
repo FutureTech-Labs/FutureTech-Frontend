@@ -568,6 +568,105 @@ declare global {
         returnInvoice: IReturn;
     }
 
+    // ==============================
+    // EXPENSE MODULE INTERFACES
+    // ==============================
+
+    // -------- ENUM Categories --------
+    type ExpenseCategory =
+        | "Electricity"
+        | "Water"
+        | "Internet"
+        | "Rent"
+        | "Salary"
+        | "Maintenance"
+        | "Transport"
+        | "Purchase"
+        | "Misc";
+
+    // -------- Expense Document --------
+    interface IExpense {
+        _id: string;
+        category: ExpenseCategory;
+        type: "manual" | "purchase" | "adjustment";
+        amount: number;
+        date: string;                     // ISO Date
+        description?: string | null;
+        linkedPurchase?: string | null;
+        createdBy: {
+            _id: string;
+            name: string;
+        };
+        createdAt: string;
+        updatedAt: string;
+    }
+
+    // -------- Create Expense Request --------
+    interface ICreateExpenseRequest {
+        category: Exclude<ExpenseCategory, "Purchase">;
+        amount: number;
+        date?: string;
+        description?: string;
+    }
+
+    // -------- Create Expense Response --------
+    interface ICreateExpenseResponse {
+        success: boolean;
+        expense: IExpense;
+    }
+
+    // -------- List Expenses --------
+    interface IExpenseListResponse {
+        success: boolean;
+        data: IExpense[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+        };
+    }
+
+    // ==============================
+    // ANALYTICS INTERFACES
+    // ==============================
+
+    // -------- Monthly Expenses --------
+    interface IMonthlyExpenseItem {
+        year: number;
+        month: number;
+        total: number;
+    }
+
+    interface IMonthlyExpenseResponse {
+        success: boolean;
+        data: IMonthlyExpenseItem[];
+    }
+
+    // -------- Profit vs Expense --------
+    interface IProfitVsExpenseItem {
+        year: number;
+        month: number;
+        expenseTotal: number;
+        profitTotal: number;
+    }
+
+    interface IProfitVsExpenseResponse {
+        success: boolean;
+        data: IProfitVsExpenseItem[];
+    }
+
+    // -------- Daily Profit --------
+    interface IDailyProfitItem {
+        date: string;   // YYYY-MM-DD
+        profit: number;
+    }
+
+    interface IDailyProfitResponse {
+        success: boolean;
+        data: IDailyProfitItem[];
+    }
+
+
 
 
     // ----------------------------------------

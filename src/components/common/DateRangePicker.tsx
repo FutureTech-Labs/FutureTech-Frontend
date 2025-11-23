@@ -18,13 +18,15 @@ interface DateRangePickerProps {
     onChange: (value: DateRange | undefined) => void;
     className?: string;
     placeholder?: string;
+    align?: "start" | "center" | "end";
 }
 
 export function DateRangePicker({
     value,
     onChange,
     placeholder = "Select date range",
-    className
+    className,
+    align,
 }: DateRangePickerProps) {
 
     // ------------------------------
@@ -87,7 +89,7 @@ export function DateRangePicker({
 
                 <PopoverContent
                     side="bottom"
-                    align={isMobile ? "center" : "end"}
+                    align={align ?? (isMobile ? "center" : "end")}
                     className="p-0 mt-2 w-auto"
                 >
                     <Calendar

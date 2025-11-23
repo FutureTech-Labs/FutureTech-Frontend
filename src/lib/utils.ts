@@ -154,6 +154,7 @@ export const computeWarrantyEndDate = (saleDate: string | Date, warrantyPeriod: 
 export const formatDateTime = (date?: string | null) => {
   if (!date) return "—";
   return new Date(date).toLocaleString("en-US", {
+    timeZone: "Asia/Colombo",
     year: "numeric",
     month: "short",
     day: "2-digit",
@@ -161,6 +162,7 @@ export const formatDateTime = (date?: string | null) => {
     minute: "2-digit",
   });
 };
+
 
 /**
  * Utility: parseUserAgent()
