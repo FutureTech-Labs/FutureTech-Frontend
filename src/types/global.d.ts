@@ -37,6 +37,51 @@ declare global {
         isCollapsed?: boolean;
     }
 
+    // Users / Cashier Interfaces
+    interface ICashier {
+        id: string;
+        name: string;
+        email: string;
+        role: "cashier";
+        status: "active" | "inactive";
+        createdAt: string;
+        updatedAt: string;
+        lastLogin?: string | null;
+        lastLogout?: string | null;
+    }
+
+    // LOGIN HISTORY ENTRY
+    interface ICashierHistoryEntry {
+        loginAt: string;
+        logoutAt: string | null;
+        ip: string;
+        userAgent: string;
+    }
+
+    // LOGIN HISTORY RESPONSE
+    interface ICashierHistoryResponse {
+        success: boolean;
+        user: {
+            id: string;
+            name: string;
+            email: string;
+            lastLogin: string | null;
+            lastLogout: string | null;
+            loginHistory: ICashierHistoryEntry[];
+        };
+    }
+
+    // USER STATISTICS (FOR CARDS)
+    interface IUserStats {
+        total: number;
+        active: number;
+        inactive: number;
+        online: number;
+        todayLogins: number;
+    }
+
+
+
     // Product Interfaces
     interface IProduct {
         _id: string;

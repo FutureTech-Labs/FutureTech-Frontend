@@ -4,10 +4,10 @@ import { twMerge } from "tailwind-merge"
 /**
  * Utility: cn()
  * ----------------------------------------
- * Combines multiple className values into a single string.
- * - Uses clsx to conditionally join classes.
- * - Uses twMerge to intelligently merge Tailwind classes 
- *   (prevents duplicates and conflicts like "p-2 p-4").
+ * Combines multiple className values into a single, optimized string.
+ * - Uses `clsx` to conditionally join class names.
+ * - Uses `twMerge` to intelligently merge Tailwind classes, 
+ *   preventing duplicates or conflicting utilities.
  */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -16,11 +16,13 @@ export function cn(...inputs: ClassValue[]) {
 /**
  * Utility: toSentenceCase()
  * ----------------------------------------
- * Converts a string into sentence case.
- * - Trims whitespace.
- * - Converts entire string to lowercase.
- * - Capitalizes the first character.
- * Example: "hELLO WORLD" → "Hello world"
+ * Converts any string into sentence case.
+ * - Trims leading/trailing whitespace.
+ * - Lowercases the full string.
+ * - Capitalizes only the first character.
+ * 
+ * Example:
+ *   toSentenceCase("hELLO WORLD") → "Hello world"
  */
 export function toSentenceCase(str = "") {
   if (!str) return "";
@@ -32,10 +34,13 @@ export function toSentenceCase(str = "") {
  * Utility: formatCurrencyLKR()
  * ----------------------------------------
  * Formats a number as Sri Lankan Rupees (LKR).
- * - Uses Intl.NumberFormat with "en-LK" locale.
- * - Optionally hides cents (decimal places).
- * - Returns "—" for invalid or empty values.
- * Example: 1500 → "Rs 1,500.00"
+ * - Uses Intl.NumberFormat with `en-LK` locale.
+ * - Optionally hides decimal places.
+ * - Returns "—" for null / undefined / invalid numbers.
+ * 
+ * Example:
+ *   formatCurrencyLKR(1500) → "Rs 1,500.00"
+ *   formatCurrencyLKR(1500, false) → "Rs 1,500"
  */
 export function formatCurrencyLKR(amount: number, showCents: boolean = true): string {
   if (amount == null || isNaN(amount)) return "—";
@@ -51,10 +56,12 @@ export function formatCurrencyLKR(amount: number, showCents: boolean = true): st
 /**
  * Utility: formatReadableDate()
  * ----------------------------------------
- * Converts an ISO date string (e.g., "2025-11-19T08:54:19.463Z")
- * into a human-friendly format: "November 19, 2025".
- * - Returns "—" for invalid dates or empty input.
- * - Uses "en-US" locale to get full month names.
+ * Converts an ISO date string (e.g. "2025-11-19T08:54:19.463Z")
+ * into a clean, human-friendly date like:
+ *   "November 19, 2025"
+ *
+ * - Returns "—" if input is empty or invalid.
+ * - Uses `en-US` locale for long month names.
  */
 export function formatReadableDate(dateString: string): string {
   if (!dateString) return "—";
@@ -69,6 +76,17 @@ export function formatReadableDate(dateString: string): string {
   });
 };
 
+/**
+ * Utility: formatLocalDate()
+ * ----------------------------------------
+ * Converts a Date object into a YYYY-MM-DD local date string.
+ * Useful for `<input type="date" />` fields.
+ * - Adjusts for local timezone offset to ensure correct day.
+ *
+ * Example:
+ *   formatLocalDate(new Date("2025-02-21T18:00:00Z"))
+ *   → "2025-02-21"
+ */
 export function formatLocalDate(date?: Date) {
   if (!date) return "";
   return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
@@ -76,17 +94,125 @@ export function formatLocalDate(date?: Date) {
     .split("T")[0];
 };
 
+/**
+ * Utility: warrantyStringToMonths()
+ * ----------------------------------------
+ * Converts warranty strings like:
+ *   "6 months", "12 months", "no warranty"
+ * into a numeric month value.
+ *
+ * - Returns 0 for "no warranty".
+ * - Extracts the first numeric part of the string.
+ *
+ * Example:
+ *   warrantyStringToMonths("24 months") → 24
+ */
 export const warrantyStringToMonths = (period: string) => {
-    if (!period) return 0;
-    if (period === "no warranty") return 0;
-    return Number(period.split(" ")[0]);
+  if (!period) return 0;
+  if (period === "no warranty") return 0;
+  return Number(period.split(" ")[0]);
 };
 
+/**
+ * Utility: computeWarrantyEndDate()
+ * ----------------------------------------
+ * Computes the warranty expiration date based on:
+ *   - sale date
+ *   - warranty period (e.g., "6 months")
+ *
+ * Returns the resulting Date, or null if:
+ *   - period is 0
+ *   - invalid input provided
+ *
+ * Example:
+ *   computeWarrantyEndDate("2025-01-01", "6 months")
+ *   → Date("2025-07-01")
+ */
 export const computeWarrantyEndDate = (saleDate: string | Date, warrantyPeriod: string) => {
-    const months = warrantyStringToMonths(warrantyPeriod);
-    if (!months) return null;
+  const months = warrantyStringToMonths(warrantyPeriod);
+  if (!months) return null;
 
-    const date = new Date(saleDate);
-    date.setMonth(date.getMonth() + months);
-    return date;
+  const date = new Date(saleDate);
+  date.setMonth(date.getMonth() + months);
+  return date;
 };
+
+/**
+ * Utility: formatDateTime()
+ * ----------------------------------------
+ * Formats a date string or null into a readable
+ * date + time format:
+ *   "Jan 25, 2025, 10:14 AM"
+ *
+ * - Returns "—" for null or invalid dates.
+ * - Uses `en-US` locale.
+ *
+ * Example:
+ *   formatDateTime("2025-02-21T10:12:00Z")
+ *   → "Feb 21, 2025, 10:12 AM"
+ */
+export const formatDateTime = (date?: string | null) => {
+  if (!date) return "—";
+  return new Date(date).toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+/**
+ * Utility: parseUserAgent()
+ * ----------------------------------------
+ * Converts a long, raw browser user-agent string into a short,
+ * human-friendly "OS — Browser" format.
+ *
+ * Raw user-agents look like:
+ *   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 
+ *    (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+ *
+ * This helper extracts and returns clean values such as:
+ *   "Windows 10 — Chrome"
+ *   "macOS — Safari"
+ *   "Android — Chrome"
+ *   "iOS — Safari"
+ *
+ * - Returns "Unknown device" if UA is empty.
+ * - Very lightweight OS + browser detection (no library needed).
+ */
+export function parseUserAgent(ua: string): string {
+  if (!ua) return "Unknown device";
+
+  let os = "Unknown OS";
+  let browser = "Unknown Browser";
+
+  // --- Browser Detection ---
+  if (ua.includes("Chrome/") && !ua.includes("Edg/")) browser = "Chrome";
+  else if (ua.includes("Edg/")) browser = "Edge";
+  else if (ua.includes("Safari/") && !ua.includes("Chrome")) browser = "Safari";
+  else if (ua.includes("Firefox/")) browser = "Firefox";
+
+  // Extract Chrome version
+  const chromeMatch = ua.match(/Chrome\/(\d+)/);
+  const chromeVersion = chromeMatch ? Number(chromeMatch[1]) : null;
+
+  // --- OS Detection ---
+  if (ua.includes("Windows NT 10.0")) {
+    // Heuristic for Windows 11
+    // Windows 11 is generally paired with Chrome 100+ or modern user agents
+    if (chromeVersion && chromeVersion >= 100) {
+      os = "Windows 11";
+    } else {
+      os = "Windows 10";
+    }
+  } else if (ua.includes("Mac OS X")) {
+    os = "macOS";
+  } else if (ua.includes("Android")) {
+    os = "Android";
+  } else if (ua.includes("iPhone") || ua.includes("iPad")) {
+    os = "iOS";
+  }
+
+  return `${os} — ${browser}`;
+}

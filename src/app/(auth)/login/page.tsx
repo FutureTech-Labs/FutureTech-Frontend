@@ -36,10 +36,15 @@ const SignIn = () => {
 
             if (msg?.includes("password")) {
                 setError("password", { type: "server", message: error.response.data.message });
-            } else if (msg?.includes("email")) {
+            }
+            else if (msg?.includes("email")) {
                 setError("email", { type: "server", message: error.response.data.message });
-            } else if (msg) {
-                console.error(error.response.data.message);
+            }
+            else if (msg) {
+                toast.error(error.response.data.message);
+            }
+            else {
+                toast.error("Something went wrong. Please try again.");
             }
         }
     };
