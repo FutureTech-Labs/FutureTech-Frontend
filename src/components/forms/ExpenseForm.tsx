@@ -13,6 +13,7 @@ import {
     updateExpense
 } from "@/services/expenseServices";
 import TextareaField from "./TextAreaField";
+import DatePickerField from "../common/SingleDatePicker";
 
 interface ExpenseFormProps {
     expense?: IExpense | null;
@@ -20,10 +21,6 @@ interface ExpenseFormProps {
     onCancel?: () => void;
 }
 
-/**
- * Categories allowed for manual creation.
- * "Purchase" is EXCLUDED because backend generates it automatically.
- */
 export type ManualExpenseCategory =
     | "Electricity"
     | "Water"
@@ -34,9 +31,6 @@ export type ManualExpenseCategory =
     | "Transport"
     | "Misc";
 
-/**
- * Expense form values
- */
 interface ExpenseFormValues {
     category: ManualExpenseCategory;
     amount: number;
@@ -44,9 +38,6 @@ interface ExpenseFormValues {
     description?: string;
 }
 
-/**
- * Dropdown options
- */
 const EXPENSE_CATEGORIES: { value: ManualExpenseCategory; label: string }[] = [
     { value: "Electricity", label: "Electricity" },
     { value: "Water", label: "Water" },
@@ -60,6 +51,12 @@ const EXPENSE_CATEGORIES: { value: ManualExpenseCategory; label: string }[] = [
 
 const ExpenseForm = ({ expense, onSuccess, onCancel }: ExpenseFormProps) => {
     const isEdit = Boolean(expense);
+
+    // LOCK FORM IF TYPE OR CATEGORY IS "purchase"
+    const isPurchase =
+        expense?.type === "purchase" ||
+        expense?.category === "Purchase";
+
     const [loading, setLoading] = useState(false);
 
     const {
@@ -72,7 +69,6 @@ const ExpenseForm = ({ expense, onSuccess, onCancel }: ExpenseFormProps) => {
         formState: { errors }
     } = useForm<ExpenseFormValues>({
         defaultValues: {
-            // category MUST be cast here because react-hook-form allows lazy filling
             category: undefined as unknown as ManualExpenseCategory,
             amount: 0,
             date: new Date().toISOString().slice(0, 10),
@@ -82,9 +78,6 @@ const ExpenseForm = ({ expense, onSuccess, onCancel }: ExpenseFormProps) => {
 
     const categoryWatch = watch("category");
 
-    /**
-     * Prefill data in edit mode
-     */
     useEffect(() => {
         if (expense) {
             reset({
@@ -94,16 +87,19 @@ const ExpenseForm = ({ expense, onSuccess, onCancel }: ExpenseFormProps) => {
                 description: expense.description || ""
             });
         }
+
+        // FIX: safe check before reading values
+        if (expense && (expense.type === "purchase" || expense.category === "Purchase")) {
+            setValue("category", "Purchase" as any);
+        }
+
     }, [expense, reset]);
 
-    /**
-     * Submit handler
-     */
+
     const onSubmit = async (data: ExpenseFormValues) => {
         try {
             setLoading(true);
 
-            // Manual validation for required category
             if (!data.category) {
                 setError("category", { type: "manual", message: "Category is required" });
                 return;
@@ -118,7 +114,6 @@ const ExpenseForm = ({ expense, onSuccess, onCancel }: ExpenseFormProps) => {
             }
 
             onSuccess?.();
-
         } catch (error: any) {
             toast.error(error?.response?.data?.message || "Something went wrong.");
         } finally {
@@ -136,10 +131,13 @@ const ExpenseForm = ({ expense, onSuccess, onCancel }: ExpenseFormProps) => {
                 <SelectField
                     label="Category"
                     placeholder="Select Category"
-                    value={categoryWatch || ""}
-                    onChange={(val) => setValue("category", val as ManualExpenseCategory)}
+                    value={isPurchase ? "Purchase" : categoryWatch || ""}
+                    onChange={(val) =>
+                        setValue("category", val as ManualExpenseCategory)
+                    }
                     error={errors.category}
                     options={EXPENSE_CATEGORIES}
+                    disabled={isPurchase}
                     required
                 />
 
@@ -151,6 +149,7 @@ const ExpenseForm = ({ expense, onSuccess, onCancel }: ExpenseFormProps) => {
                     type="number"
                     register={register}
                     error={errors.amount}
+                    readonly={isPurchase}
                     validation={{
                         required: "Amount is required",
                         min: { value: 1, message: "Amount must be at least 1" }
@@ -158,14 +157,12 @@ const ExpenseForm = ({ expense, onSuccess, onCancel }: ExpenseFormProps) => {
                 />
 
                 {/* DATE */}
-                <InputField
-                    placeholder="Date"
-                    name="date"
+                <DatePickerField
                     label="Date"
-                    type="date"
-                    register={register}
+                    value={watch("date")}
+                    onChange={(val) => setValue("date", val)}
+                    disabled={isPurchase}
                     error={errors.date}
-                    validation={{ required: "Date is required" }}
                 />
 
                 {/* DESCRIPTION */}
@@ -175,6 +172,7 @@ const ExpenseForm = ({ expense, onSuccess, onCancel }: ExpenseFormProps) => {
                     placeholder="Optional"
                     register={register}
                     error={errors.description}
+                    disabled={isPurchase}
                     maxWords={150}
                     rows={5}
                     validation={{

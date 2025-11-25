@@ -1,21 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+    useEffect,
+    useState
+} from "react";
+
+import { toast } from "sonner";
+import { DateRange } from "react-day-picker";
+import SelectField from "../forms/SelectField";
+import ExpenseForm from "../forms/ExpenseForm";
+import { BanknoteArrowDown } from "lucide-react";
+
 import { Button } from "../ui/button";
 import DataTable from "../common/Table";
-import { DateRange } from "react-day-picker";
-import { formatLocalDate, formatDateTime } from "@/lib/utils";
-import SelectField from "../forms/SelectField";
-import { BanknoteArrowDown } from "lucide-react";
-import { DateRangePicker } from "../common/DateRangePicker";
-import { deleteExpense, getExpenses } from "@/services/expenseServices";
-import { TooltipWrapper } from "../common/TooltipWrapper";
-import IconButton from "../common/IconButton";
 import DialogBox from "../common/DialogBox";
-import ExpenseForm from "../forms/ExpenseForm";
-import MonthlyExpensesChart from "../charts/expenses-charts/MonthlyExpensesChart";
+import IconButton from "../common/IconButton";
+import { TooltipWrapper } from "../common/TooltipWrapper";
+import { DateRangePicker } from "../common/DateRangePicker";
+
+import { deleteExpense, getExpenses } from "@/services/expenseServices";
+
+import { formatLocalDate, formatDateTime } from "@/lib/utils";
+
+import PieDonutChart from "../charts/expenses-charts/AllExpensesChart";
 import ProfitVsExpenseChart from "../charts/expenses-charts/ProfitVsExpenseChart";
-import { toast } from "sonner";
 
 const EXPENSE_CATEGORIES = [
     { value: "all", label: "All Categories" },
@@ -167,24 +175,28 @@ const ExpensesPage = () => {
     ];
 
     return (
-        <div className="relative flex flex-col gap-6 min-h-screen">
+        <div className="relative flex flex-col gap-6">
 
-            <div className="grid grid-cols-1 gap-6 h-auto md:grid-cols-2 lg:grid-cols-5 lg:grid-rows-4 lg:h-[calc(70vh-100px)]"
-            >
-                {/* LEFT big chart */}
-                <div className="col-span-1 md:col-span-2 lg:col-span-3 lg:row-span-4">
-                    <MonthlyExpensesChart months={12} refresh={refreshCharts} />
-                </div>
+            <div className="flex h-full w-full items-center justify-center">
+                <div className="grid h-full w-full gap-6 grid-cols-1 md:grid-cols-5 grid-rows-2 rounded-lg shadow-md pb-0">
 
-                {/* RIGHT big chart */}
-                <div className="md:col-span-2 lg:col-span-2 lg:row-span-4">
-                    <ProfitVsExpenseChart months={12} refresh={refreshCharts} />
+                    {/* First Chart */}
+                    <div className="col-span-3 row-span-2">
+                        <ProfitVsExpenseChart />
+                    </div>
+
+                    {/* Second Chart */}
+                    <div className="col-span-3 md:col-span-2 row-span-2">
+                        <PieDonutChart refresh={refreshCharts} />
+                    </div>
                 </div>
             </div>
 
-
             {/* Table Wrapper */}
-            <div className="flex flex-col gap-6 p-5 rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient shadow-lg shadow-primary-900/15">
+            <div className="flex flex-col gap-6 p-5 rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient shadow-lg 
+            shadow-primary-900/15">
+
+                <h2 className="text-lg font-semibold text-gray-200">Expense Overview</h2>
 
                 <div className="flex md:flex-row flex-col gap-5 items-center justify-between w-full">
 

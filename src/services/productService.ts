@@ -72,3 +72,24 @@ export const getLowStockProducts = async (params?: { page?: number; limit?: numb
     const res = await api.get("/admin/products/low-stock", { params });
     return res.data;
 };
+
+// Update global minimum stock threshold (Admin only)
+export const updateGlobalStockThreshold = async (
+    threshold: number
+): Promise<{
+    success: boolean;
+    message: string;
+    settings: any;
+    newlyLow: number;
+}> => {
+    const res = await api.patch<{
+        success: boolean;
+        message: string;
+        settings: any;
+        newlyLow: number;
+    }>("/admin/settings/global-min-stock", {
+        minStockThreshold: threshold,
+    });
+
+    return res.data;
+};
