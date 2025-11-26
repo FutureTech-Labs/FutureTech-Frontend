@@ -79,6 +79,12 @@ const PurchaseForm = ({ onSuccess, onCancel }: PurchaseFormProps) => {
         })();
     }, []);
 
+    const getProductSellingPrice = (productId: string) => {
+        const found = products.find((p) => p._id === productId);
+        return found ? found.sellingPrice : "";
+    };
+
+
     const onSubmit = async (data: PurchaseFormValues) => {
         try {
             setLoading(true);
@@ -140,7 +146,7 @@ const PurchaseForm = ({ onSuccess, onCancel }: PurchaseFormProps) => {
                 {fields.map((field, index) => (
                     <div
                         key={field.id}
-                        className="relative grid grid-cols-1 md:grid-cols-3 gap-4 p-5 bg-zinc-900/30 rounded-xl border border-zinc-700 shadow-sm"
+                        className="relative grid grid-cols-1 md:grid-cols-4 gap-4 p-5 bg-zinc-900/30 rounded-xl border border-zinc-700 shadow-sm"
                     >
                         {/* Product */}
                         <ComboBoxField
@@ -170,6 +176,22 @@ const PurchaseForm = ({ onSuccess, onCancel }: PurchaseFormProps) => {
                                 min: { value: 1, message: "Minimum 1 qty" },
                             }}
                             height="h-11"
+                        />
+
+                        {/* Selling price of the selected product */}
+                        <InputField
+                            placeholder="Selling Price"
+                            label="Selling Price"
+                            type="text"
+                            name={`items.${index}.sellingPriceReadOnly`}
+                            register={register}
+                            validation={{}}
+                            value={
+                                String(getProductSellingPrice(itemsWatch[index]?.product))
+                            }
+                            readonly
+                            height="h-11"
+                            error={undefined}
                         />
 
                         {/* Cost Price */}
@@ -205,17 +227,25 @@ const PurchaseForm = ({ onSuccess, onCancel }: PurchaseFormProps) => {
                     type="button"
                     variant="outline"
                     className="main-button-gradient"
-                    onClick={() =>
+                    onClick={() => {
+                        const lastIndex = itemsWatch.length - 1;
+
+                        if (!itemsWatch[lastIndex].product) {
+                            toast.error("Please select a product before adding a new item.");
+                            return;
+                        }
+
                         append({
                             product: "",
                             quantity: 1,
                             costPrice: 0,
                             warrantyReference: "",
-                        })
-                    }
+                        });
+                    }}
                 >
                     Add Another Item
                 </Button>
+
             </div>
 
             {/* Total */}

@@ -226,7 +226,7 @@ export default function SalesInvoicesPage({ role }: SalesInvoicesPageProps) {
                 open={invoiceDialogOpen}
                 onOpenChange={setInvoiceDialogOpen}
                 title="Sales Invoice"
-                widthClass="min-w-5xl!"
+                widthClass="md:min-w-4xl!"
             >
                 {dialogLoading ? (
                     <div className="py-10 text-center text-white/70">Loading…</div>

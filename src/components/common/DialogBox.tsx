@@ -46,7 +46,7 @@ const DialogBox = ({
     onCancel,
     disableConfirm = false,
     confirmLoading = false,
-    widthClass = "w-full max-w-4xl!",
+    widthClass,
     showCloseIcon = true,
     variant = "default",
     centerTitle = false,
@@ -63,7 +63,7 @@ const DialogBox = ({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
                 className={cn(
-                    "text-gray-100 border border-gray-500/30 rounded-xl p-0 z-50 shadow-lg shadow-white/10 lg:min-w-3xl",
+                    "text-gray-100 border border-gray-500/30 rounded-xl p-0 z-50 shadow-lg shadow-white/10 lg:min-w-xl w-full",
                     widthClass
                 )}
             >
@@ -107,7 +107,7 @@ const DialogBox = ({
                 {/* Scrollable content area */}
                 {children && (
                     <div
-                        className="px-6 overflow-y-auto max-h-[60dvh] sm:max-h-[85dvh]">
+                        className="px-6 overflow-y-auto max-h-[80dvh] sm:max-h-[82dvh]">
                         {children}
                     </div>
                 )}
@@ -118,7 +118,7 @@ const DialogBox = ({
                         <Button
                             variant="outline"
                             onClick={onCancel ?? (() => onOpenChange(false))}
-                            className="flex-1 border-gray-700 hover:bg-gray-800"
+                            className="flex-1 border-gray-700 hover:bg-gray-800 h-10 cursor-pointer"
                             disabled={confirmLoading}
                         >
                             {cancelText}
@@ -128,7 +128,7 @@ const DialogBox = ({
                             onClick={onConfirm}
                             disabled={disableConfirm || confirmLoading}
                             className={cn(
-                                "sm:w-auto flex-1 transition-colors border flex items-center justify-center gap-2",
+                                "sm:w-auto flex-1 transition-colors border flex items-center justify-center gap-2 h-10",
                                 variantStyles[variant]
                             )}
                         >

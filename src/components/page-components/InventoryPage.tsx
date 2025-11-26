@@ -393,7 +393,7 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
                             ? "Update the product details below."
                             : "Add a new product to your inventory."
                     }
-                    widthClass="max-w-3xl"
+                    widthClass="md:min-w-3xl!"
                 >
                     <ProductForm
                         brands={brands}
@@ -416,7 +416,7 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
                     open={viewDialogOpen}
                     onOpenChange={setviewDialogOpen}
                     title="Product Details"
-                    widthClass="max-w-3xl"
+                    widthClass="md:min-w-3xl!"
                 >
                     <ProductDetails
                         product={selectedProduct}
@@ -436,6 +436,7 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
                     onConfirm={confirmDelete}
                     onCancel={() => setDeleteDialogOpen(false)}
                     confirmLoading={deleting}
+                    widthClass="max-w-md!"
                 >
                     <div className="text-center text-sm text-gray-400 mt-2 whitespace-pre-line">
                         Are you sure you want to delete "{productToDelete?.name}"?

@@ -278,7 +278,7 @@ const SupplierPage = () => {
                     open={viewDialogOpen}
                     onOpenChange={setviewDialogOpen}
                     title="Supplier Details"
-                    widthClass="lg:min-w-4xl!"
+                    widthClass="lg:min-w-3xl!"
                 >
                     <SupplierDetails supplier={selectedSupplier} />
                 </DialogBox>

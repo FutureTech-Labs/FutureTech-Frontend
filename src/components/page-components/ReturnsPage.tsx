@@ -362,7 +362,7 @@ const ReturnsPage = () => {
                 open={returnInvoiceDialog}
                 onOpenChange={setReturnInvoiceDialog}
                 title="Product Return Invoice"
-                widthClass="min-w-3xl!"
+                widthClass="md:min-w-3xl!"
             >
                 {/* We'll create a new invoice for return and call it here, don't need to mess up with sales and purchase */}
                 {selectedReturnInvoice && (

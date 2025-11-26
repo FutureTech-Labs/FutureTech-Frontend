@@ -19,6 +19,9 @@ import { StatusBadge } from "../common/StatusBadge";
 import { getPurchaseInvoice } from "@/services/purchaseService";
 import { deleteBatch, getAllStockBatches } from "@/services/stockService";
 
+import { updateGlobalStockThreshold, getGlobalStockThreshold } from "@/services/productService";
+import ThresholdInput from "@/components/common/ThresholdInput";   // <-- ADD THIS
+
 const StockPage = () => {
     const [batches, setBatches] = useState<IStockBatch[]>([]);
     const [page, setPage] = useState(1);
@@ -26,6 +29,9 @@ const StockPage = () => {
     const [pages, setPages] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
+
+    const [globalThreshold, setGlobalThreshold] = useState(5);  // <-- ADD THIS
+
     const [purchaseDialog, setPurchaseDialogOpen] = useState(false);
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -58,6 +64,20 @@ const StockPage = () => {
         }
     };
 
+    // Load global threshold on mount
+    useEffect(() => {
+        (async () => {
+            try {
+                const res = await getGlobalStockThreshold();
+                if (res.success) {
+                    setGlobalThreshold(res.settings.minStockThreshold);
+                }
+            } catch (err) {
+                console.error("Failed to load threshold");
+            }
+        })();
+    }, []);
+
     useEffect(() => {
         fetchStockData();
     }, [page, searchTerm]);
@@ -70,6 +90,17 @@ const StockPage = () => {
         });
     }, [selectedInvoiceId]);
 
+    const handleThresholdUpdate = async (v: number) => {
+        try {
+            const res = await updateGlobalStockThreshold(v);
+            if (res.success) {
+                toast.success("Global threshold updated");
+                setGlobalThreshold(v);
+            }
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || "Failed to update threshold");
+        }
+    };
 
     const handlePurchase = () => {
         setPurchaseDialogOpen(true);
@@ -104,7 +135,6 @@ const StockPage = () => {
             setDeleting(false);
         }
     };
-
 
     const StockColumns = [
         {
@@ -174,7 +204,6 @@ const StockPage = () => {
         },
     ];
 
-
     return (
         <div className="relative flex flex-col gap-6">
 
@@ -191,6 +220,13 @@ const StockPage = () => {
                         onClear={() => setSearchTerm("")}
                         className="md:max-w-md"
                     />
+
+                    {/* Minimum Threshold */}
+                    <ThresholdInput
+                        value={globalThreshold}
+                        onSubmit={handleThresholdUpdate}
+                    />
+
                     <Button
                         onClick={handlePurchase}
                         className="main-button-gradient border-none!"
@@ -200,6 +236,7 @@ const StockPage = () => {
                     </Button>
                 </div>
 
+                {/* Table */}
                 <DataTable
                     columns={StockColumns}
                     data={batches}
@@ -211,7 +248,6 @@ const StockPage = () => {
                     }}
                 />
 
-
                 {/* Purchase form */}
                 <DialogBox
                     open={purchaseDialog}
@@ -219,16 +255,15 @@ const StockPage = () => {
                     title="Product Details"
                     widthClass="min-w-4xl!"
                 >
-                    {/* Here the purchasing form should come */}
                     <PurchaseForm
                         onSuccess={(data) => {
                             const invoiceId = data.invoice._id;
 
-                            setPurchaseDialogOpen(false);         // close purchase form
-                            setSelectedInvoiceId(invoiceId);      // set invoice ID
-                            setInvoiceDialogOpen(true);           // open invoice dialog
+                            setPurchaseDialogOpen(false);
+                            setSelectedInvoiceId(invoiceId);
+                            setInvoiceDialogOpen(true);
 
-                            fetchStockData();                     // refresh stock table
+                            fetchStockData();
                         }}
                         onCancel={() => setPurchaseDialogOpen(false)}
                     />
@@ -249,7 +284,6 @@ const StockPage = () => {
                         />
                     )}
                 </DialogBox>
-
 
                 {/* Delete Confirmation Dialog */}
                 <DialogBox

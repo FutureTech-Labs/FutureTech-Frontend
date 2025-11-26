@@ -253,7 +253,6 @@ const ExpensesPage = () => {
                     if (!open) setSelectedExpense(null);
                 }}
                 title={selectedExpense ? "Edit Expense" : "Add Expense"}
-                widthClass="max-w-xl!"
             >
                 <ExpenseForm
                     expense={selectedExpense}
