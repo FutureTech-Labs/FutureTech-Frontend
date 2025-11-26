@@ -1,19 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import {
+    useEffect,
+    useState
+} from "react";
+import {
+    useForm,
+    useFieldArray
+} from "react-hook-form";
+
 import { toast } from "sonner";
 
 import InputField from "./InputField";
 import SelectField from "./SelectField";
 import ComboBoxField from "./ComboField";
+import { CircleMinus } from "lucide-react";
+import IconButton from "../common/IconButton";
 import { Button } from "@/components/ui/button";
 
 import { getProducts } from "@/services/productService";
 import { getSuppliers } from "@/services/supplierServices";
 import { createPurchase } from "@/services/purchaseService";
-import IconButton from "../common/IconButton";
-import { CircleMinus } from "lucide-react";
 
 interface PurchaseFormProps {
     onSuccess?: (data: IPurchaseCreateResponse) => void;
@@ -83,7 +90,6 @@ const PurchaseForm = ({ onSuccess, onCancel }: PurchaseFormProps) => {
         const found = products.find((p) => p._id === productId);
         return found ? found.sellingPrice : "";
     };
-
 
     const onSubmit = async (data: PurchaseFormValues) => {
         try {
@@ -164,21 +170,24 @@ const PurchaseForm = ({ onSuccess, onCancel }: PurchaseFormProps) => {
                         />
 
                         {/* Quantity */}
+                        {/* Quantity */}
                         <InputField
                             placeholder="Qty"
                             name={`items.${index}.quantity`}
                             label="Qty"
                             type="number"
-                            register={register}
-                            error={errors.items?.[index]?.quantity}
-                            validation={{
+                            register={register}                    // <-- IMPORTANT FIX
+                            validation={{                          // <-- validation moved here
+                                valueAsNumber: true,               // <-- number conversion
                                 required: "Quantity required",
                                 min: { value: 1, message: "Minimum 1 qty" },
                             }}
+                            error={errors.items?.[index]?.quantity}
                             height="h-11"
                         />
 
-                        {/* Selling price of the selected product */}
+
+                        {/* Selling price readonly */}
                         <InputField
                             placeholder="Selling Price"
                             label="Selling Price"
@@ -186,14 +195,13 @@ const PurchaseForm = ({ onSuccess, onCancel }: PurchaseFormProps) => {
                             name={`items.${index}.sellingPriceReadOnly`}
                             register={register}
                             validation={{}}
-                            value={
-                                String(getProductSellingPrice(itemsWatch[index]?.product))
-                            }
+                            value={String(getProductSellingPrice(itemsWatch[index]?.product))}
                             readonly
                             height="h-11"
                             error={undefined}
                         />
 
+                        {/* Cost Price */}
                         {/* Cost Price */}
                         <InputField
                             placeholder="Cost Price"
@@ -201,15 +209,17 @@ const PurchaseForm = ({ onSuccess, onCancel }: PurchaseFormProps) => {
                             label="Cost Price"
                             type="number"
                             register={register}
-                            error={errors.items?.[index]?.costPrice}
                             validation={{
+                                valueAsNumber: true,
                                 required: "Cost price required",
                                 min: { value: 0, message: "Cannot be negative" },
                             }}
+                            error={errors.items?.[index]?.costPrice}
                             height="h-11"
                         />
 
-                        {/* Remove Button */}
+
+                        {/* Remove */}
                         <div className="absolute top-0 right-0 flex items-end">
                             {index > 0 && (
                                 <IconButton

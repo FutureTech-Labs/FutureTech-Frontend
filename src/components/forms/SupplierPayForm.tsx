@@ -1,16 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { Button } from "@/components/ui/button";
+import {
+    useEffect,
+    useMemo,
+    useState
+} from "react";
+import { toast } from "sonner";
 import InputField from "./InputField";
 import SelectField from "./SelectField";
-import { toast } from "sonner";
-import { formatCurrencyLKR } from "@/lib/utils";
-
-import { createSupplierPayment } from "@/services/supplierPayments";
-import { getSupplierById } from "@/services/supplierServices";
 import TextareaField from "./TextAreaField";
+import { Button } from "@/components/ui/button";
+import { formatCurrencyLKR } from "@/lib/utils";
+import { useForm, Controller } from "react-hook-form";
+
+import { getSupplierById } from "@/services/supplierServices";
+import { createSupplierPayment } from "@/services/supplierPayments";
 
 interface PaySupplierFormProps {
     supplier: ISupplier | null;
@@ -24,13 +28,13 @@ export default function PaySupplierForm({
     onCancel,
 }: PaySupplierFormProps) {
     const [loading, setLoading] = useState(false);
-    const [pendingInvoices, setPendingInvoices] = useState<any[]>([]);
     const [freshSupplier, setFreshSupplier] = useState<ISupplier | null>(supplier);
 
     const {
         handleSubmit,
         register,
         control,
+        watch,
         reset,
         formState: { errors },
     } = useForm({
@@ -41,19 +45,16 @@ export default function PaySupplierForm({
         },
     });
 
-    // Fetch fresh supplier updates
+    const watchAmount = Number(watch("amount") || 0);
+
+    // Fetch supplier data
     useEffect(() => {
         if (!supplier?._id) return;
 
         (async () => {
             try {
-                const updated = await getSupplierById(supplier._id);
-                setFreshSupplier(updated);
-
-                const pending = (updated.purchaseHistory || []).filter(
-                    (inv: any) => inv.status === "pending"
-                );
-                setPendingInvoices(pending);
+                const fresh = await getSupplierById(supplier._id);
+                setFreshSupplier(fresh);
             } catch (err) {
                 console.error(err);
             }
@@ -64,11 +65,68 @@ export default function PaySupplierForm({
 
     if (!freshSupplier) return null;
 
+    // -------------------------------------
+    // AUTO-ALLOCATION (FIFO)
+    // -------------------------------------
+    const fifoAllocations = useMemo(() => {
+        let remaining = watchAmount;
+        const result: {
+            invoiceId: string;
+            invoiceNumber?: string;
+            total: number;
+            paidBefore: number;
+            remainingBefore: number;
+            applyNow: number;
+            remainingAfter: number;
+        }[] = [];
+
+        freshSupplier.purchaseHistory
+            ?.filter((inv) => inv.status === "pending")
+            .sort((a, b) => new Date(a.date as string).getTime() - new Date(b.date as string).getTime())
+            .forEach((inv) => {
+                const total = inv.totalAmount ?? 0;
+                const paidBefore = inv.alreadyPaid ?? 0;
+                const remainingBefore = total - paidBefore;
+
+                if (remaining <= 0) {
+                    result.push({
+                        invoiceId: inv._id,
+                        invoiceNumber: inv.invoiceNumber,
+                        total,
+                        paidBefore,
+                        remainingBefore,
+                        applyNow: 0,
+                        remainingAfter: remainingBefore,
+                    });
+                    return;
+                }
+
+                const payThis = Math.min(remaining, remainingBefore);
+                remaining -= payThis;
+
+                result.push({
+                    invoiceId: inv._id,
+                    invoiceNumber: inv.invoiceNumber,
+                    total,
+                    paidBefore,
+                    remainingBefore,
+                    applyNow: payThis,
+                    remainingAfter: remainingBefore - payThis,
+                });
+            });
+
+        return result;
+    }, [freshSupplier, watchAmount]);
+
+    // -------------------------------------
+    // SUBMIT PAYMENT
+    // -------------------------------------
     const onSubmit = async (values: any) => {
         try {
             setLoading(true);
 
             const amount = Number(values.amount);
+
             if (!amount || amount <= 0) {
                 toast.error("Enter a valid amount");
                 return;
@@ -79,30 +137,10 @@ export default function PaySupplierForm({
                 return;
             }
 
-            // Collect allocations
-            const allocations: any[] = [];
-            for (const inv of pendingInvoices) {
-                const el = document.querySelector<HTMLInputElement>(
-                    `input[name="alloc_${inv._id}"]`
-                );
-                if (!el) continue;
-
-                const v = Number(el.value || 0);
-                if (v > 0) allocations.push({ invoice: inv._id, amount: v });
-            }
-
-            const allocSum = allocations.reduce((s, a) => s + a.amount, 0);
-            if (allocSum > amount) {
-                toast.error("Allocated amounts exceed payment amount");
-                return;
-            }
-
-            // Submit
             await createSupplierPayment(freshSupplier._id, {
                 amount,
                 paymentMethod: values.paymentMethod,
                 notes: values.notes || undefined,
-                appliedInvoices: allocations.length ? allocations : undefined,
             });
 
             toast.success("Payment recorded successfully!");
@@ -115,10 +153,10 @@ export default function PaySupplierForm({
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
             {/* Outstanding Balance */}
-            <div className="border-gradient-2 rounded-lg p-4">
+            <div className="border border-white/10 bg-white/5 rounded-lg p-4">
                 <p className="text-sm text-gray-300 font-semibold">Outstanding Balance</p>
                 <p className="text-2xl font-bold mt-1">
                     {formatCurrencyLKR(freshSupplier.outstandingBalance)}
@@ -135,31 +173,49 @@ export default function PaySupplierForm({
                 />
             </div>
 
-            {/* Invoice Allocation */}
-            {pendingInvoices.length > 0 && (
-                <div className="border-gradient-2 rounded-lg p-4 space-y-2">
-                    <p className="font-semibold">Allocate to Invoices (Optional)</p>
+            {/* AUTO ALLOCATION PREVIEW */}
+            {fifoAllocations.length > 0 && (
+                <div className="border border-white/10 bg-white/5 rounded-lg p-4 space-y-3">
+                    <p className="font-semibold text-gray-200 text-sm">
+                        Auto Allocation (FIFO)
+                    </p>
 
-                    {pendingInvoices.map((inv) => (
-                        <div key={inv._id} className="flex justify-between bg-white/5 p-2 rounded-md">
-                            <div>
-                                <p className="font-medium">
-                                    Invoice #{inv.invoiceNumber ?? inv._id}
+                    {fifoAllocations.map((row) => {
+                        const applyNow = watchAmount > 0 ? row.applyNow : 0;
+                        const remainingAfter =
+                            watchAmount > 0 ? row.remainingAfter : row.remainingBefore;
+
+                        return (
+                            <div
+                                key={row.invoiceId}
+                                className="bg-black/20 border border-white/10 rounded-lg p-3"
+                            >
+                                <p className="font-medium text-white">
+                                    Invoice #{row.invoiceNumber}
                                 </p>
-                                <p className="text-xs text-gray-400">
-                                    {formatCurrencyLKR(inv.totalAmount)}
-                                </p>
+
+                                <div className="text-xs text-gray-400 mt-1 space-y-1">
+                                    <p>Total: {formatCurrencyLKR(row.total)}</p>
+                                    <p>Paid Before: {formatCurrencyLKR(row.paidBefore)}</p>
+                                    <p>Remaining Before: {formatCurrencyLKR(row.remainingBefore)}</p>
+                                </div>
+
+                                <div className="text-sm mt-2 flex justify-between">
+                                    <span className="text-gray-300">Will Pay Now:</span>
+                                    <span className="text-primary-300 font-semibold">
+                                        {formatCurrencyLKR(applyNow)}
+                                    </span>
+                                </div>
+
+                                <div className="text-sm flex justify-between mt-1">
+                                    <span className="text-gray-300">Remaining After:</span>
+                                    <span className="text-yellow-300 font-semibold">
+                                        {formatCurrencyLKR(remainingAfter)}
+                                    </span>
+                                </div>
                             </div>
-
-                            <input
-                                type="number"
-                                name={`alloc_${inv._id}`}
-                                min="0"
-                                className="w-28 p-1 text-right bg-black/20 rounded"
-                                placeholder="0"
-                            />
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 
@@ -200,8 +256,7 @@ export default function PaySupplierForm({
                 )}
             />
 
-
-            {/* Actions */}
+            {/* Footer Buttons */}
             <div className="sticky -bottom-px bg-black-500 flex gap-3 py-3 border-t border-gray-800">
                 <Button
                     type="button"
@@ -212,7 +267,11 @@ export default function PaySupplierForm({
                     Cancel
                 </Button>
 
-                <Button type="submit" disabled={loading} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
+                <Button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                >
                     {loading ? "Processing..." : "Record Payment"}
                 </Button>
             </div>

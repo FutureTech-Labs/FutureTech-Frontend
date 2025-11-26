@@ -137,6 +137,8 @@ declare global {
         date?: string;
         paymentType?: "COD" | "Net 15" | "Net 30" | "Net 45";
         dueDate?: string;
+        remainingAmount?: number;
+        alreadyPaid?: number;
     }
 
     // Full Purchase Invoice — backend response (create)
@@ -201,6 +203,8 @@ declare global {
         paymentMethod: "cash" | "online_transfer";
         datePaid: string;
         notes?: string;
+        hadToPayBefore: number;
+        balanceAfter: number;
         appliedInvoices: {
             invoice: {
                 _id: string;
@@ -238,6 +242,21 @@ declare global {
         bankName: string;
         accountNumber: string;
     }
+
+    interface IPurchaseInvoiceItemRef {
+        product: {
+            _id: string;
+            name: string;
+        } | null;
+        quantity: number;
+        costPrice: number;
+        lineTotal: number;
+    }
+
+    interface ISupplierPurchaseInvoice extends IPurchaseInvoiceRef {
+        items?: IPurchaseInvoiceItemRef[];
+    }
+
 
     // ----------------------------------------
     // STOCKS & BATCHES
