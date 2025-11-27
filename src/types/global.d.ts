@@ -685,6 +685,108 @@ declare global {
         data: IDailyProfitItem[];
     }
 
+    // ----------------------------------------
+    // REPORTS INTERFACES
+    // ----------------------------------------
+
+    // Sales Related Report interfaces
+
+    // Sales Summary report
+    interface ISalesSummaryPaymentBreakdown {
+        _id: "cash" | "card";
+        amount: number;
+        count: number;
+    }
+
+    interface ISalesSummary {
+        totalSales: number;
+        invoiceCount: number;
+        itemsSold: number;
+        avgSale: number;
+        totalProfit: number;
+        paymentBreakdown: ISalesSummaryPaymentBreakdown[];
+    }
+
+    interface ISalesSummaryResponse {
+        success: boolean;
+        data: ISalesSummary;
+    };
+
+    // Sales trend report
+    interface ISalesTrendPoint {
+        _id: string;
+        revenue: number;
+        invoices: number;
+    }
+
+    interface ISalesTrendsResponse {
+        success: boolean;
+        data: ISalesTrendPoint[];
+    };
+
+    // Top Products report
+    interface ITopProductItem {
+        _id: string;
+        productName: string;
+        qtySold: number;
+        revenue: number;
+        sellingPrice?: number;
+        totalStock?: number;
+        category?: string;
+    }
+
+    interface ITopProductsResponse {
+        success: boolean;
+        data: ITopProductItem[];
+    };
+
+    // sales by cashier report
+    interface ISalesByCashierReportItem {
+        cashierId: string;
+        cashierName: string;
+        cashierEmail: string;
+        userRole: string;
+        totalSales: number;
+        invoiceCount: number;
+        totalProfit: number;
+    }
+
+    // Pagination meta data
+    export interface IPaginationMeta {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    }
+
+    interface ISalesByCashierReportResponse {
+        success: boolean;
+        data: ISalesByCashierReportItem[];
+        meta: IPaginationMeta;
+    };
+
+    // Payment breakdown report
+    interface IPaymentBreakdownItem {
+        _id: "cash" | "card";
+        amount: number;
+        count: number;
+    }
+
+    interface IPaymentBreakdownResponse {
+        success: boolean;
+        data: IPaymentBreakdownItem[];
+    };
+
+    // Invoice List reports
+    interface ISalesInvoiceListResponse {
+        success: boolean;
+        data: ISalesInvoiceResponse[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+        };
+    };
 
 
 

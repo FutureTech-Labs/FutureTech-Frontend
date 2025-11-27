@@ -40,6 +40,24 @@ export default function ProfitVsExpenseChart({
         { date: string; expense: number; profit: number }[]
     >([]);
 
+    // -------------------------------
+    // Dummy Fallback Data
+    // -------------------------------
+    const dummyData = [
+        { date: "Jan 24", expense: 82000, profit: 120000 },
+        { date: "Feb 24", expense: 75000, profit: 110000 },
+        { date: "Mar 24", expense: 90000, profit: 140000 },
+        { date: "Apr 24", expense: 85000, profit: 150000 },
+        { date: "May 24", expense: 78000, profit: 135000 },
+        { date: "Jun 24", expense: 92000, profit: 160000 },
+        { date: "Jul 24", expense: 88000, profit: 155000 },
+        { date: "Aug 24", expense: 83000, profit: 148000 },
+        { date: "Sep 24", expense: 95000, profit: 170000 },
+        { date: "Oct 24", expense: 91000, profit: 158000 },
+        { date: "Nov 24", expense: 87000, profit: 152000 },
+        { date: "Dec 24", expense: 99000, profit: 180000 },
+    ];
+
     const load = async () => {
         try {
             const res = await getProfitVsExpense(Number(selectedMonths));
@@ -58,9 +76,15 @@ export default function ProfitVsExpenseChart({
                 };
             });
 
-            setData(formatted);
+            // Use dummy if no data or too few points
+            const finalData = formatted.length >= 1 ? formatted : dummyData;
+
+            setData(finalData);
         } catch (err) {
             console.error("Error loading area chart:", err);
+
+            // Fall back to dummy on error
+            setData(dummyData);
         }
     };
 

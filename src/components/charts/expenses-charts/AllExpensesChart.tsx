@@ -104,28 +104,14 @@ export default function CategoryExpensePieChart({
                 className="mx-auto h-full w-full min-h-[200px]"
             >
                 <PieChart>
-                    <ChartTooltip
-                        cursor={false}
-                        content={
-                            <ChartTooltipContent
-                                indicator="line"
-                                formatter={(value, name) => (
-                                    <div className="flex items-center justify-between gap-2 w-full">
-                                        <span className="text-gray-400">{name}</span>
-                                        <span className="font-medium text-foreground">
-                                            {formatCurrencyLKR(Number(value))}
-                                        </span>
-                                    </div>
-                                )}
-                            />
-                        }
-                    />
+                    <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
 
                     <Pie
                         data={chartData}
                         dataKey="total"
                         nameKey="category"
                         innerRadius={60}
+                        labelLine={false}
                         isAnimationActive={true}
                         animationDuration={1000}
                     />

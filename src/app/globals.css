@@ -1,7 +1,5 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-/* @import "uploadthing/tw/v4";
-@source "../node_modules/@uploadthing/react/dist"; */
 
 @custom-variant dark (&:is(.dark *));
 
@@ -107,6 +105,35 @@
   --chart-teal-4: #2dd4bf;
   --chart-teal-5: #5eead4;
 
+  /* CYAN */
+  --chart-cyan-1: #06b6d4;
+  --chart-cyan-2: #0891b2;
+  --chart-cyan-3: #0e7490;
+  --chart-cyan-4: #67e8f9;
+  --chart-cyan-5: #a5f3fc;
+
+  /* ROSE */
+  --chart-rose-1: #f43f5e;
+  --chart-rose-2: #e11d48;
+  --chart-rose-3: #be123c;
+  --chart-rose-4: #fb7185;
+  --chart-rose-5: #fecdd3;
+
+  /* YELLOW */
+  --chart-yellow-1: #eab308;
+  --chart-yellow-2: #ca8a04;
+  --chart-yellow-3: #a16207;
+  --chart-yellow-4: #facc15;
+  --chart-yellow-5: #fde047;
+
+  /* SLATE (NEUTRAL) */
+  --chart-slate-1: #94a3b8;
+  --chart-slate-2: #64748b;
+  --chart-slate-3: #475569;
+  --chart-slate-4: #cbd5e1;
+  --chart-slate-5: #e2e8f0;
+
+
   --sidebar: oklch(0.984 0.003 247.858);
   --sidebar-foreground: oklch(0.129 0.042 264.695);
   --sidebar-primary: oklch(0.208 0.042 265.755);
@@ -179,6 +206,35 @@
   --chart-teal-3: #0d9488;
   --chart-teal-4: #0f766e;
   --chart-teal-5: #5eead4;
+
+  /* CYAN */
+  --chart-cyan-1: #06b6d4;
+  --chart-cyan-2: #0891b2;
+  --chart-cyan-3: #0e7490;
+  --chart-cyan-4: #67e8f9;
+  --chart-cyan-5: #a5f3fc;
+
+  /* ROSE */
+  --chart-rose-1: #f43f5e;
+  --chart-rose-2: #e11d48;
+  --chart-rose-3: #be123c;
+  --chart-rose-4: #fb7185;
+  --chart-rose-5: #fecdd3;
+
+  /* YELLOW */
+  --chart-yellow-1: #eab308;
+  --chart-yellow-2: #ca8a04;
+  --chart-yellow-3: #a16207;
+  --chart-yellow-4: #facc15;
+  --chart-yellow-5: #fde047;
+
+  /* SLATE (NEUTRAL) */
+  --chart-slate-1: #94a3b8;
+  --chart-slate-2: #64748b;
+  --chart-slate-3: #475569;
+  --chart-slate-4: #cbd5e1;
+  --chart-slate-5: #e2e8f0;
+
 
   --sidebar: oklch(0.208 0.042 265.755);
   --sidebar-foreground: oklch(0.984 0.003 247.858);
