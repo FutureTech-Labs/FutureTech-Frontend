@@ -19,7 +19,6 @@ import {
     ChartConfig,
 } from "@/components/ui/chart";
 
-import { getProfitVsExpense } from "@/services/expenseServices";
 import SelectField from "@/components/forms/SelectField";
 
 const monthName = (m: number) =>
@@ -28,10 +27,12 @@ const monthName = (m: number) =>
 
 export default function ProfitVsExpenseChart({
     months = 12,
-    refresh = 0
+    refresh = 0,
+    expenses = []
 }: {
     months?: number;
     refresh?: number;
+    expenses: IExpense[];
 }) {
 
     const [selectedMonths, setSelectedMonths] = useState(String(months));
@@ -60,37 +61,75 @@ export default function ProfitVsExpenseChart({
 
     const load = async () => {
         try {
-            const res = await getProfitVsExpense(Number(selectedMonths));
+            const limit = Number(selectedMonths);
 
-            let expenseSum = 0;
-            let profitSum = 0;
+            // If no expenses → dummy fallback (only last X months)
+            if (!expenses || expenses.length === 0) {
+                setData(dummyData.slice(-limit));
+                return;
+            }
 
-            const formatted = res.data.map((item) => {
-                expenseSum += item.expenseTotal;
-                profitSum += item.profitTotal;
+            // ---- 1. Build last X months list ----
+            const now = new Date();
+            const monthsList: { year: number; month: number }[] = [];
 
-                return {
-                    date: `${monthName(item.month)} ${String(item.year).slice(-2)}`,
-                    expense: item.expenseTotal,
-                    profit: item.profitTotal,
-                };
+            for (let i = limit - 1; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                monthsList.push({
+                    year: d.getFullYear(),
+                    month: d.getMonth() + 1,
+                });
+            }
+
+            // ---- 2. Group expenses by month ----
+            const map = new Map<
+                string,
+                { date: string; expense: number; profit: number }
+            >();
+
+            expenses.forEach(exp => {
+                const d = new Date(exp.date);
+                const year = d.getFullYear();
+                const month = d.getMonth() + 1;
+                const key = `${year}-${month}`;
+
+                if (!map.has(key)) {
+                    map.set(key, {
+                        date: `${monthName(month)} ${String(year).slice(-2)}`,
+                        expense: 0,
+                        profit: 0
+                    });
+                }
+
+                const entry = map.get(key)!;
+                entry.expense += exp.amount;
             });
 
-            // Use dummy if no data or too few points
-            const finalData = formatted.length >= 1 ? formatted : dummyData;
+            // ---- 3. Fill missing months with 0 ----
+            const finalData = monthsList.map(({ year, month }) => {
+                const key = `${year}-${month}`;
+                return (
+                    map.get(key) ?? {
+                        date: `${monthName(month)} ${String(year).slice(-2)}`,
+                        expense: 0,
+                        profit: 0
+                    }
+                );
+            });
 
             setData(finalData);
-        } catch (err) {
-            console.error("Error loading area chart:", err);
 
-            // Fall back to dummy on error
-            setData(dummyData);
+        } catch (error) {
+            console.error(error);
+            setData(dummyData.slice(-Number(selectedMonths)));
         }
     };
 
+
+
     useEffect(() => {
         load();
-    }, [selectedMonths, refresh]);
+    }, [selectedMonths, refresh, expenses]);
 
     const chartConfig: ChartConfig = {
         expense: { label: "Expense", color: "var(--chart-orange-2)" },
@@ -142,7 +181,7 @@ export default function ProfitVsExpenseChart({
                         tickLine={false}
                         axisLine={false}
                         tickMargin={10}
-                        minTickGap={30}
+                        minTickGap={50}
                         tick={{ fill: "#9AA6B2" }}
                     />
 
@@ -153,10 +192,10 @@ export default function ProfitVsExpenseChart({
 
                     <Area
                         dataKey="expense"
-                        type="basis"
+                        type="natural"
                         fill="url(#fillExpense)"
                         stroke="var(--chart-orange-1)"
-                        strokeWidth={2}
+                        strokeWidth={1}
                         isAnimationActive={true}
                         animationDuration={1200}
                         animationBegin={100}
@@ -164,10 +203,10 @@ export default function ProfitVsExpenseChart({
 
                     <Area
                         dataKey="profit"
-                        type="basis"
+                        type="natural"
                         fill="url(#fillProfit)"
                         stroke="var(--chart-green-2)"
-                        strokeWidth={2}
+                        strokeWidth={1}
                         isAnimationActive={true}
                         animationDuration={1200}
                         animationBegin={150}

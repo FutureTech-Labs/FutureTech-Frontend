@@ -13,8 +13,6 @@ import {
 } from "@/components/ui/chart";
 
 import ChartCard from "@/components/cards/ChartCard";
-import { getExpenses } from "@/services/expenseServices";
-import { formatCurrencyLKR } from "@/lib/utils";
 
 const COLOR_MAP = [
     "var(--chart-1)",
@@ -24,25 +22,43 @@ const COLOR_MAP = [
     "var(--chart-5)",
 ];
 
-export default function CategoryExpensePieChart({
+export default function CategoryExpenseChart({
     refresh = 0,
+    expenses = [],
 }: {
     refresh?: number;
+    expenses: IExpense[];
 }) {
     const [chartData, setChartData] = useState<
         { category: string; total: number; fill: string }[]
     >([]);
     const [totalAmount, setTotalAmount] = useState(0);
 
-    const load = async () => {
+    // -------------------------------
+    // Dummy Fallback Data
+    // -------------------------------
+    const dummyData = [
+        { category: "Electricity", total: 82000, fill: COLOR_MAP[0] },
+        { category: "Internet", total: 45000, fill: COLOR_MAP[1] },
+        { category: "Water", total: 30000, fill: COLOR_MAP[2] },
+        { category: "Maintenance", total: 60000, fill: COLOR_MAP[3] },
+        { category: "Misc", total: 25000, fill: COLOR_MAP[4] },
+    ];
+
+    const load = () => {
         try {
-            const res = await getExpenses({ limit: 9999 });
+            // If no expenses → Dummy data
+            if (!expenses || expenses.length === 0) {
+                setChartData(dummyData);
+                setTotalAmount(dummyData.reduce((sum, d) => sum + d.total, 0));
+                return;
+            }
 
             const categoryMap: Record<string, number> = {};
 
             let accumulated = 0;
 
-            res.data.forEach((exp) => {
+            expenses.forEach((exp) => {
                 if (!categoryMap[exp.category]) categoryMap[exp.category] = 0;
                 categoryMap[exp.category] += exp.amount;
                 accumulated += exp.amount;
@@ -59,13 +75,17 @@ export default function CategoryExpensePieChart({
             setChartData(formatted);
             setTotalAmount(accumulated);
         } catch (err) {
-            console.error("Error loading category expenses:", err);
+            console.error("Error:", err);
+
+            // fallback
+            setChartData(dummyData);
+            setTotalAmount(dummyData.reduce((sum, d) => sum + d.total, 0));
         }
     };
 
     useEffect(() => {
         load();
-    }, [refresh]);
+    }, [refresh, expenses]);
 
     const chartConfig: ChartConfig = {
         total: { label: "Expenses" },
@@ -83,19 +103,11 @@ export default function CategoryExpensePieChart({
             title="Expenses by Category"
             description="Breakdown of all expense types"
             footer={
-                <div className="flex flex-col items-center gap-1">
-                    {/* Option A */}
-                    <div className="text-sm font-medium text-gray-300">
-                        Total categories: {chartData.length}
-                    </div>
-
-                    {/* Option B */}
-                    <div className="text-xs text-muted-foreground">
-                        Total amount:{" "}
-                        <span className="font-semibold text-primary-400">
-                            LKR {totalAmount.toLocaleString()}
-                        </span>
-                    </div>
+                <div className="text-xs text-muted-foreground">
+                    Total amount:{" "}
+                    <span className="font-semibold text-primary-400">
+                        LKR {totalAmount.toLocaleString()}
+                    </span>
                 </div>
             }
         >
@@ -104,7 +116,10 @@ export default function CategoryExpensePieChart({
                 className="mx-auto h-full w-full min-h-[200px]"
             >
                 <PieChart>
-                    <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                    <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent hideLabel />}
+                    />
 
                     <Pie
                         data={chartData}
@@ -116,7 +131,14 @@ export default function CategoryExpensePieChart({
                         animationDuration={1000}
                     />
 
-                    <ChartLegend content={<ChartLegendContent nameKey="category" />} />
+                    <ChartLegend
+                        content={
+                            <ChartLegendContent
+                                nameKey="category"
+                                className="flex flex-wrap gap-3 justify-center"
+                            />
+                        }
+                    />
                 </PieChart>
             </ChartContainer>
         </ChartCard>

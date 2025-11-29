@@ -22,7 +22,7 @@ import { deleteExpense, getExpenses } from "@/services/expenseServices";
 
 import { formatLocalDate, formatDateTime } from "@/lib/utils";
 
-import PieDonutChart from "../charts/expenses-charts/AllExpensesChart";
+import CategoryExpenseChart from "../charts/expenses-charts/CategoryExpenseChart";
 import ProfitVsExpenseChart from "../charts/expenses-charts/ProfitVsExpenseChart";
 
 const EXPENSE_CATEGORIES = [
@@ -33,6 +33,7 @@ const EXPENSE_CATEGORIES = [
     { value: "Rent", label: "Rent" },
     { value: "Salary", label: "Salary" },
     { value: "Maintenance", label: "Maintenance" },
+    { value: "Purchase", label: "Purchase" },
     { value: "Transport", label: "Transport" },
     { value: "Misc", label: "Misc" },
 ];
@@ -182,12 +183,12 @@ const ExpensesPage = () => {
 
                     {/* First Chart */}
                     <div className="col-span-3 row-span-2">
-                        <ProfitVsExpenseChart />
+                        <ProfitVsExpenseChart refresh={refreshCharts} expenses={expenses} />
                     </div>
 
                     {/* Second Chart */}
                     <div className="col-span-3 md:col-span-2 row-span-2">
-                        <PieDonutChart refresh={refreshCharts} />
+                        <CategoryExpenseChart refresh={refreshCharts} expenses={expenses} />
                     </div>
                 </div>
             </div>

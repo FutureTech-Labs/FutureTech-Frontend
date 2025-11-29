@@ -132,14 +132,17 @@ const ExpenseForm = ({ expense, onSuccess, onCancel }: ExpenseFormProps) => {
                     label="Category"
                     placeholder="Select Category"
                     value={isPurchase ? "Purchase" : categoryWatch || ""}
-                    onChange={(val) =>
-                        setValue("category", val as ManualExpenseCategory)
-                    }
+                    onChange={(val) => setValue("category", val as ManualExpenseCategory)}
                     error={errors.category}
-                    options={EXPENSE_CATEGORIES}
+                    options={
+                        isPurchase
+                            ? [{ value: "Purchase", label: "Purchase" }, ...EXPENSE_CATEGORIES]
+                            : EXPENSE_CATEGORIES
+                    }
                     disabled={isPurchase}
                     required
                 />
+
 
                 {/* AMOUNT */}
                 <InputField
