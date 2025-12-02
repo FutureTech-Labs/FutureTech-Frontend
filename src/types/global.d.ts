@@ -789,6 +789,188 @@ declare global {
     };
 
 
+    // Inventory Related Reports Interfaces
+
+    // Current stock reports
+    interface ICategoryInfo {
+        _id: string;
+        name: string;
+    }
+
+    interface ICurrentStockItem {
+        _id: string;
+        name: string;
+        category: ICategoryInfo | null;
+        sellingPrice: number;
+        totalStock: number;
+        minStock: number;
+        batchesCount: number;
+        stockValue: number;
+        availableFromBatches: number;
+    }
+
+    interface ICurrentStockResponse {
+        success: boolean;
+        data: ICurrentStockItem[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+            totalProducts: number;
+            totalStockValue: number;
+            totalBatches: number;
+            totalQuantityAvailable: number;
+        };
+    }
+
+
+
+    // Low stock reports
+    interface ILowStockProduct {
+        _id: string;
+        name: string;
+        category: { _id: string; name: string } | null;
+        totalStock: number;
+        minStock: number;
+    }
+
+    interface ILowStockResponse {
+        success: boolean;
+        data: ILowStockProduct[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+            effectiveThreshold: number;
+        };
+    };
+
+    // Stock value reports
+    interface IStockValueItem {
+        productId: string;
+        name: string;
+        category: { _id: string; name: string } | null;
+        value: number;
+        qtyAvailable: number;
+        batchesCount: number;
+        totalStock: number;
+    }
+
+    interface IStockValueResponse {
+        success: boolean;
+        data: IStockValueItem[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+            globalValue: number;
+        }
+    };
+
+    // Stock movement reports
+    interface IStockMovementItem {
+        productId: string;
+        name: string;
+        category: string | null;
+        openingStock: number;
+        purchased: number;
+        sold: number;
+        returned: number;
+        closingStock: number;
+    }
+
+    interface IStockMovementResponse {
+        success: boolean;
+        data: IStockMovementItem[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+        };
+    };
+
+    // Fast moving products reports
+    interface IFastMovingItem {
+        productId: string;
+        productName: string;
+        qtySold: number;
+        revenue: number;
+        sellingPrice?: number;
+        totalStock?: number;
+    }
+
+    interface IFastMovingResponse {
+        success: boolean;
+        data: IFastMovingItem[];
+    };
+
+    // Slow moving products reorts
+    interface ISlowMovingItem {
+        productId: string;
+        name: string;
+        totalStock: number;
+        soldQty: number;
+    }
+
+    interface ISlowMovingResponse {
+        success: boolean;
+        data: ISlowMovingItem[];
+    };
+
+    // Batch aging report
+    interface IBatchAgingItem {
+        _id: string;
+        batchCode: string;
+        product: {
+            id: string;
+            name: string;
+        } | null;
+        supplier: {
+            id: string;
+            name: string;
+        } | null;
+        costPrice: number;
+        quantityReceived: number;
+        quantityAvailable: number;
+        dateReceived: string;
+        ageDays: number;
+    }
+
+    interface IBatchAgingResponse {
+        success: boolean;
+        data: IBatchAgingItem[];
+    };
+
+    // Batch list reports
+    interface IBatchListItem {
+        _id: string;
+        product: {
+            id: string;
+            name: string;
+            sellingPrice: number;
+        } | null;
+        supplier: {
+            id: string;
+            name: string;
+        } | null;
+        batchCode: string;
+        invoiceNumber: string;
+        costPrice: number;
+        quantityReceived: number;
+        quantityAvailable: number;
+        dateReceived: string;
+    }
+
+    interface IBatchListResponse {
+        success: boolean;
+        data: IBatchListItem[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+        };
+    };
+
 
     // ----------------------------------------
     // UI FORM TYPES

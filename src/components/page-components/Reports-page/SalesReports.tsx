@@ -6,7 +6,14 @@ import {
 } from "react";
 import { BarChart2, DollarSign, Receipt, ShoppingCart } from "lucide-react";
 
-import { getInvoiceListReport, getPaymentBreakdown, getSalesByCashierReport, getSalesSummary, getSalesTrends, getTopProducts } from "@/services/Report-Services/salesReportServices";
+import {
+    getInvoiceListReport,
+    getPaymentBreakdown,
+    getSalesByCashierReport,
+    getSalesSummary,
+    getSalesTrends,
+    getTopProducts
+} from "@/services/Report-Services/salesReportServices";
 
 import KPI from "@/components/cards/KPICard";
 import PaginationSlider from "@/components/sliders/PaginationSlider";

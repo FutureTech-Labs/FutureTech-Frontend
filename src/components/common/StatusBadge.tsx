@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 
-interface StatusBadgeProps {
+export interface StatusBadgeProps {
     text: string;
     color?:
     | "red"
@@ -34,7 +34,7 @@ export function StatusBadge({
         blue: "bg-blue-500/15 text-primary-200 border-blue-500/30",
         gray: "bg-zinc-700/20 text-zinc-400 border-zinc-500/30",
         orange: "bg-orange-500/15 text-orange-500 border-orange-500/30",
-        purple: "bg-purple-500/15 text-purple-500 border-purple-500/30",
+        purple: "bg-purple-500/15 text-purple-300 border-purple-500/30",
         teal: "bg-teal-500/15 text-teal-500 border-teal-500/30",
         pink: "bg-pink-500/15 text-pink-500 border-pink-500/30",
         black: "bg-zinc-900/20 text-zinc-900 border-zinc-900/30",
