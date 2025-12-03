@@ -1,9 +1,15 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import { AuthProvider } from "@/context/AuthContext";
-import { Toaster } from "@/components/ui/sonner";
+
 import { EdgeStoreProvider } from "@/lib/edgestore";
+
+import { AuthProvider } from "@/context/AuthContext";
+import { SocketProvider } from "@/context/SocketContext";
+
+import { Toaster } from "@/components/ui/sonner";
+import NotificationListener from "@/components/common/NotificationListener";
+
 
 const jakartaSans = Plus_Jakarta_Sans({
   variable: "--font-jakarta-sans",
@@ -21,17 +27,21 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en" className="dark">
-      <body className={`${jakartaSans.variable} font-sans antialiased scrollbar-hide scroll-container`}>
+      <body
+        className={`${jakartaSans.variable} font-sans antialiased scrollbar-hide scroll-container`}>
         <Toaster />
         <AuthProvider>
-          <EdgeStoreProvider>
-            {children}
-          </EdgeStoreProvider>
+          <SocketProvider>
+            <EdgeStoreProvider>
+              <NotificationListener />
+              {children}
+            </EdgeStoreProvider>
+          </SocketProvider>
         </AuthProvider>
       </body>
     </html>

@@ -14,7 +14,7 @@ declare global {
     }
 
     interface IUser {
-        id: string;
+        _id: string;
         name: string;
         email: string;
         role: "admin" | "cashier";

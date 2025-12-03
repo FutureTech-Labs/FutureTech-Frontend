@@ -498,6 +498,12 @@
     box-sizing: border-box;
   }
 
+  .border-image-top {
+    border-top: 1px solid transparent;
+    border-bottom: 0;
+    border-image: linear-gradient(to right, #020618, #eee, #020618) 1;
+  }
+
   /* Auth */
   .auth-layout {
     @apply relative flex flex-col justify-between lg:flex-row h-screen bg-black-500 overflow-hidden;

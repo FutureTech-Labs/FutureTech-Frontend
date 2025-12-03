@@ -13,7 +13,10 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import { useNotificationStore } from "@/context/NotificationStore";
-import { markNotificationRead, markAllRead } from "@/services/notificationService";
+import {
+    markNotificationRead,
+    markAllRead as markAllReadService
+} from "@/services/notificationService";
 
 export default function NotificationMenu() {
     const {
@@ -24,13 +27,13 @@ export default function NotificationMenu() {
     } = useNotificationStore();
 
     const handleMarkRead = async (id: string) => {
-        markRead(id);
-        await markNotificationRead(id);
+        await markNotificationRead(id);   // backend first
+        markRead(id);                     // then update UI
     };
 
     const handleMarkAll = async () => {
-        markAllLocal();
-        await markAllRead();
+        await markAllReadService();       // backend first
+        markAllLocal();                   // then update UI
     };
 
     return (
@@ -104,10 +107,8 @@ export default function NotificationMenu() {
                                     isUnread && "bg-white/5 border border-white/10"
                                 )}
                             >
-                                {/* Left indicator dot */}
                                 <Dot className={cn("w-5 h-5 mt-1", color)} />
 
-                                {/* Message + Timestamp */}
                                 <div className="flex-1 text-[13px] leading-tight text-gray-200">
                                     <div className={cn(isUnread && "font-semibold text-white")}>
                                         {n.message}
@@ -118,7 +119,6 @@ export default function NotificationMenu() {
                                     </div>
                                 </div>
 
-                                {/* Read checkmark */}
                                 {isUnread ? (
                                     <CheckCheck className="w-4 h-4 text-blue-400" />
                                 ) : (

@@ -33,11 +33,7 @@ import { logout } from "@/services/authService";
 import NotificationMenu from "./NotificationMenu";
 import { usePathname } from "next/navigation";
 
-interface HeaderProps {
-    user: IUser;
-}
-
-const Header = ({ user }: HeaderProps) => {
+const Header = ({ user }: { user: IUser }) => {
     const { toggleSidebar, isCollapsed } = useSidebar();
     const [isMobile, setIsMobile] = useState(false);
     const [open, setOpen] = useState(false);
