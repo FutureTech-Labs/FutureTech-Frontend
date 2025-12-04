@@ -36,15 +36,16 @@ export default function StockValueChart({
     // Dummy data fallback
     // ------------------------
     const dummyData: IStockValueItem[] = [
-        { productId: "1", name: "Samsung A52", value: 450000, qtyAvailable: 20 },
-        { productId: "2", name: "AirPods Pro", value: 320000, qtyAvailable: 15 },
-        { productId: "3", name: "Redmi Note 10", value: 280000, qtyAvailable: 12 },
+        { productId: "2", name: "Samsung 980 PRO NVMe SSD", value: 2250000, qtyAvailable: 15 },
+        { productId: "1", name: "Acer Aspire 7", value: 2000000, qtyAvailable: 20 },
+        { productId: "3", name: "Kingston DataTraveler", value: 1000000, qtyAvailable: 12 },
         { productId: "4", name: "MI Power Bank", value: 200000, qtyAvailable: 40 },
         { productId: "5", name: "Anker Charger", value: 150000, qtyAvailable: 18 },
-        { productId: "6", name: "iPhone 14 Case", value: 120000, qtyAvailable: 60 },
-    ];
+        { productId: "6", name: "Keyboard", value: 120000, qtyAvailable: 60 },
+    ]
+        ;
 
-    const source = data && data.length > 10 ? data : dummyData;
+    const source = data && data.length > 3 ? data : dummyData;
 
     // ------------------------
     // Top 10 by stock value

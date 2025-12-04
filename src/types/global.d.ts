@@ -824,7 +824,6 @@ declare global {
     }
 
 
-
     // Low stock reports
     interface ILowStockProduct {
         _id: string;
@@ -846,37 +845,61 @@ declare global {
     };
 
     // Stock value reports
+    interface IStockValueBatch {
+        batchId: string;
+        batchCode: string;
+        qtyAvailable: number;
+        costPrice: number;       // ← ADDED
+        batchValue: number;
+    }
+
     interface IStockValueItem {
         productId: string;
         name: string;
         category: { _id: string; name: string } | null;
+
         value: number;
         qtyAvailable: number;
         batchesCount: number;
         totalStock: number;
+
+        batches: IStockValueBatch[];
     }
 
     interface IStockValueResponse {
         success: boolean;
         data: IStockValueItem[];
+
         meta: {
             total: number;
             page: number;
             limit: number;
             globalValue: number;
-        }
-    };
+        };
+    }
+
+
 
     // Stock movement reports
+    interface IStockMovementSoldBatch {
+        batchId: string;
+        batchCode: string;
+        qty: number;
+        costPrice: number;
+        sellingPrice: number;
+    }
+
     interface IStockMovementItem {
         productId: string;
         name: string;
-        category: string | null;
-        openingStock: number;
+        category: {
+            _id: string;
+            name: string;
+        } | null;
         purchased: number;
         sold: number;
+        soldBatches: IStockMovementSoldBatch[];
         returned: number;
-        closingStock: number;
     }
 
     interface IStockMovementResponse {
@@ -887,7 +910,7 @@ declare global {
             page: number;
             limit: number;
         };
-    };
+    }
 
     // Fast moving products reports
     interface IFastMovingItem {
@@ -939,7 +962,13 @@ declare global {
     interface IBatchAgingResponse {
         success: boolean;
         data: IBatchAgingItem[];
-    };
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+        };
+    }
+
 
     // Batch list reports
     interface IBatchListItem {

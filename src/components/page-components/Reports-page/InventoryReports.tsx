@@ -9,20 +9,22 @@ import {
     getLowStockReport,
     getStockValueReport,
     getStockMovementReport,
-    getFastMovingProducts,
-    getSlowMovingProducts,
+    // getFastMovingProducts,
+    // getSlowMovingProducts,
     getBatchAgingReport,
     getBatchListReport,
 } from "@/services/Report-Services/inventoryReportServices";
 
 import KPI from "@/components/cards/KPICard";
 import DataTable from "@/components/common/Table";
+import SearchField from "@/components/forms/SearchField";
+import ReportSection from "@/components/common/ReportsSection";
+import { TooltipWrapper } from "@/components/common/TooltipWrapper";
 import PaginationSlider from "@/components/sliders/PaginationSlider";
 import { DollarSign, Package, Layers, BarChart2 } from "lucide-react";
 import { StatusBadge, StatusBadgeProps } from "@/components/common/StatusBadge";
-import SearchField from "@/components/forms/SearchField";
-import StockValueChart from "@/components/charts/inventory-report-charts/StockValueChart";
-import ReportSection from "@/components/common/ReportsSection";
+import ExportPDFButton from "@/components/common/ExportPdfButton";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const InventoryReports = () => {
     // -----------------------------
@@ -32,8 +34,8 @@ const InventoryReports = () => {
     const [lowStock, setLowStock] = useState<ILowStockResponse | null>(null);
     const [stockValue, setStockValue] = useState<IStockValueResponse | null>(null);
     const [stockMovement, setStockMovement] = useState<IStockMovementResponse | null>(null);
-    const [fastMoving, setFastMoving] = useState<IFastMovingResponse | null>(null);
-    const [slowMoving, setSlowMoving] = useState<ISlowMovingResponse | null>(null);
+    // const [fastMoving, setFastMoving] = useState<IFastMovingResponse | null>(null);
+    // const [slowMoving, setSlowMoving] = useState<ISlowMovingResponse | null>(null);
     const [batchAging, setBatchAging] = useState<IBatchAgingResponse | null>(null);
     const [batchList, setBatchList] = useState<IBatchListResponse | null>(null);
 
@@ -49,9 +51,17 @@ const InventoryReports = () => {
     const [pageStockValue, setPageStockValue] = useState(1);
     const [loadingStockValue, setLoadingStockValue] = useState(true);
 
+    // Stock Movement 
+    const [pageStockMovement, setPageStockMovement] = useState(1);
+    const [loadingMovement, setLoadingMovement] = useState(true);
 
+    // Batch Aging
+    const [pageBatchAging, SetPageBatchAging] = useState(1);
+    const [loadingBatchAging, setLoadingBatchAging] = useState(true);
+
+    // Batch List
     const [pageBatchList, setPageBatchList] = useState(1);
-    const [pageMovement, setPageMovement] = useState(1);
+    const [loadingBatchList, setLoadingBatchList] = useState(true);
 
     // Date range for Stock Movement
     const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -72,27 +82,30 @@ const InventoryReports = () => {
                 currentRes,
                 lowRes,
                 stockValueRes,
-                fastRes,
-                slowRes,
+                // fastRes,
+                // slowRes,
                 agingRes,
-                batchListRes
+                batchListRes,
+                movementRes
             ] = await Promise.all([
                 getCurrentStockReport(),
                 getLowStockReport(),
                 getStockValueReport(),
-                getFastMovingProducts(),
-                getSlowMovingProducts(),
+                // getFastMovingProducts(),
+                // getSlowMovingProducts(),
                 getBatchAgingReport(),
                 getBatchListReport(),
+                getStockMovementReport(),
             ]);
 
             setCurrentStock(currentRes);
             setLowStock(lowRes);
             setStockValue(stockValueRes);
-            setFastMoving(fastRes);
-            setSlowMoving(slowRes);
+            // setFastMoving(fastRes);
+            // setSlowMoving(slowRes);
             setBatchAging(agingRes);
             setBatchList(batchListRes);
+            setStockMovement(movementRes);
         } catch (err) {
             console.error("Initial inventory load failed:", err);
         } finally {
@@ -100,6 +113,9 @@ const InventoryReports = () => {
             setLoadingCurrent(false);
             setLoadingLow(false);
             setLoadingStockValue(false);
+            setLoadingMovement(false);
+            setLoadingBatchAging(false);
+            setLoadingBatchList(false);
         }
     };
 
@@ -154,24 +170,31 @@ const InventoryReports = () => {
 
 
     const loadBatchList = async () => {
+        setLoadingBatchList(true);
         try {
             const res = await getBatchListReport({ page: pageBatchList });
             setBatchList(res);
         } catch (err) {
             console.error("Load batch list failed:", err);
+        } finally {
+            setLoadingBatchList(false);
         }
     };
 
+
     const loadStockMovement = async () => {
+        setLoadingMovement(true);
         try {
             const res = await getStockMovementReport({
                 from,
                 to,
-                page: pageMovement,
+                page: pageStockMovement,
             });
             setStockMovement(res);
         } catch (err) {
             console.error("Load stock movement failed:", err);
+        } finally {
+            setLoadingMovement(false);
         }
     };
 
@@ -182,7 +205,7 @@ const InventoryReports = () => {
     useEffect(() => { loadLowStock() }, [pageLow, lowSearch]);
     useEffect(() => { loadStockValue() }, [pageStockValue]);
     useEffect(() => { loadBatchList() }, [pageBatchList]);
-    useEffect(() => { loadStockMovement() }, [pageMovement, from, to]);
+    useEffect(() => { loadStockMovement() }, [pageStockMovement, from, to]);
 
     // -----------------------------
     // 5. DATE RANGE SYNC
@@ -243,6 +266,36 @@ const InventoryReports = () => {
         },
     ];
 
+    // Current stock exports
+    const currentStockExportColumns = [
+        {
+            header: "Product",
+            key: "name",
+        },
+        {
+            header: "Category",
+            key: "category.name",
+            format: (value: string) => value ?? "—",
+        },
+        {
+            header: "Available Qty",
+            key: "availableFromBatches",
+        },
+        {
+            header: "Min Stock",
+            key: "minStock",
+        },
+        {
+            header: "Batches",
+            key: "batchesCount",
+            format: (value: string) => `${value} batches`,
+        },
+        {
+            header: "Stock Value (Rs.)",
+            key: "stockValue",
+            format: (value: number) => formatCurrencyLKR(value),
+        },
+    ];
 
     // Low stock table Columns
     const lowStockColumns = [
@@ -257,7 +310,7 @@ const InventoryReports = () => {
             key: "category",
             label: "Category",
             render: (row: ILowStockProduct) =>
-                row.category?.name ?? "—",
+                <InfoBadge text={row.category?.name ?? "—"} color="purple" />
         },
         {
             key: "totalStock",
@@ -296,27 +349,384 @@ const InventoryReports = () => {
                 <span className="font-medium">{row.name}</span>
             ),
         },
+
         {
             key: "category",
             label: "Category",
-            render: (row: IStockValueItem) => row.category?.name ?? "—",
+            render: (row: IStockValueItem) =>
+                <InfoBadge text={row.category?.name ?? "—"} color="purple" />
         },
+
         {
             key: "qtyAvailable",
             label: "Available Qty",
             enableSorting: true,
         },
+
         {
             key: "batchesCount",
             label: "Batches",
         },
+
         {
             key: "value",
             label: "Stock Value (Rs.)",
             enableSorting: true,
             render: (row: IStockValueItem) => formatCurrencyLKR(row.value),
         },
+
+        {
+            key: "batches",
+            label: "Breakdown",
+            render: (row: IStockValueItem) => {
+                const activeBatches = row.batches.filter(b => b.qtyAvailable > 0);
+                if (activeBatches.length === 0) return "—";
+
+                return (
+                    <Accordion type="single" collapsible>
+                        <AccordionItem value="batch-breakdown">
+                            <AccordionTrigger className="text-xs px-2 py-1">
+                                {activeBatches.length} Active Batches
+                            </AccordionTrigger>
+
+                            <AccordionContent>
+                                <div className="flex flex-col gap-3">
+                                    {activeBatches.map((b, i) => (
+                                        <div
+                                            key={i}
+                                            className="text-xs px-3 py-2 rounded bg-primary-900/20 border border-primary-900/40"
+                                        >
+
+                                            {/* Batch header: code + qty */}
+                                            <div className="flex justify-between font-medium mb-1">
+                                                <span>{b.batchCode}</span>
+                                                <span>{b.qtyAvailable} pcs</span>
+                                            </div>
+
+                                            {/* Cost Price */}
+                                            <div className="flex justify-between text-muted-foreground">
+                                                <span>Cost Price</span>
+                                                <span>{formatCurrencyLKR(b.costPrice)}</span>
+                                            </div>
+
+                                            {/* Batch Value */}
+                                            <div className="flex justify-between text-muted-foreground">
+                                                <span>Batch Value</span>
+                                                <span>{formatCurrencyLKR(b.batchValue)}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
+                );
+            }
+        }
+
+
     ];
+
+    // Stock value exports
+    const stockValueExportColumns = [
+        {
+            header: "Product",
+            key: "name",
+        },
+        {
+            header: "Category",
+            key: "category.name",
+            format: (value?: string) => value ?? "—",
+        },
+        {
+            header: "Available Qty",
+            key: "qtyAvailable",
+        },
+        {
+            header: "Batches",
+            key: "batchesCount",
+        },
+        {
+            header: "Breakdown",
+            key: "batches",
+            format: (value: IStockValueBatch[], row: IStockValueItem) => {
+                if (!value || value.length === 0) return "—";
+
+                return value
+                    .filter(b => b.qtyAvailable > 0)
+                    .map(b => {
+                        const cost = formatCurrencyLKR(b.costPrice);
+                        const total = formatCurrencyLKR(b.batchValue);
+
+                        return (
+                            `${b.batchCode}:\n` +
+                            `${b.qtyAvailable} pcs left\n` +
+                            `Cost price: ${cost}\n` +
+                            `Total Value: ${total}`
+                        );
+                    })
+                    .join("\n\n");
+            },
+        },
+        {
+            header: "Stock Value (Rs.)",
+            key: "value",
+            format: (value: number) => formatCurrencyLKR(value),
+        },
+    ];
+
+    // Stock movement table columns
+    const stockMovementColumns = [
+        {
+            key: "name",
+            label: "Product",
+            render: (row: IStockMovementItem) => (
+                <span className="font-medium">{row.name}</span>
+            ),
+        },
+
+        {
+            key: "category",
+            label: "Category",
+            render: (row: IStockMovementItem) =>
+                <InfoBadge text={row.category?.name ?? "—"} color="purple" />
+        },
+
+        // Purchased
+        {
+            key: "purchased",
+            label: "Purchased",
+            render: (row: IStockMovementItem) => (
+                <StatusBadge
+                    text={row.purchased.toString()}
+                    color={row.purchased > 0 ? "green" : "gray"}
+                />
+            ),
+        },
+
+        // Sold
+        {
+            key: "sold",
+            label: "Sold",
+            render: (row: IStockMovementItem) => (
+                <div className="flex items-center gap-2">
+                    <StatusBadge
+                        text={row.sold.toString()}
+                        color={row.sold > 0 ? "red" : "gray"}
+                    />
+
+                    {row.sold > 0 && (
+                        <span className="text-xs text-muted-foreground">
+                            from {row.soldBatches.length} batches
+                        </span>
+                    )}
+                </div>
+            ),
+        },
+
+        // Returned
+        {
+            key: "returned",
+            label: "Returned",
+            render: (row: IStockMovementItem) => (
+                <StatusBadge
+                    text={row.returned.toString()}
+                    color={row.returned > 0 ? "yellow" : "gray"}
+                />
+            ),
+        },
+
+        // Sold Batch breakdown (expandable)
+        {
+            key: "soldBatches",
+            label: "Sold Batches",
+            render: (row: IStockMovementItem) => (
+                row.soldBatches.length === 0 ? (
+                    "—"
+                ) : (
+                    <div className="flex flex-col gap-1">
+                        {row.soldBatches.map((b, i) => (
+                            <div
+                                key={i}
+                                className="text-xs px-2 py-1 rounded bg-primary-900/20 border border-primary-900/40"
+                            >
+                                {b.batchCode} — {b.qty} pcs
+                            </div>
+                        ))}
+                    </div>
+                )
+            ),
+        },
+    ];
+
+    // Stock movement exports
+    const stockMovementExportColumns = [
+        {
+            header: "Product",
+            key: "name",
+        },
+        {
+            header: "Category",
+            key: "category.name",
+        },
+        {
+            header: "Purchased",
+            key: "purchased",
+        },
+        {
+            header: "Sold",
+            key: "sold",
+        },
+        {
+            header: "Returned",
+            key: "returned",
+        },
+        {
+            header: "Batch Breakdown",
+            key: "soldBatches",
+            format: (value: IStockMovementSoldBatch[]) =>
+                value.length === 0
+                    ? "—"
+                    : value.map((b) => `${b.batchCode} (${b.qty})`).join(", "),
+        },
+    ];
+
+    // Batch Aging table columns
+    const batchAgingColumns = [
+        {
+            key: "batchCode",
+            label: "Batch Code",
+            render: (row: IBatchAgingItem) => (
+                <span className="font-medium">{row.batchCode}</span>
+            ),
+        },
+
+        {
+            key: "product",
+            label: "Product",
+            render: (row: IBatchAgingItem) =>
+                <div className="w-20 truncate">
+                    {row.product?.name ?? "—"}
+                </div>
+        },
+
+        {
+            key: "supplier",
+            label: "Supplier",
+            render: (row: IBatchAgingItem) =>
+                row.supplier?.name ?? "—",
+        },
+
+        {
+            key: "costPrice",
+            label: "Cost Price",
+            render: (row: IBatchAgingItem) =>
+                formatCurrencyLKR(row.costPrice),
+        },
+
+        {
+            key: "quantityReceived",
+            label: "Received",
+        },
+
+        {
+            key: "quantityAvailable",
+            label: "Available",
+            render: (row: IBatchAgingItem) => (
+                <StatusBadge
+                    text={row.quantityAvailable.toString()}
+                    color={row.quantityAvailable > 0 ? "green" : "red"}
+                />
+            ),
+        },
+
+        {
+            key: "dateReceived",
+            label: "Received On",
+            render: (row: IBatchAgingItem) => {
+                const receivedDate = new Date(row.dateReceived);
+                return (
+                    <TooltipWrapper content={`Age: ${row.ageDays} days`}>
+                        {formatLocalDate(receivedDate)}
+                    </TooltipWrapper>
+                );
+            },
+        },
+    ];
+
+    // Batch aging exports
+    const batchAgingExportColumns = [
+        { header: "Batch Code", key: "batchCode" },
+        { header: "Product", key: "product.name" },
+        { header: "Supplier", key: "supplier.name" },
+        {
+            header: "Cost Price (Rs.)",
+            key: "costPrice",
+            format: (v: any) => formatCurrencyLKR(v)
+        },
+        { header: "Received Qty", key: "quantityReceived" },
+        { header: "Available Qty", key: "quantityAvailable" },
+        {
+            header: "Received On",
+            key: "dateReceived",
+            format: (v: any) => formatLocalDate(new Date(v))
+        },
+    ]
+
+    // Batch List table columns
+    const batchListColumns = [
+        {
+            key: "batchCode",
+            label: "Batch Code",
+            render: (row: IBatchListItem) => (
+                <span className="font-medium">{row.batchCode}</span>
+            ),
+        },
+
+        {
+            key: "product",
+            label: "Product",
+            render: (row: IBatchListItem) => (
+                <div className="truncate max-w-[140px]">
+                    {row.product?.name ?? "—"}
+                </div>
+            ),
+        },
+
+        {
+            key: "supplier",
+            label: "Supplier",
+            render: (row: IBatchListItem) =>
+                row.supplier?.name ?? "—",
+        },
+
+        {
+            key: "costPrice",
+            label: "Cost Price",
+            render: (row: IBatchListItem) =>
+                formatCurrencyLKR(row.costPrice),
+        },
+
+        {
+            key: "quantityReceived",
+            label: "Received",
+            render: (row: IBatchListItem) => row.quantityReceived
+        },
+
+        {
+            key: "invoiceNumber",
+            label: "Invoice",
+            render: (row: IBatchListItem) => row.invoiceNumber || "—",
+        },
+
+        {
+            key: "dateReceived",
+            label: "Received On",
+            render: (row: IBatchListItem) =>
+                formatLocalDate(new Date(row.dateReceived)),
+        },
+    ];
+
 
     // KPI cards
     const kpiCards = [
@@ -373,7 +783,17 @@ const InventoryReports = () => {
             <PaginationSlider>{kpiCards}</PaginationSlider>
 
             {/* CURRENT STOCK TABLE SECTION */}
-            <ReportSection title="Current Stock Overview">
+            <ReportSection title="Current Stock Overview"
+                right={
+                    <ExportPDFButton
+                        fileName="current-stock.pdf"
+                        title="Current Stock Report"
+                        columns={currentStockExportColumns}
+                        data={currentStock?.data ?? []}
+                        buttonLabel="Export PDF"
+                    />
+                }
+            >
                 <DataTable
                     columns={currentStockColumns}
                     data={currentStock?.data ?? []}
@@ -416,21 +836,108 @@ const InventoryReports = () => {
 
 
             {/* Stock Value section */}
-            <ReportSection title="Stock Value Overview">
-                <div className="flex flex-col lg:flex-row gap-6">
-                    <DataTable
-                        columns={stockValueColumns}
+            <ReportSection title="Stock Value Overview"
+                right={
+                    <ExportPDFButton
                         data={stockValue?.data ?? []}
-                        loading={loadingStockValue}
-                        pagination={{
-                            page: pageStockValue,
-                            totalPages: Math.ceil((stockValue?.meta.total ?? 0) / (stockValue?.meta.limit ?? 10)),
-                            total: stockValue?.meta.total ?? 0,
-                            onPageChange: setPageStockValue,
-                        }}
+                        columns={stockValueExportColumns}
+                        fileName="stock_value_report.pdf"
+                        title="Stock Value Report"
+                        buttonLabel="Export PDF"
                     />
-                    <StockValueChart data={stockValue?.data ?? []} />
-                </div>
+                }
+            >
+                {/* <StockValueChart data={stockValue?.data ?? []} /> */}
+
+                <DataTable
+                    columns={stockValueColumns}
+                    data={stockValue?.data ?? []}
+                    loading={loadingStockValue}
+                    pagination={{
+                        page: pageStockValue,
+                        totalPages: Math.ceil((stockValue?.meta.total ?? 0) / (stockValue?.meta.limit ?? 10)),
+                        total: stockValue?.meta.total ?? 0,
+                        onPageChange: setPageStockValue,
+                    }}
+                />
+            </ReportSection>
+
+
+            {/* STOCK MOVEMENT */}
+            <ReportSection
+                title="Stock Movement Overview"
+                right={
+                    <ExportPDFButton
+                        fileName="stock_movement_report.pdf"
+                        title="Stock Movement Report"
+                        columns={stockMovementExportColumns}
+                        data={stockMovement?.data ?? []}
+                        buttonLabel="Export PDF"
+                    />
+                }
+            >
+                <DataTable
+                    columns={stockMovementColumns}
+                    data={stockMovement?.data ?? []}
+                    loading={loadingMovement}
+                    pagination={{
+                        page: pageStockMovement,
+                        totalPages: Math.ceil((stockMovement?.meta.total ?? 0) /
+                            (stockMovement?.meta.limit ?? 10)),
+                        total: stockMovement?.meta.total ?? 0,
+                        onPageChange: setPageStockMovement,
+                    }}
+                />
+            </ReportSection>
+
+
+            {/* Batch Aging */}
+            <ReportSection
+                title="Batch Aging Report"
+                right={
+                    <ExportPDFButton
+                        fileName="batch-aging-report.pdf"
+                        title="Batch Aging Report"
+                        subtitle="Aging summary of active batches"
+                        data={batchAging?.data ?? []}
+                        columns={batchAgingExportColumns}
+                        buttonLabel="Export PDF"
+                    />
+                }
+            >
+                <DataTable
+                    columns={batchAgingColumns}
+                    data={batchAging?.data ?? []}
+                    loading={loadingBatchAging}
+                    pagination={{
+                        page: pageBatchAging,
+                        totalPages: Math.ceil(
+                            (batchAging?.meta.total ?? 0) /
+                            (batchAging?.meta.limit ?? 10)
+                        ),
+                        total: batchAging?.meta.total ?? 0,
+                        onPageChange: SetPageBatchAging,
+                    }}
+                />
+            </ReportSection>
+
+
+            {/* Batch Lists */}
+            <ReportSection title="Batch List">
+                <DataTable
+                    columns={batchListColumns}
+                    data={batchList?.data ?? []}
+                    loading={loadingBatchList}
+                    pagination={{
+                        page: pageBatchList,
+                        totalPages: Math.ceil(
+                            (batchList?.meta.total ?? 0) /
+                            (batchList?.meta.limit ?? 10)
+                        ),
+                        total: batchList?.meta.total ?? 0,
+                        onPageChange: setPageBatchList,
+                    }}
+                />
             </ReportSection>
         </div>
     );
@@ -462,5 +969,3 @@ const QuantityBadge = ({ qty, min }: { qty: number; min?: number }) => {
         />
     );
 };
-
-
