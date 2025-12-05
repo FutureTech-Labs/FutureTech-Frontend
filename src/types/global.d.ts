@@ -1000,6 +1000,119 @@ declare global {
         };
     };
 
+    // Supplier Related Report interfaces
+
+    // Supplier summary reports
+    interface ISupplierSummaryItem {
+        supplierId: string;
+        name: string;
+        company: string | null;
+        contact: string | null;
+        email: string | null;
+
+        totalPurchased: number;
+        totalPaid: number;
+        outstandingBalance: number;
+
+        invoiceCount: number;
+        paidInvoices: number;
+        pendingInvoices: number;
+
+        lastPurchaseDate: string | null;
+        lastPaymentDate: string | null;
+
+        status: string;
+        isActive: boolean;
+    }
+    interface ISupplierSummaryResponse {
+        success: boolean;
+        data: ISupplierSummaryItem[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+        };
+    };
+
+
+    // Outstanding Suppliers Reports
+    interface IOutstandingSupplierItem {
+        supplierId: string;
+        name: string;
+        contact: string;
+        email: string;
+
+        outstandingBalance: number;
+
+        pendingInvoiceCount: number;
+        pendingInvoiceTotal: number;
+
+        oldestPendingInvoiceDate: string | null;
+        newestPendingInvoiceDate: string | null;
+
+        status: string;
+    }
+    interface IOutstandingSuppliersResponse {
+        success: boolean;
+        data: IOutstandingSupplierItem[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+        };
+    };
+
+    // Supplier Purchase Trends Reports
+    interface ISupplierTrendItem {
+        period: string;       // "2025-11" or "2025-12" etc
+        totalQty: number;
+        totalValue: number;
+        invoicesCount: number;
+    }
+    interface ISupplierPurchaseTrendsResponse {
+        success: boolean;
+        data: ISupplierTrendItem[];
+        meta: {
+            interval: "day" | "month";
+            supplierId: string | null;
+            filtered: boolean;
+            from: string | null;
+            to: string | null;
+
+            page: number;
+            limit: number;
+            total: number;
+            totalPages: number;
+        };
+    };
+
+    // Supplier Items Reports
+    interface ISupplierItemReportRow {
+        supplierId: string;
+        supplierName: string;
+
+        productId: string;
+        productName: string;
+
+        totalQty: number;
+        totalValue: number;
+
+        lastBatchDate: string | null;
+        latestCostPrice: number;
+
+        latestBatchCode?: string | null;
+    }
+    interface ISupplierItemsReportResponse {
+        success: boolean;
+        data: ISupplierItemReportRow[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+        };
+    };
+
+
 
     // ----------------------------------------
     // UI FORM TYPES

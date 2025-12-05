@@ -19,11 +19,11 @@ import KPI from "@/components/cards/KPICard";
 import DataTable from "@/components/common/Table";
 import SearchField from "@/components/forms/SearchField";
 import ReportSection from "@/components/common/ReportsSection";
+import ExportPDFButton from "@/components/common/ExportPdfButton";
 import { TooltipWrapper } from "@/components/common/TooltipWrapper";
 import PaginationSlider from "@/components/sliders/PaginationSlider";
 import { DollarSign, Package, Layers, BarChart2 } from "lucide-react";
 import { StatusBadge, StatusBadgeProps } from "@/components/common/StatusBadge";
-import ExportPDFButton from "@/components/common/ExportPdfButton";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const InventoryReports = () => {
@@ -594,34 +594,31 @@ const InventoryReports = () => {
     // Batch Aging table columns
     const batchAgingColumns = [
         {
-            key: "batchCode",
-            label: "Batch Code",
-            render: (row: IBatchAgingItem) => (
-                <span className="font-medium">{row.batchCode}</span>
-            ),
-        },
-
-        {
             key: "product",
             label: "Product",
-            render: (row: IBatchAgingItem) =>
-                <div className="w-20 truncate">
-                    {row.product?.name ?? "—"}
+            render: (row: IBatchAgingItem) => (
+                <div className="flex flex-col">
+                    {/* Product Name */}
+                    <span className="font-medium">{row.product?.name ?? "—"}</span>
+
+                    {/* Batch Code BELOW Product */}
+                    <span className="text-xs text-gray-400">
+                        {row.batchCode ? `Batch: ${row.batchCode}` : ""}
+                    </span>
                 </div>
+            ),
         },
 
         {
             key: "supplier",
             label: "Supplier",
-            render: (row: IBatchAgingItem) =>
-                row.supplier?.name ?? "—",
+            render: (row: IBatchAgingItem) => row.supplier?.name ?? "—",
         },
 
         {
             key: "costPrice",
             label: "Cost Price",
-            render: (row: IBatchAgingItem) =>
-                formatCurrencyLKR(row.costPrice),
+            render: (row: IBatchAgingItem) => formatCurrencyLKR(row.costPrice),
         },
 
         {
@@ -656,39 +653,66 @@ const InventoryReports = () => {
 
     // Batch aging exports
     const batchAgingExportColumns = [
-        { header: "Batch Code", key: "batchCode" },
-        { header: "Product", key: "product.name" },
-        { header: "Supplier", key: "supplier.name" },
+        {
+            header: "Product",
+            key: "product.name",
+            format: (_: any, row: IBatchAgingItem) => {
+                const product = row.product?.name ?? "—";
+                const batch = row.batchCode ?? "—";
+                return `${product}\nBatch: ${batch}`;
+            },
+        },
+
+        {
+            header: "Supplier",
+            key: "supplier.name",
+            format: (v: any) => v ?? "—",
+        },
+
         {
             header: "Cost Price (Rs.)",
             key: "costPrice",
-            format: (v: any) => formatCurrencyLKR(v)
+            format: (v: any) => formatCurrencyLKR(v),
         },
-        { header: "Received Qty", key: "quantityReceived" },
-        { header: "Available Qty", key: "quantityAvailable" },
+
+        {
+            header: "Received Qty",
+            key: "quantityReceived",
+        },
+
+        {
+            header: "Available Qty",
+            key: "quantityAvailable",
+        },
+
         {
             header: "Received On",
             key: "dateReceived",
-            format: (v: any) => formatLocalDate(new Date(v))
+            format: (v: any) => formatLocalDate(new Date(v)),
         },
-    ]
+
+        {
+            header: "Age (days)",
+            key: "ageDays",
+        },
+    ];
 
     // Batch List table columns
     const batchListColumns = [
         {
-            key: "batchCode",
-            label: "Batch Code",
-            render: (row: IBatchListItem) => (
-                <span className="font-medium">{row.batchCode}</span>
-            ),
-        },
-
-        {
-            key: "product",
+            key: "productDisplay",
             label: "Product",
             render: (row: IBatchListItem) => (
-                <div className="truncate max-w-[140px]">
-                    {row.product?.name ?? "—"}
+                <div className="flex flex-col">
+                    <span className="font-medium">
+                        {row.product?.name ?? "—"}
+                    </span>
+
+                    {row.batchCode && (
+                        <span className="text-xs text-gray-400">
+                            Batch: {row.batchCode}
+                        </span>
+                    )}
                 </div>
             ),
         },
@@ -710,7 +734,7 @@ const InventoryReports = () => {
         {
             key: "quantityReceived",
             label: "Received",
-            render: (row: IBatchListItem) => row.quantityReceived
+            render: (row: IBatchListItem) => row.quantityReceived,
         },
 
         {
@@ -724,6 +748,42 @@ const InventoryReports = () => {
             label: "Received On",
             render: (row: IBatchListItem) =>
                 formatLocalDate(new Date(row.dateReceived)),
+        },
+    ];
+
+    // Batch list exports
+    const batchListExportColumns = [
+        {
+            header: "Product",
+            key: "product.name",
+            format: (value: string | undefined, row: IBatchListItem) =>
+                `${value ?? "—"}${row.batchCode ? `\nBatch: ${row.batchCode}` : ""
+                }`,
+        },
+        {
+            header: "Supplier",
+            key: "supplier.name",
+            format: (value: string | undefined) => value ?? "—",
+        },
+        {
+            header: "Cost Price",
+            key: "costPrice",
+            format: (value: number) => formatCurrencyLKR(value),
+        },
+        {
+            header: "Received Qty",
+            key: "quantityReceived",
+            format: (value: number) => `${value} pcs`,
+        },
+        {
+            header: "Invoice No.",
+            key: "invoiceNumber",
+            format: (value: string | undefined) => value || "—",
+        },
+        {
+            header: "Received On",
+            key: "dateReceived",
+            format: (value: string) => formatLocalDate(new Date(value)),
         },
     ];
 
@@ -923,7 +983,18 @@ const InventoryReports = () => {
 
 
             {/* Batch Lists */}
-            <ReportSection title="Batch List">
+            <ReportSection
+                title="Batch List"
+                right={
+                    <ExportPDFButton
+                        fileName="batch-list-report.pdf"
+                        title="Batch List Report"
+                        columns={batchListExportColumns}
+                        data={batchList?.data ?? []}
+                        buttonLabel="Export PDF"
+                    />
+                }
+            >
                 <DataTable
                     columns={batchListColumns}
                     data={batchList?.data ?? []}
@@ -939,6 +1010,7 @@ const InventoryReports = () => {
                     }}
                 />
             </ReportSection>
+
         </div>
     );
 };
