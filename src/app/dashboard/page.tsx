@@ -1,26 +1,26 @@
+import { JSX } from "react";
+
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 
+import AdminDashboard from "@/components/page-components/dashboard-page/AdminDashboard";
+import CashierDashboard from "@/components/page-components/dashboard-page/CashierDashboard";
+
 export default async function DashboardPage() {
     const session = await getSession();
-
     if (!session) redirect("/login");
 
-    return (
-        <div className="space-y-6">
-            <h1 className="text-2xl font-bold">Welcome, {session.role === "admin" ? "Admin" : "Cashier"}!</h1>
+    const dashboards: Record<string, JSX.Element> = {
+        admin: <AdminDashboard />,
+        cashier: <CashierDashboard />,
+    };
 
-            {session.role === "admin" && (
-                <div>
-                    <h2 className="text-xl font-semibold">Admin Overview</h2>
-                </div>
-            )}
+    const DashboardComponent = dashboards[session.role];
 
-            {session.role === "cashier" && (
-                <div>
-                    <h2 className="text-xl font-semibold">Cashier Overview</h2>
-                </div>
-            )}
-        </div>
-    );
+    if (!DashboardComponent) {
+        console.error(`Unknown role "${session.role}"`);
+        redirect("/login");
+    }
+
+    return <>{DashboardComponent}</>;
 }

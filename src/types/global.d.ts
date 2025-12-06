@@ -878,8 +878,6 @@ declare global {
         };
     }
 
-
-
     // Stock movement reports
     interface IStockMovementSoldBatch {
         batchId: string;
@@ -1224,6 +1222,77 @@ declare global {
             limit: number;
         };
     };
+
+    // ----------------------------------------
+    // DASHBOARD INTERFACES
+    // ----------------------------------------
+
+    // Admin Dashboard interfaces
+
+    // Area Chart
+    export interface IAreaChartPoint {
+        year: number;
+        month: number;
+        revenue: number;
+        profit: number;
+        expense: number;
+    }
+    interface IAreaChartResponse {
+        success: boolean;
+        data: IAreaChartPoint[];
+    };
+
+    // Top selling products
+    interface ITopSellingProduct {
+        productId: string;
+        name: string;
+        qtySold: number;
+        revenue: number;
+        profit: number;
+    }
+    interface ITopSellingProductsResponse {
+        success: boolean;
+        data: ITopSellingProduct[];
+    };
+
+    // Profit vs expense
+    interface IDailyProfitExpensePoint {
+        date: string;   // YYYY-MM-DD
+        profit: number;
+        expense: number;
+        net: number;
+    }
+    interface IDailyProfitExpenseResponse {
+        success: boolean;
+        data: IDailyProfitExpensePoint[];
+    };
+
+    // Recent Expenses
+    interface IRecentExpenseItem {
+        category: ExpenseCategory;
+        amount: number;
+        date: string;
+        description?: string | null;
+    }
+    interface IRecentExpensesResponse {
+        success: boolean;
+        data: IRecentExpenseItem[];
+    };
+
+    // Iventory Overview
+    interface IInventoryOverviewItem {
+        name: string;
+        totalStock: number;
+        minStock: number;
+    }
+    interface IInventoryOverviewResponse {
+        success: boolean;
+        data: {
+            totalProducts: number;
+            lowStockCount: number;
+        };
+    }
+
 
 
     // ----------------------------------------

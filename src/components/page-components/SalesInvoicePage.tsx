@@ -10,6 +10,7 @@ import DialogBox from "@/components/common/DialogBox";
 import IconButton from "@/components/common/IconButton";
 
 import { DateRangePicker } from "@/components/common/DateRangePicker";
+import { format } from "date-fns";
 
 import {
     getAllSales,
@@ -43,8 +44,8 @@ export default function SalesInvoicesPage({ role }: SalesInvoicesPageProps) {
 
     // Sync date range
     useEffect(() => {
-        setFrom(formatLocalDate(dateRange?.from));
-        setTo(formatLocalDate(dateRange?.to));
+        setFrom(dateRange?.from ? format(dateRange.from, "yyyy-MM-dd'T'00:00:00xxx") : "");
+        setTo(dateRange?.to ? format(dateRange.to, "yyyy-MM-dd'T'23:59:59xxx") : "");
     }, [dateRange]);
 
     // Fetch invoices
@@ -122,8 +123,7 @@ export default function SalesInvoicesPage({ role }: SalesInvoicesPageProps) {
         {
             key: "createdAt",
             label: "Date",
-            render: (row: ISalesInvoiceResponse) =>
-                new Date(row.createdAt).toLocaleString(),
+            render: (row: ISalesInvoiceResponse) => formatLocalDate(new Date(row.createdAt))
         },
         {
             key: "returnStatus",

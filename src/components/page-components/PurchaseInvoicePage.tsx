@@ -120,8 +120,7 @@ const PurchaseInvoicePage = () => {
         {
             key: "date",
             label: "Date",
-            render: (row: IPurchaseInvoice) =>
-                new Date(row.date).toLocaleString(),
+            render: (row: IPurchaseInvoice) => formatLocalDate(new Date(row.date))
         },
         {
             key: "actions",
