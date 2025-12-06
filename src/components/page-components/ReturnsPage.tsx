@@ -10,6 +10,7 @@ import SearchField from "../forms/SearchField";
 import { getAllSales, getSaleById } from "@/services/salesServices";
 import { getReturnById, getReturns } from "@/services/returnServices";
 import ReturnInvoice from "../common/return-invoice/ReturnInvoice";
+import ComboBoxField from "../forms/ComboField";
 
 const ReturnsPage = () => {
     const [searchValue, setSearchValue] = useState("");
@@ -22,6 +23,8 @@ const ReturnsPage = () => {
     const [returnInvoiceDialog, setReturnInvoiceDialog] = useState(false);
     const [selectedReturnInvoice, setSelectedReturnInvoice] = useState<IReturn | null>(null);
 
+    const [invoiceOptions, setInvoiceOptions] = useState<{ value: string; label: string }[]>([]);
+
 
     const [returnedList, setReturnedList] = useState<IReturn[]>([]);
     const [returnsLoading, setReturnsLoading] = useState(false);
@@ -29,7 +32,28 @@ const ReturnsPage = () => {
     const [returnsTotalPages, setReturnsTotalPages] = useState(1);
     const [returnsTotal, setReturnsTotal] = useState(0);
 
-    // Fetch invoice on search
+
+    useEffect(() => {
+        const loadInvoices = async () => {
+            try {
+                // Load all invoices (up to 9999)
+                const res = await getAllSales({ page: 1, limit: 9999, invoiceNumber: "" });
+
+                const options = res.data.map((inv: ISalesInvoiceResponse) => ({
+                    value: inv._id,
+                    label: `${inv.invoiceNumber} — ${inv.customer.name}`,
+                }));
+
+                setInvoiceOptions(options);
+            } catch (err) {
+                console.error("Failed to load invoices:", err);
+            }
+        };
+
+        loadInvoices();
+    }, []);
+
+
     useEffect(() => {
         const fetchInvoice = async () => {
             if (!searchValue.trim()) {
@@ -40,13 +64,8 @@ const ReturnsPage = () => {
             try {
                 setSearchLoading(true);
 
-                const res = await getAllSales({
-                    invoiceNumber: searchValue,
-                    page: 1,
-                    limit: 1,
-                });
-
-                setInvoice(res.data.length > 0 ? res.data[0] : null);
+                const res = await getSaleById(searchValue);
+                setInvoice(res.invoice);
             } catch (e) {
                 console.error(e);
                 setInvoice(null);
@@ -57,6 +76,7 @@ const ReturnsPage = () => {
 
         fetchInvoice();
     }, [searchValue]);
+
 
 
     // FETCH RETURNS
@@ -308,13 +328,12 @@ const ReturnsPage = () => {
 
                     {/* Search */}
                     <div className="flex gap-3 items-center w-full max-w-md">
-                        <SearchField
-                            placeholder="Search invoice by ID"
+                        <ComboBoxField
+                            placeholder="Search or Select Invoice"
+                            options={invoiceOptions}
                             value={searchValue}
-                            onChange={setSearchValue}
-                            onClear={() => {
-                                setSearchValue("");
-                                setInvoice(null);
+                            onChange={(val) => {
+                                setSearchValue(val);
                             }}
                             className="flex-1"
                         />

@@ -83,7 +83,7 @@ const ThresholdInput = ({ value, onSubmit }: ThresholdInputProps) => {
                     "flex items-center rounded-xl border border-white/70 pl-3 pr-1 py-1 gap-3 backdrop-blur-sm"
                 )}
             >
-                <span className="font-medium">Set Minimum Threshold</span>
+                <p className="font-medium text-sm">Set Minimum Threshold</p>
 
                 <div className="flex items-center gap-1 button-gradient-1 rounded-xl px-1 py-1">
                     <Button

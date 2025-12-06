@@ -1113,6 +1113,118 @@ declare global {
     };
 
 
+    // Expense Related Reports Interfaces
+
+    // Expense summary reports
+    interface IExpenseSummaryTopCategory {
+        category: string;
+        total: number;
+        count: number;
+    }
+
+    interface IHighestExpenseRecord {
+        amount: number;
+        category: string;
+        date: string; // ISO string
+        description: string | null;
+        type: string;
+        linkedPurchase: string | null;
+    }
+
+    interface IExpenseSummaryData {
+        totalExpense: number;
+        totalCount: number;
+        avgPerDay: number;
+        topCategories: IExpenseSummaryTopCategory[];
+        highestExpense: IHighestExpenseRecord | null;
+    }
+
+    interface IExpenseSummaryResponse {
+        success: boolean;
+        data: IExpenseSummaryData;
+        meta: {
+            filtered: boolean;
+            from: string | null;
+            to: string | null;
+            category: string | null;
+        };
+    };
+
+    // Expense by category Report
+    interface IExpenseCategoryBreakdownItem {
+        category: string;
+        totalAmount: number;
+        count: number;
+        percentOfTotal: number;
+    }
+
+    interface IExpensesByCategoryResponse {
+        success: boolean;
+        data: IExpenseCategoryBreakdownItem[];
+        meta: {
+            total: number;
+        };
+    };
+
+    // Expense trends report
+    interface IExpenseTrendItem {
+        period: string; // "2025-12" or "2025-12-05"
+        totalAmount: number;
+        count: number;
+    }
+
+    interface IExpenseTrendBreakdown {
+        [category: string]: number; // dynamic key
+    }
+
+    interface IExpenseTrendItemWithBreakdown {
+        period: string;
+        totalAmount: number;
+        count: number;
+        breakdown: IExpenseTrendBreakdown;
+    }
+
+    interface IExpenseTrendsResponse {
+        success: boolean;
+        data: (IExpenseTrendItem | IExpenseTrendItemWithBreakdown)[];
+        meta: {
+            interval: "day" | "month";
+            from: string | null;
+            to: string | null;
+            breakdown: boolean;
+        };
+    };
+
+
+    // Expense List reports
+    interface IExpenseReportLinkedPurchase {
+        id: string;
+        invoiceNumber?: string;
+        totalAmount?: number;
+        supplier?: {
+            id: string;
+            name: string;
+        } | null;
+    }
+    interface IExpenseReportItem {
+        id: string;
+        category: string;
+        type: string;
+        amount: number;
+        date: string; // ISO string
+        description: string | null;
+        linkedPurchase: IExpenseReportLinkedPurchase | null;
+    }
+    interface IExpenseReportListResponse {
+        success: boolean;
+        data: IExpenseReportItem[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+        };
+    };
+
 
     // ----------------------------------------
     // UI FORM TYPES

@@ -43,7 +43,7 @@ const Sidebar = ({ user }: ISidebarProps) => {
                                 height={500}
                                 quality={75}
                                 priority
-                                className="object-cover w-full h-full select-none z-10"
+                                className="object-cover w-full h-full select-none z-10 -ml-2"
                             />
                         </div>
                     }

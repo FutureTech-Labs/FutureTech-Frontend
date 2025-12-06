@@ -19,8 +19,8 @@ import { StatusBadge } from "../common/StatusBadge";
 import { getPurchaseInvoice } from "@/services/purchaseService";
 import { deleteBatch, getAllStockBatches } from "@/services/stockService";
 
+import ThresholdInput from "@/components/common/ThresholdInput";
 import { updateGlobalStockThreshold, getGlobalStockThreshold } from "@/services/productService";
-import ThresholdInput from "@/components/common/ThresholdInput";   // <-- ADD THIS
 
 const StockPage = () => {
     const [batches, setBatches] = useState<IStockBatch[]>([]);
@@ -30,7 +30,7 @@ const StockPage = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
 
-    const [globalThreshold, setGlobalThreshold] = useState(5);  // <-- ADD THIS
+    const [globalThreshold, setGlobalThreshold] = useState(5);
 
     const [purchaseDialog, setPurchaseDialogOpen] = useState(false);
 

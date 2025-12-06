@@ -31,7 +31,7 @@ export function Tab({
                     <div key={t.value} className="flex items-center w-full">
                         <TabsTrigger
                             value={t.value}
-                            className="data-[state=active]:bg-primary-900/25! data-[state=active]:text-primary-300 data-[state=active]:border-primary-500/30! transition-colors px-4 min-w-max"
+                            className="data-[state=active]:bg-primary-900/25! data-[state=active]:text-primary-300 data-[state=active]:border-primary-500/30! transition-colors px-4 min-w-max cursor-pointer"
                         >
                             {t.label}
                         </TabsTrigger>

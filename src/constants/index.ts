@@ -47,3 +47,16 @@ export const WARRANTY_PERIODS = [
 
 export const PRODUCT_STATUSES = ["active", "inactive"];
 
+
+export const EXPENSE_CATEGORIES = [
+    { value: "all", label: "All Categories" },
+    { value: "Electricity", label: "Electricity" },
+    { value: "Water", label: "Water" },
+    { value: "Internet", label: "Internet" },
+    { value: "Rent", label: "Rent" },
+    { value: "Salary", label: "Salary" },
+    { value: "Maintenance", label: "Maintenance" },
+    { value: "Purchase", label: "Purchase" },
+    { value: "Transport", label: "Transport" },
+    { value: "Misc", label: "Misc" },
+];
