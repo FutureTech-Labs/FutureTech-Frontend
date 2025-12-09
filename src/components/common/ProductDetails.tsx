@@ -1,5 +1,5 @@
 import ThumbSlider from "../sliders/ThumbSlider";
-import { formatCurrencyLKR, toSentenceCase } from "@/lib/utils";
+import { formatCurrencyLKR, formatDateTime, toSentenceCase } from "@/lib/utils";
 
 interface ProductDetailsDialogProps {
     product: IProduct | null;
@@ -61,7 +61,7 @@ const ProductDetails = ({ product }: ProductDetailsDialogProps) => {
 
             {/* Product added date */}
             <div className="hidden lg:block absolute bottom-3 right-5 text-sm">
-                <Field label="Created at:" value={new Date(product.createdAt).toLocaleDateString("en-GB")} />
+                <Field label="Created at:" value={formatDateTime(product.createdAt)} />
             </div>
         </div>
     )

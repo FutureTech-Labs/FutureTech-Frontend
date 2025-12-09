@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { getProductStock } from "@/services/stockService";
-import { formatCurrencyLKR } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { formatCurrencyLKR, formatDateTime } from "@/lib/utils";
+import { Loader2, Package, AlertTriangle, CheckCircle } from "lucide-react";
+import { StatusBadge } from "@/components/common/StatusBadge";
+import { SimpleInvoiceTable } from "./InvoiceTable";
 
 interface StockDetailsProps {
     batch: IStockBatch | null;
@@ -15,152 +17,180 @@ export default function StockDetails({ batch }: StockDetailsProps) {
 
     useEffect(() => {
         if (!batch?.product?.id) return;
-
         setLoading(true);
+
         getProductStock(batch.product.id)
             .then((res) => setProductStock(res))
             .finally(() => setLoading(false));
     }, [batch]);
 
     if (!batch) {
-        return <div className="text-center text-gray-400 py-6">No batch selected</div>;
+        return (
+            <div className="py-10 text-center text-gray-400">
+                Select a batch to view details
+            </div>
+        );
     }
+
+    // Status Logic
+    const totalStock = productStock?.product.totalStock ?? 0;
+    const minStock = batch.product?.minStock ?? 0;
+
+    const status =
+        totalStock === 0
+            ? { text: "Out of Stock", color: "red", icon: <AlertTriangle size={14} /> }
+            : totalStock < minStock
+                ? { text: "Low Stock", color: "yellow", icon: <AlertTriangle size={14} /> }
+                : { text: "Healthy", color: "green", icon: <CheckCircle size={14} /> };
 
     return (
         <div className="flex flex-col gap-8 text-gray-200">
 
-            {/* ================================
-                BATCH INFORMATION
-            ================================= */}
-            <section className="flex flex-col gap-3">
-                <h2 className="text-xl font-semibold text-white">Batch Information</h2>
+            {/* PRODUCT HEADER */}
+            <div className="flex items-center gap-4 p-5 bg-white/5 dashboard-card-border-gradient">
+                <div className="w-12 h-12 rounded-lg bg-primary-900/30 flex items-center justify-center">
+                    <Package className="text-primary-300 w-6 h-6" />
+                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg bg-black/20 border border-white/10">
-                    <DetailRow label="Batch Code" value={batch.batchCode} />
-                    <DetailRow label="Product" value={batch.product?.name ?? "—"} />
-                    <DetailRow label="Supplier" value={batch.supplier?.name ?? "—"} />
-                    <DetailRow label="Cost Price" value={formatCurrencyLKR(batch.costPrice)} />
-                    <DetailRow label="Qty Received" value={batch.quantityReceived} />
-                    <DetailRow label="Qty Available" value={batch.quantityAvailable} />
-                    <DetailRow
-                        label="Date Received"
-                        value={new Date(batch.dateReceived).toLocaleDateString("en-GB")}
+                <div className="flex flex-col md:flex-row md:items-center gap-2 justify-between w-full">
+                    <h1 className="text-lg md:text-2xl font-semibold">
+                        {batch.product?.name}
+                    </h1>
+
+                    <StatusBadge
+                        text={status.text}
+                        color={status.color as any}
+                        icon={status.icon}
+                        className="text-xs"
                     />
+                </div>
+            </div>
+
+            {/* BATCH INFORMATION */}
+            <section className="flex flex-col gap-4">
+                <h2 className="text-lg font-semibold">Batch Information</h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 bg-white/5 p-5 dashboard-card-border-gradient">
+                    <Detail label="Batch Code" value={batch.batchCode} />
+                    <Detail label="Supplier" value={batch.supplier?.name ?? "—"} />
+                    <Detail label="Cost Price" value={formatCurrencyLKR(batch.costPrice)} />
+                    <Detail label="Date Received" value={formatDateTime(batch.dateReceived)} />
+                    <Detail label="Quantity Received" value={batch.quantityReceived} />
+                    <Detail label="Quantity Available" value={batch.quantityAvailable} />
                 </div>
             </section>
 
-            {/* ================================
-                PRODUCT STOCK OVERVIEW
-            ================================= */}
-            <section className="flex flex-col gap-3">
-                <h2 className="text-xl font-semibold text-white">Product Stock Overview</h2>
+            {/* PRODUCT STOCK OVERVIEW */}
+            <section className="flex flex-col gap-4">
+                <h2 className="text-lg font-semibold">Product Stock Overview</h2>
 
                 {loading ? (
-                    <div className="flex justify-center py-6">
-                        <Loader2 className="animate-spin text-white" />
-                    </div>
+                    <LoaderBlock />
                 ) : productStock ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg bg-black/20 border border-white/10">
-                        <DetailRow label="Product Name" value={productStock.product.name} />
-                        <DetailRow
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 bg-white/5 p-5 dashboard-card-border-gradient">
+                        <Detail label="Total Stock" value={productStock.product.totalStock} />
+                        <Detail label="Min Stock" value={minStock} />
+                        <Detail
                             label="Selling Price"
                             value={formatCurrencyLKR(productStock.product.sellingPrice)}
                         />
-                        <DetailRow label="Total Stock" value={productStock.product.totalStock} />
-                        <DetailRow label="Min Stock" value={batch.product?.minStock ?? "—"} />
-                        <DetailRow
-                            label="Status"
-                            value={
-                                productStock.product.totalStock === 0
-                                    ? "Out of Stock"
-                                    : productStock.product.totalStock <
-                                        (batch.product?.minStock ?? 0)
-                                        ? "Low Stock"
-                                        : "Healthy"
-                            }
-                        />
+
+                        <div className="flex flex-col gap-1">
+                            <span className="text-xs uppercase tracking-wide text-gray-400">
+                                Stock Health
+                            </span>
+                            <StatusBadge
+                                text={status.text}
+                                color={status.color as any}
+                                icon={status.icon}
+                                className="text-xs"
+                            />
+                        </div>
                     </div>
                 ) : (
                     <div className="text-gray-400">Unable to load product stock details.</div>
                 )}
             </section>
 
-            {/* ================================
-                FIFO BATCH LIST FOR PRODUCT
-            ================================= */}
-            <section className="flex flex-col gap-3">
-                <h2 className="text-xl font-semibold text-white">All Batches for This Product</h2>
+            {/* ========================
+                FIFO BATCHES TABLE
+            ========================= */}
+            <section className="flex flex-col gap-4">
+                <h2 className="text-lg font-semibold">All Batches (FIFO)</h2>
 
                 {loading ? (
-                    <div className="flex justify-center py-6">
-                        <Loader2 className="animate-spin text-white" />
-                    </div>
+                    <LoaderBlock />
                 ) : productStock ? (
-                    <div className="overflow-x-auto rounded-lg border border-white/10">
-                        <table className="w-full text-sm">
-                            <thead className="bg-white/5 border-b border-white/10">
-                                <tr>
-                                    <Th>Batch Code</Th>
-                                    <Th>Cost Price</Th>
-                                    <Th>Received</Th>
-                                    <Th>Available</Th>
-                                    <Th>Date</Th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {productStock.batches.map((b) => {
-                                    const isCurrent = b._id === batch._id;
-                                    return (
-                                        <tr
-                                            key={b._id}
-                                            className={`${isCurrent
-                                                ? "bg-primary-900/30"
-                                                : "hover:bg-white/5"
-                                                } border-b border-white/5`}
-                                        >
-                                            <Td>{b.batchCode}</Td>
-                                            <Td>{formatCurrencyLKR(b.costPrice)}</Td>
-                                            <Td>{b.quantityReceived}</Td>
-                                            <Td>{b.quantityAvailable}</Td>
-                                            <Td>
-                                                {new Date(b.dateReceived).toLocaleDateString(
-                                                    "en-GB"
-                                                )}
-                                            </Td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
+                    <SimpleInvoiceTable
+                        columns={[
+                            { header: "Batch Code", accessorKey: "batchCode" },
+                            {
+                                header: "Cost Price",
+                                accessorKey: "costPrice",
+                                cell: (row: any) => formatCurrencyLKR(row.getValue()),
+                            },
+                            { header: "Received", accessorKey: "quantityReceived" },
+                            { header: "Available", accessorKey: "quantityAvailable" },
+                            {
+                                header: "Date",
+                                accessorKey: "dateReceived",
+                                cell: (row: any) => formatDateTime(row.getValue()),
+                            },
+                        ]}
+                        data={productStock.batches}
+                    />
                 ) : null}
             </section>
+
+            {/* FOOTER */}
+            <div className="sticky -bottom-px flex flex-col md:flex-row gap-2 justify-between md:items-center py-4 border-t bg-black-500
+            border-white/10 text-sm text-gray-400">
+                {/* LEFT SIDE: PRODUCT META */}
+                <div className="flex items-center gap-3">
+                    <Package className="w-4 h-4 text-gray-400" />
+                    <span>
+                        Last Updated:{" "}
+                        <span className="text-white font-medium">
+                            {formatDateTime(batch.dateReceived)}
+                        </span>
+                    </span>
+                </div>
+
+                {/* RIGHT SIDE: IDENTIFIERS */}
+                <div className="flex flex-col  md:flex-row items-center gap-3">
+                    <span className="text-xs bg-white/5 px-2 py-0.5 rounded border border-white/10">
+                        Product ID: {batch.product?.id?.slice(-8) || "N/A"}
+                    </span>
+
+                    <span className="text-xs bg-white/5 px-2 py-0.5 rounded border border-white/10">
+                        Batch ID: {batch._id?.slice(-8)}
+                    </span>
+                </div>
+            </div>
+
         </div>
     );
 }
 
 /* ---------------------------------------------
-    Reusable Detail Row Component
+    REUSABLE COMPONENTS
 ---------------------------------------------- */
-function DetailRow({ label, value }: { label: string; value: any }) {
+
+function Detail({ label, value }: { label: string; value: any }) {
     return (
         <div className="flex flex-col">
-            <span className="text-xs text-gray-400">{label}</span>
+            <span className="text-xs uppercase tracking-wide text-gray-400">
+                {label}
+            </span>
             <span className="text-base font-medium text-white">{value}</span>
         </div>
     );
 }
 
-function Th({ children }: { children: React.ReactNode }) {
+function LoaderBlock() {
     return (
-        <th className="text-left px-4 py-2 font-medium text-gray-300 uppercase text-xs tracking-wide">
-            {children}
-        </th>
-    );
-}
-
-function Td({ children }: { children: React.ReactNode }) {
-    return (
-        <td className="px-4 py-2 text-gray-200 text-sm whitespace-nowrap">{children}</td>
+        <div className="flex justify-center py-10">
+            <Loader2 className="animate-spin text-primary-300 w-7 h-7" />
+        </div>
     );
 }

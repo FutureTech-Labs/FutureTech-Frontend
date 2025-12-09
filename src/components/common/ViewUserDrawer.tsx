@@ -8,7 +8,15 @@ import {
     SheetDescription,
 } from "@/components/ui/sheet";
 
+import {
+    Accordion,
+    AccordionItem,
+    AccordionTrigger,
+    AccordionContent
+} from "@/components/ui/accordion";
+
 import { formatDateTime, parseUserAgent } from "@/lib/utils";
+
 import {
     CircleCheckBig,
     AlertCircle,
@@ -18,9 +26,8 @@ import {
     Smartphone
 } from "lucide-react";
 
-// ============================
+
 // Duration Helper
-// ============================
 const getDuration = (loginAt: string, logoutAt: string | null) => {
     if (!logoutAt) return "Active session";
 
@@ -37,9 +44,8 @@ const getDuration = (loginAt: string, logoutAt: string | null) => {
     return `${hours}h ${minutes}m`;
 };
 
-// ============================
+
 // Device → Icon Helper
-// ============================
 const getDeviceIcon = (ua: string) => {
     ua = ua.toLowerCase();
 
@@ -49,18 +55,13 @@ const getDeviceIcon = (ua: string) => {
     return <Monitor size={14} className="text-primary-200" />;
 };
 
-// ============================
-// Group by Date
-// ============================
+// Group history by DATE ONLY
 const groupByDate = (history: ICashierHistoryEntry[]) => {
     const groups: Record<string, ICashierHistoryEntry[]> = {};
 
     history.forEach((entry) => {
-        const date = new Date(entry.loginAt).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-        });
+        // group using SL date-only format
+        const date = formatDateTime(entry.loginAt, { hideTime: true });
 
         if (!groups[date]) groups[date] = [];
         groups[date].push(entry);
@@ -69,17 +70,18 @@ const groupByDate = (history: ICashierHistoryEntry[]) => {
     return groups;
 };
 
-const formatTime = (date?: string | null) => {
+// Extract time only (HH:MM AM/PM)
+const formatTimeOnly = (date?: string | null) => {
     if (!date) return "—";
     return new Date(date).toLocaleTimeString("en-US", {
+        timeZone: "Asia/Colombo",
         hour: "2-digit",
         minute: "2-digit",
     });
 };
 
-// ============================
+
 // MAIN COMPONENT
-// ============================
 const ViewUserDrawer = ({
     open,
     onOpenChange,
@@ -131,11 +133,9 @@ const ViewUserDrawer = ({
                                             : "text-red-400"
                                             }`}
                                     >
-                                        {user.status === "active" ? (
-                                            <CircleCheckBig size={14} />
-                                        ) : (
-                                            <AlertCircle size={14} />
-                                        )}
+                                        {user.status === "active"
+                                            ? <CircleCheckBig size={14} />
+                                            : <AlertCircle size={14} />}
                                         {user.status === "active" ? "Active" : "Inactive"}
                                     </span>
                                 }
@@ -155,51 +155,47 @@ const ViewUserDrawer = ({
                         </div>
                     </div>
 
-                    {/* LOGIN HISTORY — TIMELINE */}
+                    {/* LOGIN HISTORY (Grouped by Date) */}
                     <div className="bg-black-500 rounded-xl p-4 space-y-3 sales-card-border-gradient">
                         <h3 className="text-sm text-primary-100 font-medium uppercase tracking-widest">
                             Login History
                         </h3>
 
-                        <div className="max-h-80 overflow-y-auto space-y-8 pr-1">
+                        <div className="max-h-80 overflow-y-auto pr-1">
 
                             {history.length === 0 ? (
                                 <p className="text-xs text-gray-400">No login activity found.</p>
                             ) : (
-                                Object.entries(groupedHistory).map(([date, entries]) => (
-                                    <div key={date} className="space-y-4">
+                                <Accordion type="multiple" className="w-full space-y-4">
 
-                                        {/* DATE SEPARATOR */}
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-px bg-gray-700 flex-1" />
-                                            <span className="text-primary-200 text-xs uppercase tracking-widest">
-                                                {date}
-                                            </span>
-                                            <div className="h-px bg-gray-700 flex-1" />
-                                        </div>
+                                    {Object.entries(groupedHistory).map(([date, entries]) => (
+                                        <AccordionItem
+                                            key={date}
+                                            value={date}
+                                            className="border border-gray-800 bg-black-700/30 rounded-xl px-4"
+                                        >
+                                            <AccordionTrigger className="text-primary-200 text-xs tracking-wide">
+                                                {date} ({entries.length} {entries.length === 1 ? "session" : "sessions"})
+                                            </AccordionTrigger>
 
-                                        {/* TIMELINE */}
-                                        <div className="relative ml-4">
-                                            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gray-800" />
+                                            <AccordionContent>
+                                                <div className="space-y-4 mt-3">
 
-                                            <div className="space-y-6">
-                                                {entries.map((entry, i) => (
-                                                    <div key={i} className="relative pl-6">
-                                                        {/* Dot */}
-                                                        <div className="absolute left-[-7px] top-1 w-3 h-3 rounded-full bg-primary-500 shadow-md" />
-
-                                                        <div className="bg-black-700/40 border border-gray-800 p-3 rounded-lg text-sm space-y-2">
-
+                                                    {entries.map((entry, i) => (
+                                                        <div
+                                                            key={i}
+                                                            className="bg-black-700/40 border border-gray-800 p-3 rounded-lg text-sm space-y-2"
+                                                        >
                                                             {/* LOGIN */}
                                                             <div className="flex items-center gap-2 text-primary-100">
                                                                 <LogIn size={15} />
-                                                                <span>{formatTime(entry.loginAt)}</span>
+                                                                <span>{formatTimeOnly(entry.loginAt)}</span>
                                                             </div>
 
                                                             {/* LOGOUT */}
                                                             <div className="flex items-center gap-2 text-red-300">
                                                                 <LogOut size={15} />
-                                                                <span>{formatTime(entry.logoutAt)}</span>
+                                                                <span>{formatTimeOnly(entry.logoutAt)}</span>
                                                             </div>
 
                                                             {/* SESSION DURATION */}
@@ -221,12 +217,14 @@ const ViewUserDrawer = ({
                                                                 IP: {entry.ip}
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
+                                                    ))}
+
+                                                </div>
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                    ))}
+
+                                </Accordion>
                             )}
                         </div>
                     </div>
@@ -238,9 +236,8 @@ const ViewUserDrawer = ({
 
 export default ViewUserDrawer;
 
-// ============================
-// REUSABLE INFO ROW
-// ============================
+
+// INFO ROW COMPONENT
 const InfoRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
     <div className="flex justify-between items-start">
         <span className="text-primary-300 text-xs uppercase tracking-wider">{label}</span>

@@ -216,7 +216,7 @@ const UsersPage = () => {
             key: "activity",
             label: "Recent Activity",
             render: (c: ICashier) => (
-                <div className="text-xs leading-4">
+                <div className="flex flex-col gap-1 text-xs">
                     <div className="text-gray-300">
                         Login:{" "}
                         <span className="font-medium text-white">

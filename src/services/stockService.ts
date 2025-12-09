@@ -22,3 +22,8 @@ export const deleteBatch = async (
     const res = await api.delete<{ success: boolean; message: string }>(`/admin/stock/${batchId}`);
     return res.data;
 };
+
+export const getStockStats = async (): Promise<IStockStatsResponse> => {
+    const res = await api.get<IStockStatsResponse>("/admin/stocks/stats");
+    return res.data;
+};

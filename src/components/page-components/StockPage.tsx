@@ -14,7 +14,8 @@ import {
 
 import {
     deleteBatch,
-    getAllStockBatches
+    getAllStockBatches,
+    getStockStats
 } from "@/services/stockService";
 
 import {
@@ -23,16 +24,24 @@ import {
 
 import { formatCurrencyLKR } from "@/lib/utils";
 
-import { Plus } from "lucide-react";
+import {
+    Plus,
+    PackageSearch,
+    Boxes, Wallet,
+    TrendingUp
+} from "lucide-react";
+
 import { Button } from "../ui/button";
 import Invoice from "../common/Invoice";
 import DataTable from "../common/Table";
+import StatCard from "../cards/StatCard";
 import DialogBox from "../common/DialogBox";
 import IconButton from "../common/IconButton";
 import SearchField from "../forms/SearchField";
 import PurchaseForm from "../forms/PurchaseForm";
 import StockDetails from "../common/StockDetails";
 import { StatusBadge } from "../common/StatusBadge";
+import PaginationSlider from "../sliders/PaginationSlider";
 import ThresholdInput from "@/components/common/ThresholdInput";
 
 const StockPage = () => {
@@ -43,7 +52,7 @@ const StockPage = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
 
-    const [globalThreshold, setGlobalThreshold] = useState(5);
+    const [globalThreshold, setGlobalThreshold] = useState(0);
 
     const [purchaseDialog, setPurchaseDialogOpen] = useState(false);
 
@@ -57,6 +66,13 @@ const StockPage = () => {
 
     const [stockDetailsDialogOpen, setStockDetailsDialogOpen] = useState(false);
     const [selectedBatch, setSelectedBatch] = useState<IStockBatch | null>(null);
+
+    const [stats, setStats] = useState({
+        totalStockValue: 0,
+        totalBatches: 0,
+        globalThreshold: 0,
+        totalPurchaseCostThisMonth: 0
+    });
 
     const fetchStockData = async () => {
         setLoading(true);
@@ -80,6 +96,24 @@ const StockPage = () => {
         }
     };
 
+    // Fetch global stats (independent of table pagination)
+    const fetchStats = async () => {
+        try {
+            const res = await getStockStats();
+            if (res && res.success && res.stats) {
+                setStats(res.stats);
+                // keep globalThreshold in sync if present
+                if (typeof res.stats.globalThreshold === "number") {
+                    setGlobalThreshold(res.stats.globalThreshold);
+                }
+            } else {
+                console.warn("getStockStats returned unexpected shape", res);
+            }
+        } catch (err) {
+            console.error("Failed to fetch stock stats", err);
+        }
+    };
+
     // Load global threshold on mount
     useEffect(() => {
         (async () => {
@@ -91,6 +125,7 @@ const StockPage = () => {
             } catch (err) {
                 console.error("Failed to load threshold");
             }
+            await fetchStats();
         })();
     }, []);
 
@@ -112,6 +147,7 @@ const StockPage = () => {
             if (res.success) {
                 toast.success("Global threshold updated");
                 setGlobalThreshold(v);
+                await fetchStats();
             }
         } catch (err: any) {
             toast.error(err.response?.data?.message || "Failed to update threshold");
@@ -145,6 +181,7 @@ const StockPage = () => {
             setBatchToDelete(null);
 
             await fetchStockData();
+            fetchStats();
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Failed to delete batch");
         } finally {
@@ -225,8 +262,56 @@ const StockPage = () => {
         },
     ];
 
+    // Stat Cards
+    const stockStatCards = [
+        <StatCard
+            key="stock-value"
+            title="Stock Value"
+            value={formatCurrencyLKR(stats?.totalStockValue || 0)}
+            icon={<Wallet className="w-5 h-5 text-green-400" />}
+            iconBg="bg-green-500/10"
+            gradient="linear-gradient(79.74deg, rgba(0,255,132,0.15) 0%, rgba(0,0,0,0.12) 100%)"
+        />,
+
+        <StatCard
+            key="total-batches"
+            title="Batches"
+            value={stats?.totalBatches || 0}
+            icon={<Boxes className="w-5 h-5 text-blue-400" />}
+            iconBg="bg-blue-500/10"
+            gradient="linear-gradient(79.74deg, rgba(0,128,255,0.15) 0%, rgba(0,0,0,0.12) 100%)"
+        />,
+
+        <StatCard
+            key="threshold"
+            title="Global Threshold"
+            value={globalThreshold}
+            icon={<PackageSearch className="w-5 h-5 text-purple-400" />}
+            iconBg="bg-purple-500/10"
+            gradient="linear-gradient(79.74deg, rgba(180,0,255,0.15) 0%, rgba(0,0,0,0.12) 100%)"
+        />,
+
+        <StatCard
+            key="monthly-cost"
+            title="Purchases (This Month)"
+            value={formatCurrencyLKR(stats?.totalPurchaseCostThisMonth || 0)}
+            icon={<TrendingUp className="w-5 h-5 text-red-400" />}
+            iconBg="bg-red-500/10"
+            gradient="linear-gradient(79.74deg, rgba(255,0,0,0.15) 0%, rgba(0,0,0,0.12) 100%)"
+        />
+    ];
+
     return (
         <div className="relative flex flex-col gap-6">
+
+            {/* Desktop grid */}
+            <div className="hidden lg:grid grid-cols-1 lg:grid-cols-4 gap-6 w-full">
+                {stockStatCards}
+            </div>
+
+            {/* Mobile slider */}
+            <PaginationSlider>{stockStatCards}</PaginationSlider>
+
 
             <div className="flex flex-col gap-6 p-5 rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient 
             shadow-lg shadow-primary-900/15">
@@ -311,7 +396,7 @@ const StockPage = () => {
                     open={stockDetailsDialogOpen}
                     onOpenChange={setStockDetailsDialogOpen}
                     title="Stock Details"
-                    widthClass="lg:min-w-4xl!"
+                    widthClass="lg:min-w-3xl!"
                 >
                     <StockDetails batch={selectedBatch} />
                 </DialogBox>

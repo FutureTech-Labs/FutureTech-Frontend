@@ -1,28 +1,49 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+    useEffect,
+    useState
+} from "react";
+
 import Image from "next/image";
 
 import { toast } from "sonner";
-import { Button } from "../ui/button";
-import { AlertTriangle, Boxes, CircleDollarSign, PackageCheck, PackageX, Plus } from "lucide-react";
 
+import { useEdgeStore } from "@/lib/edgestore";
+
+import {
+    deleteProduct,
+    getCategoriesAndBrands,
+    getProducts
+} from "@/services/productService";
+
+import {
+    toSentenceCase,
+    formatCurrencyLKR
+} from "@/lib/utils";
+
+import {
+    AlertTriangle,
+    Boxes,
+    CircleDollarSign,
+    PackageCheck,
+    PackageX,
+    Plus
+} from "lucide-react";
+
+import { Button } from "../ui/button";
 import DataTable from "../common/Table";
 import StatCard from "../cards/StatCard";
 import DialogBox from "../common/DialogBox";
 import IconButton from "../common/IconButton";
+import ProductForm from "../forms/AddProducts";
 import SearchField from "../forms/SearchField";
 import SelectField from "../forms/SelectField";
-import ProductForm from "../forms/AddProducts";
 import { StatusBadge } from "../common/StatusBadge";
 import ProductDetails from "../common/ProductDetails";
 import ExportPDFButton from "../common/ExportPdfButton";
 import { ScrollableTabs } from "../common/ScrollableTabs";
 import PaginationSlider from "../sliders/PaginationSlider";
-
-import { useEdgeStore } from "@/lib/edgestore";
-import { toSentenceCase, formatCurrencyLKR } from "@/lib/utils";
-import { deleteProduct, getCategoriesAndBrands, getProducts } from "@/services/productService";
 
 interface InventoryPageProps {
     role: "admin" | "cashier" | null;
@@ -283,25 +304,30 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
             iconBg="bg-orange-500/10"
             gradient="linear-gradient(79.74deg, rgba(255, 165, 0, 0.12) 0%, rgba(0, 0, 0, 0.12) 100%)"
         />,
-        <StatCard
-            key="value"
-            title="Inventory Value"
-            value={formatCurrencyLKR(totalValue, false)}
-            icon={<CircleDollarSign className="w-5 h-5 text-amber-400" />}
-            iconBg="bg-amber-500/10"
-            gradient="linear-gradient(79.74deg, rgba(255, 230, 0, 0.12) 0%, rgba(0, 0, 0, 0.12) 100%)"
-        />,
+        role === 'admin' && (
+            <StatCard
+                key="value"
+                title="Inventory Value"
+                value={formatCurrencyLKR(totalValue, false)}
+                icon={<CircleDollarSign className="w-5 h-5 text-amber-400" />}
+                iconBg="bg-amber-500/10"
+                gradient="linear-gradient(79.74deg, rgba(255, 230, 0, 0.12) 0%, rgba(0, 0, 0, 0.12) 100%)"
+            />
+        )
     ];
-
 
     return (
         <div className="relative flex flex-col gap-6">
-            <div className="hidden lg:grid grid-cols-1 lg:grid-cols-5 gap-6 w-full">
+            <div
+                className={`hidden lg:grid grid-cols-1 
+                    ${role === "admin" ? "lg:grid-cols-5" : "lg:grid-cols-4"} 
+                    gap-6 w-full`}
+            >
                 {cards}
             </div>
 
             {/* Mobile Slider */}
-            <PaginationSlider>{cards}</PaginationSlider>
+            <PaginationSlider>{cards.filter(Boolean)}</PaginationSlider>
 
             {/* Table */}
             <div className="flex flex-col gap-6 p-5 rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient shadow-lg 
@@ -332,31 +358,34 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
                             width="md:w-[150px]"
                             className="bg-black-500! border border-white/50 focus:ring-1! focus:ring-primary-800! text-xs md:text-sm"
                         />
+
                         {/* Export button */}
-                        <ExportPDFButton
-                            title="Product Inventory Report"
-                            fileName="products.pdf"
-                            columns={[
-                                { header: "Name", key: "name" },
-                                { header: "Price", key: "sellingPrice", format: (v) => formatCurrencyLKR(v) },
-                                { header: "Category", key: "category.name" },
-                                { header: "Status", key: "status" },
-                            ]}
-                            data={products}
-                            className="hidden md:flex"
-                        />
-                        {/* Add Products Button comes here to open the dialogBox */}
                         {role === "admin" && (
-                            <Button
-                                onClick={() => {
-                                    setSelectedProduct(null);
-                                    setAddDialogOpen(true);
-                                }}
-                                className="main-button-gradient border-none!"
-                            >
-                                Add New Product
-                                <Plus />
-                            </Button>
+                            <>
+                                <ExportPDFButton
+                                    title="Product Inventory Report"
+                                    fileName="products.pdf"
+                                    columns={[
+                                        { header: "Name", key: "name" },
+                                        { header: "Price", key: "sellingPrice", format: (v) => formatCurrencyLKR(v) },
+                                        { header: "Category", key: "category.name" },
+                                        { header: "Status", key: "status" },
+                                    ]}
+                                    data={products}
+                                    className="hidden md:flex"
+                                />
+
+                                <Button
+                                    onClick={() => {
+                                        setSelectedProduct(null);
+                                        setAddDialogOpen(true);
+                                    }}
+                                    className="main-button-gradient border-none!"
+                                >
+                                    Add New Product
+                                    <Plus />
+                                </Button>
+                            </>
                         )}
                     </div>
                 </div>

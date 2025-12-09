@@ -330,6 +330,18 @@ declare global {
         supplier: IStockSupplier | null;
     }
 
+    // Stock Stats
+    export interface IStockStatsResponse {
+        success: boolean;
+        stats: IStockStats;
+    }
+    export interface IStockStats {
+        totalStockValue: number;               // Sum of all quantityAvailable * costPrice
+        totalBatches: number;                  // Count of all batches
+        globalThreshold: number;               // Global min stock threshold
+        totalPurchaseCostThisMonth: number;    // Sum of purchases for current month
+    }
+
     // ----------------------------------------
     // SALES — FIFO BATCH USAGE
     // ----------------------------------------
@@ -1322,6 +1334,42 @@ declare global {
             totalProducts: number;
             lowStockCount: number;
         };
+    };
+
+
+    // Cashier Dashboard interfaces
+
+    // Cashier sales chart
+    interface ICashierSalesChartPoint {
+        date: string;
+        revenue: number;
+    }
+    interface ICashierSalesChartResponse {
+        success: boolean;
+        data: ICashierSalesChartPoint[];
+    };
+
+    // Cashier sales summary
+    interface ICashierSalesSummary {
+        totalRevenue: number;
+        invoices: number;
+    }
+    interface ICashierSalesSummaryResponse {
+        success: boolean;
+        data: ICashierSalesSummary;
+    };
+
+    // Cashier recent invoices
+    interface ICashierRecentInvoice {
+        invoiceNumber: string;
+        customer: { name: string };
+        createdAt: string;
+        total: number;
+        paymentMethod: "cash" | "card";
+    }
+    interface ICashierRecentInvoicesResponse {
+        success: boolean;
+        data: ICashierRecentInvoice[];
     }
 
 

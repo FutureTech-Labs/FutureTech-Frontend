@@ -1,9 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 import { formatCurrencyLKR } from "@/lib/utils";
 import { SimpleInvoiceTable } from "../InvoiceTable";
 import { ColumnDef } from "@tanstack/react-table";
+import { generateReturnPDF } from "./ReturnInvoidePdf";
+import { printReturnInvoice } from "./PrintReturnInvoice";
 
 interface ReturnInvoiceProps {
     invoice: IReturn;
@@ -12,14 +15,8 @@ interface ReturnInvoiceProps {
 export default function ReturnInvoice({ invoice }: ReturnInvoiceProps) {
     const hasRefund = invoice.items?.some((item) => item.returnType === "refund");
 
-    // ------------------------------------------
-    // TABLE COLUMNS
-    // ------------------------------------------
-
-    // ---- Pick the real type ----
     type RItem = IReturnItem;
 
-    // ---- Define columns ----
     const columns: ColumnDef<RItem>[] = [
         {
             header: "Product",
@@ -59,117 +56,107 @@ export default function ReturnInvoice({ invoice }: ReturnInvoiceProps) {
         });
     }
 
-
     return (
-        <div className="button-gradient rounded-xl p-6 border border-white/40">
+        <div className="relative">
 
-            {/* --------------------------------------------------------- */}
-            {/* HEADER */}
-            {/* --------------------------------------------------------- */}
-            <div className="flex flex-col justify-center gap-4 items-center p-6 rounded-lg button-gradient invoice-border-gradient">
+            <div className="button-gradient rounded-xl p-6 border border-white/40">
 
-                <div className="flex md:flex-row flex-col justify-between gap-4 items-start md:items-center w-full">
+                {/* HEADER */}
+                <div className="flex flex-col justify-center gap-4 items-center p-6 rounded-lg button-gradient invoice-border-gradient">
 
-                    {/* LOGO */}
-                    <div className="w-40 md:w-50">
-                        <Image
-                            src={"/images/LogoFull.png"}
-                            alt="Logo"
-                            width={500}
-                            height={500}
-                            priority
-                            className="object-cover w-full h-full select-none"
-                        />
-                    </div>
+                    <div className="flex md:flex-row flex-col justify-between gap-4 items-start md:items-center w-full">
 
-                    {/* TITLE BLOCK */}
-                    <div className="flex flex-col text-left">
-                        <h1 className="font-bold text-xl md:text-3xl mb-2 text-primary-200">
-                            RETURN INVOICE
-                        </h1>
+                        {/* LOGO */}
+                        <div className="w-40 md:w-50">
+                            <Image
+                                src={"/images/LogoFull.png"}
+                                alt="Logo"
+                                width={500}
+                                height={500}
+                                priority
+                                className="object-cover w-full h-full select-none"
+                            />
+                        </div>
 
-                        <InvoiceField
-                            label="Return Invoice No:"
-                            value={invoice.returnInvoiceNumber ?? "—"}
-                        />
+                        {/* TITLE BLOCK */}
+                        <div className="flex flex-col text-left">
+                            <h1 className="font-bold text-xl md:text-3xl mb-2 text-primary-200">
+                                RETURN INVOICE
+                            </h1>
 
-                        <InvoiceField
-                            label="Return Date:"
-                            value={
-                                invoice.createdAt
-                                    ? new Date(invoice.createdAt).toLocaleString()
-                                    : "—"
-                            }
-                        />
-
-                        <InvoiceField
-                            label="Linked Sales Invoice:"
-                            value={invoice.saleInvoice?.invoiceNumber ?? "—"}
-                            accent
-                        />
-
-                        <InvoiceField
-                            label="Status:"
-                            value={invoice.status?.replace(/-/g, " ") ?? "—"}
-                            accent
-                        />
-                    </div>
-                </div>
-
-                {/* CUSTOMER & RETURNED BY */}
-                <div className="flex flex-col md:flex-row justify-between gap-5 items-start md:items-center w-full bg-black/20 rounded-lg p-5 invoice-border-gradient">
-
-                    {/* CUSTOMER */}
-                    <div className="flex flex-col gap-1.5 text-xs font-light">
-                        <h3 className="opacity-80">Customer:</h3>
-                        <h1 className="text-base font-medium">
-                            {invoice.customer?.name ?? "—"}
-                        </h1>
-                        <h3>{invoice.customer?.email ?? "—"}</h3>
-                        <h3>{invoice.customer?.contact ?? "—"}</h3>
-                    </div>
-
-                    {/* RETURNED BY */}
-                    <div className="flex flex-col gap-1.5 text-xs font-light">
-                        <h3 className="opacity-80">Processed By:</h3>
-                        <h1 className="text-base font-medium">
-                            {invoice.returnedBy?.name ?? "—"}
-                        </h1>
-                        <h3>{invoice.returnedBy?.email ?? "—"}</h3>
-                    </div>
-                </div>
-            </div>
-
-            {/* --------------------------------------------------------- */}
-            {/* ITEMS TABLE */}
-            {/* --------------------------------------------------------- */}
-            <div className="flex flex-col gap-5 button-gradient p-6 mt-5 rounded-lg invoice-border-gradient">
-
-                <SimpleInvoiceTable columns={columns} data={invoice.items ?? []} />
-
-                {/* TOTAL REFUND (ONLY FOR REFUND CASES) */}
-                {hasRefund && (
-                    <div className="bg-white/5 border border-white/15 rounded-xl px-3 py-5 w-full flex flex-col gap-3 box-gradient max-w-sm ml-auto">
-                        <div className="flex justify-between text-sm text-white/80">
-                            <span>Total Refund:</span>
-                            <span className="font-semibold text-primary-300">
-                                {formatCurrencyLKR(invoice.refundTotal ?? 0)}
-                            </span>
+                            <InvoiceField label="Return Invoice No:" value={invoice.returnInvoiceNumber ?? "—"} />
+                            <InvoiceField label="Return Date:" value={new Date(invoice.createdAt).toLocaleString()} />
+                            <InvoiceField label="Linked Sales Invoice:" value={invoice.saleInvoice?.invoiceNumber ?? "—"} accent />
                         </div>
                     </div>
-                )}
+
+                    {/* CUSTOMER & RETURNED BY */}
+                    <div className="flex flex-col md:flex-row justify-between gap-5 items-start md:items-center w-full bg-black/20 rounded-lg p-5 invoice-border-gradient">
+
+                        {/* CUSTOMER */}
+                        <div className="flex flex-col gap-1.5 text-xs font-light">
+                            <h3 className="opacity-80">Customer:</h3>
+                            <h1 className="text-base font-medium">{invoice.customer?.name ?? "—"}</h1>
+                            <h3>{invoice.customer?.email ?? "—"}</h3>
+                            <h3>{invoice.customer?.contact ?? "—"}</h3>
+                        </div>
+
+                        {/* RETURNED BY */}
+                        <div className="flex flex-col gap-1.5 text-xs font-light w-[228px]">
+                            <h3 className="opacity-80">Processed By:</h3>
+                            <h1 className="text-base font-medium">{invoice.returnedBy?.name ?? "—"}</h1>
+                            <h3>{invoice.returnedBy?.email ?? "—"}</h3>
+                        </div>
+                    </div>
+                </div>
+
+                {/* ITEMS TABLE */}
+                <div className="flex flex-col gap-5 button-gradient p-6 mt-5 rounded-lg invoice-border-gradient">
+                    <SimpleInvoiceTable columns={columns} data={invoice.items ?? []} />
+
+                    {hasRefund && (
+                        <div className="bg-white/5 border border-white/15 rounded-xl px-3 py-5 w-full flex flex-col gap-3 box-gradient max-w-sm ml-auto">
+                            <div className="flex justify-between text-sm text-white/80">
+                                <span>Total Refund:</span>
+                                <span className="font-semibold text-primary-300">
+                                    {formatCurrencyLKR(invoice.refundTotal ?? 0)}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* FOOTER TEXT */}
+                <div className="mt-6 -mx-6 -mb-6 px-6 py-4 bg-black/20 border-t border-white/20 text-center rounded-b-xl">
+                    <p className="flex flex-col gap-1 text-sm">
+                        Return processed successfully.
+                        <span className="font-light text-xs opacity-80">
+                            If you have any questions regarding this return, please contact us.
+                        </span>
+                    </p>
+                </div>
             </div>
 
-            {/* --------------------------------------------------------- */}
-            {/* FOOTER */}
-            {/* --------------------------------------------------------- */}
-            <div className="mt-6 -mx-6 -mb-6 px-6 py-4 bg-black/20 border-t border-white/20 text-center rounded-b-xl">
-                <p className="flex flex-col gap-1 text-sm">
-                    Return processed successfully.
-                    <span className="font-light text-xs opacity-80">
-                        Thank you for maintaining accurate return records.
-                    </span>
-                </p>
+            {/* ACTION BUTTONS*/}
+            <div className="sticky -bottom-px bg-black-500 flex gap-3 py-3 border-t border-gray-800 mt-4 z-50">
+
+                <Button
+                    type="button"
+                    onClick={() => generateReturnPDF({ invoice })}
+                    variant="outline"
+                    className="flex-1 border border-blue-600! text-white hover:bg-gray-800 h-11"
+                >
+                    Download PDF
+                </Button>
+
+                <Button
+                    type="button"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-11"
+                    onClick={() => printReturnInvoice({ invoice })}
+                >
+                    Print Invoice
+                </Button>
+
             </div>
         </div>
     );
@@ -187,9 +174,7 @@ function InvoiceField({
     return (
         <p className="text-xs flex gap-2">
             <span className="opacity-80">{label}</span>
-            <span
-                className={accent ? "text-primary-300 font-semibold" : "text-white"}
-            >
+            <span className={accent ? "text-primary-300 font-semibold" : "text-white"}>
                 {value}
             </span>
         </p>
