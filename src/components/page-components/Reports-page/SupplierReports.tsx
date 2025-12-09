@@ -10,25 +10,34 @@ import {
 } from "@/services/Report-Services/supplierReportServices";
 
 import { DateRange } from "react-day-picker";
-import { formatLocalDate } from "@/lib/utils";
+
+import {
+    formatDateTime,
+    normalizeDateRange,
+    formatCurrencyLKR
+} from "@/lib/utils";
+
+import {
+    Users,
+    FileCheck2,
+    FileClock,
+    Wallet,
+    TrendingUp
+} from "lucide-react";
 
 import KPI from "@/components/cards/KPICard";
-import { formatCurrencyLKR } from "@/lib/utils";
 import DataTable from "@/components/common/Table";
 import SearchField from "@/components/forms/SearchField";
 import ReportSection from "@/components/common/ReportsSection";
 import ExportPDFButton from "@/components/common/ExportPdfButton";
 import PaginationSlider from "@/components/sliders/PaginationSlider";
 import { DateRangePicker } from "@/components/common/DateRangePicker";
-import { Users, FileCheck2, FileClock, Wallet, TrendingUp } from "lucide-react";
 import SupplierTrendsChart from "@/components/charts/supplier-report-charts/SupplierTrendsChart";
 
 
 const SupplierReports = () => {
 
-    // ==============================
     // 1. Supplier Summary
-    // ==============================
     const [summaryResponse, setSummaryResponse] = useState<ISupplierSummaryResponse | null>(null);
     const summary = summaryResponse?.data ?? [];
 
@@ -44,9 +53,7 @@ const SupplierReports = () => {
     const [summaryTo, setSummaryTo] = useState("");
 
 
-    // ==============================
     // 2. Outstanding Suppliers
-    // ==============================
     const [outstanding, setOutstanding] = useState<IOutstandingSuppliersResponse | null>(null);
     const [pageOutstanding, setPageOutstanding] = useState(1);
     const [loadingOutstanding, setLoadingOutstanding] = useState(false);
@@ -55,10 +62,7 @@ const SupplierReports = () => {
     const limitOutstanding = outstanding?.meta.limit ?? 10;
     const totalPagesOutstanding = Math.ceil(totalOutstanding / limitOutstanding);
 
-
-    // ==============================
     // 3. Purchase Trends (Chart)
-    // ==============================
     const [trends, setTrends] = useState<ISupplierTrendItem[] | null>(null);
 
     const [interval, setInterval] = useState<"day" | "month">("month");
@@ -70,9 +74,7 @@ const SupplierReports = () => {
     const [trendTo, setTrendTo] = useState("");
 
 
-    // ==============================
     // 4. Supplier Item-Level Report
-    // ==============================
     const [itemReport, setItemReport] = useState<ISupplierItemsReportResponse | null>(null);
     const [pageItems, setPageItems] = useState(1);
     const [itemSearch, setItemSearch] = useState("");
@@ -87,32 +89,36 @@ const SupplierReports = () => {
     const [from, setFrom] = useState("");
     const [to, setTo] = useState("");
 
-    // ==============================
     // GLOBAL LOADING
-    // ==============================
     const [loading, setLoading] = useState<boolean>(true);
 
-    // ==============================
     // Sync Date Ranges
-    // ==============================
 
     // Item table date range
     useEffect(() => {
-        setFrom(formatLocalDate(dateRange?.from));
-        setTo(formatLocalDate(dateRange?.to));
+        const { from, to } = normalizeDateRange(dateRange);
+        setFrom(from);
+        setTo(to);
+        setPageItems(1);
     }, [dateRange]);
+
 
     // Summary table date range
     useEffect(() => {
-        setSummaryFrom(formatLocalDate(summaryDateRange?.from));
-        setSummaryTo(formatLocalDate(summaryDateRange?.to));
+        const { from, to } = normalizeDateRange(summaryDateRange);
+        setSummaryFrom(from);
+        setSummaryTo(to);
+        setPageSummary(1);
     }, [summaryDateRange]);
+
 
     // Trend chart date range
     useEffect(() => {
-        setTrendFrom(formatLocalDate(trendDateRange?.from));
-        setTrendTo(formatLocalDate(trendDateRange?.to));
+        const { from, to } = normalizeDateRange(trendDateRange);
+        setTrendFrom(from);
+        setTrendTo(to);
     }, [trendDateRange]);
+
 
     // INITIAL LOAD
     useEffect(() => {
@@ -161,9 +167,7 @@ const SupplierReports = () => {
     }, []);
 
 
-    // ==============================
     // Load Summary (with search + date)
-    // ==============================
     const loadSupplierSummary = async () => {
         try {
             setLoadingSummary(true);
@@ -188,9 +192,7 @@ const SupplierReports = () => {
     }, [searchSummary, summaryFrom, summaryTo]);
 
 
-    // ==============================
     // Load Outstanding
-    // ==============================
     const loadOutstanding = async () => {
         try {
             setLoadingOutstanding(true);
@@ -214,9 +216,7 @@ const SupplierReports = () => {
     }, [pageOutstanding]);
 
 
-    // ==============================
     // Load Item-Level Report
-    // ==============================
     useEffect(() => {
         const loadItemReport = async () => {
             try {
@@ -244,9 +244,7 @@ const SupplierReports = () => {
     }, [itemSearch, from, to]);
 
 
-    // ==============================
-    // Load Trends (uses trendFrom/trendTo ONLY!!!)
-    // ==============================
+    // Load Trends
     useEffect(() => {
         const loadTrends = async () => {
             try {
@@ -388,7 +386,7 @@ const SupplierReports = () => {
         {
             key: "lastPurchaseDate",
             label: "Last Purchase",
-            render: (row: ISupplierSummaryItem) => row.lastPurchaseDate ? formatLocalDate(new Date(row.lastPurchaseDate)) : "—"
+            render: (row: ISupplierSummaryItem) => row.lastPurchaseDate ? formatDateTime(row.lastPurchaseDate) : "—"
         },
     ];
 
@@ -434,7 +432,7 @@ const SupplierReports = () => {
             header: "Last Purchase",
             key: "lastPurchaseDate",
             format: (v: string | undefined) =>
-                v ? formatLocalDate(new Date(v)) : "—",
+                v ? formatDateTime(v, { hideTime: true }) : "—",
         },
     ];
 
@@ -484,12 +482,12 @@ const SupplierReports = () => {
         {
             key: "oldestPendingInvoiceDate",
             label: "Oldest Pending",
-            render: (row: IOutstandingSupplierItem) => row.oldestPendingInvoiceDate ? formatLocalDate(new Date(row.oldestPendingInvoiceDate)) : "—",
+            render: (row: IOutstandingSupplierItem) => row.oldestPendingInvoiceDate ? formatDateTime(row.oldestPendingInvoiceDate) : "—",
         },
         {
             key: "newestPendingInvoiceDate",
             label: "Newest Pending",
-            render: (row: IOutstandingSupplierItem) => row.newestPendingInvoiceDate ? formatLocalDate(new Date(row.newestPendingInvoiceDate)) : "-",
+            render: (row: IOutstandingSupplierItem) => row.newestPendingInvoiceDate ? formatDateTime(row.newestPendingInvoiceDate) : "-",
         },
         {
             key: "status",
@@ -553,7 +551,7 @@ const SupplierReports = () => {
             key: "lastBatchDate",
             label: "Last Batch Date",
             render: (row: ISupplierItemReportRow) =>
-                row.lastBatchDate ? formatLocalDate(new Date(row.lastBatchDate)) : "—",
+                row.lastBatchDate ? formatDateTime(row.lastBatchDate) : "—",
         },
     ];
 
@@ -594,7 +592,7 @@ const SupplierReports = () => {
             header: "Last Batch Date",
             key: "lastBatchDate",
             format: (v: string | null) =>
-                v ? formatLocalDate(new Date(v)) : "—",
+                v ? formatDateTime(v) : "—",
         },
     ];
 
@@ -677,7 +675,6 @@ const SupplierReports = () => {
                 </ReportSection>
             )}
 
-
             {/* Supplier trend chart */}
             <SupplierTrendsChart
                 trends={trends}
@@ -690,7 +687,7 @@ const SupplierReports = () => {
 
                 <div className="flex flex-col md:flex-row items-center justify-between w-full gap-3">
 
-                    {/* Search Supplier (name/email/number) */}
+                    {/* Search Supplier */}
                     <SearchField
                         value={itemSearch}
                         onChange={setItemSearch}
@@ -732,7 +729,6 @@ const SupplierReports = () => {
                     }}
                 />
             </ReportSection>
-
         </div>
     );
 

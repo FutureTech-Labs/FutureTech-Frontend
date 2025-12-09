@@ -34,6 +34,7 @@ export const getAllSales = async (
         from?: string;
         to?: string;
         invoiceNumber: string;
+        role?: "admin" | "cashier";
     }
 ): Promise<ISalesListResponse> => {
     const { data } = await api.get<ISalesListResponse>("/admin/sales", {
@@ -63,6 +64,42 @@ export const getSalesByCashier = async (
 ): Promise<ISalesByCashierResponse> => {
     const { data } = await api.get<ISalesByCashierResponse>(
         "/admin/report/sales/by-cashier",
+        { params }
+    );
+    return data;
+};
+
+// ==============================
+// Admin — Get full sales statistics 
+// (GET /admin/sales/stats)
+// ==============================
+export const getSalesStats = async (
+    params?: {
+        from?: string;
+        to?: string;
+        invoiceNumber?: string;
+        role?: "admin" | "cashier";
+    }
+): Promise<ISalesStatsResponse> => {
+    const { data } = await api.get<ISalesStatsResponse>("/admin/sales/stats", {
+        params,
+    });
+    return data;
+};
+
+// ==============================
+// Cashier/Admin — Get own sales statistics 
+// (GET /shared/sales/me/stats)
+// ==============================
+export const getMySalesStats = async (
+    params?: {
+        from?: string;
+        to?: string;
+        invoiceNumber?: string;
+    }
+): Promise<ISalesStatsResponse> => {
+    const { data } = await api.get<ISalesStatsResponse>(
+        "/shared/sales/me/stats",
         { params }
     );
     return data;

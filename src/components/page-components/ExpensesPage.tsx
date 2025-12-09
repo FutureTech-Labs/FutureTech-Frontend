@@ -20,23 +20,11 @@ import { DateRangePicker } from "../common/DateRangePicker";
 
 import { deleteExpense, getExpenses } from "@/services/expenseServices";
 
-import { formatLocalDate, formatDateTime } from "@/lib/utils";
+import { EXPENSE_CATEGORIES } from "@/constants";
+import { formatDateTime, normalizeDateRange } from "@/lib/utils";
 
 import CategoryExpenseChart from "../charts/expenses-charts/CategoryExpenseChart";
 import ProfitVsExpenseChart from "../charts/expenses-charts/ProfitVsExpenseChart";
-
-const EXPENSE_CATEGORIES = [
-    { value: "all", label: "All Categories" },
-    { value: "Electricity", label: "Electricity" },
-    { value: "Water", label: "Water" },
-    { value: "Internet", label: "Internet" },
-    { value: "Rent", label: "Rent" },
-    { value: "Salary", label: "Salary" },
-    { value: "Maintenance", label: "Maintenance" },
-    { value: "Purchase", label: "Purchase" },
-    { value: "Transport", label: "Transport" },
-    { value: "Misc", label: "Misc" },
-];
 
 const ExpensesPage = () => {
     const [expenses, setExpenses] = useState<IExpense[]>([]);
@@ -59,8 +47,10 @@ const ExpensesPage = () => {
 
     // Sync date range
     useEffect(() => {
-        setFrom(formatLocalDate(dateRange?.from));
-        setTo(formatLocalDate(dateRange?.to));
+        const { from, to } = normalizeDateRange(dateRange);
+        setFrom(from);
+        setTo(to);
+        setPage(1);
     }, [dateRange]);
 
     // Fetch expenses

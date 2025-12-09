@@ -1,22 +1,41 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { DateRange } from "react-day-picker";
-
-import DataTable from "@/components/common/Table";
-import IconButton from "@/components/common/IconButton";
-import DialogBox from "@/components/common/DialogBox";
-import Invoice from "@/components/common/Invoice";
-
-import SearchField from "@/components/forms/SearchField";
-import { DateRangePicker } from "@/components/common/DateRangePicker";
+import {
+    useEffect,
+    useState
+} from "react";
 
 import {
     getAllPurchases,
     getPurchaseInvoice,
+    getPurchaseStats,
 } from "@/services/purchaseService";
 
-import { formatLocalDate, formatCurrencyLKR } from "@/lib/utils";
+import { DateRange } from "react-day-picker";
+
+import {
+    formatCurrencyLKR,
+    normalizeDateRange,
+    formatDateTime
+} from "@/lib/utils";
+
+import {
+    Receipt,
+    ReceiptText,
+    Timer,
+    CircleDollarSign,
+    BellRing
+} from "lucide-react";
+
+import DataTable from "@/components/common/Table";
+import Invoice from "@/components/common/Invoice";
+import DialogBox from "@/components/common/DialogBox";
+import IconButton from "@/components/common/IconButton";
+import SearchField from "@/components/forms/SearchField";
+import { DateRangePicker } from "@/components/common/DateRangePicker";
+import StatCard from "../cards/StatCard";
+import PaginationSlider from "../sliders/PaginationSlider";
+
 
 const PurchaseInvoicePage = () => {
     // Table state
@@ -41,14 +60,21 @@ const PurchaseInvoicePage = () => {
     const [selectedInvoice, setSelectedInvoice] = useState<IPurchaseInvoice | null>(null);
     const [selectedItems, setSelectedItems] = useState<IPurchaseInvoiceItem[]>([]);
 
+    const [stats, setStats] = useState<IPurchaseStats>({
+        totalPurchasesAmount: 0,
+        totalPurchaseInvoices: 0,
+        pendingInvoices: 0,
+        outstandingSupplierBalance: 0,
+        upcomingDuePayments: 0
+    });
+
     useEffect(() => {
-        setFrom(formatLocalDate(dateRange?.from));
-        setTo(formatLocalDate(dateRange?.to));
+        const { from, to } = normalizeDateRange(dateRange);
+        setFrom(from);
+        setTo(to);
     }, [dateRange]);
 
-    // ---------------------------------------------
     // Fetch invoices
-    // ---------------------------------------------
     const fetchInvoices = async (selectedPage: number = 1) => {
         try {
             setLoading(true);
@@ -75,9 +101,7 @@ const PurchaseInvoicePage = () => {
         fetchInvoices(1);
     }, [from, to, searchValue]);
 
-    // ---------------------------------------------
     // Open invoice dialog
-    // ---------------------------------------------
     const openInvoice = async (invoiceId: string) => {
         try {
             setDialogLoading(true);
@@ -93,9 +117,21 @@ const PurchaseInvoicePage = () => {
         }
     };
 
-    // ---------------------------------------------
+    const fetchStats = async () => {
+        try {
+            const res = await getPurchaseStats();
+            if (res.success) setStats(res.stats);
+        } catch (err) {
+            console.error("Failed to load purchase stats", err);
+        }
+    };
+
+    useEffect(() => {
+        fetchStats();
+    }, []);
+
+
     // Table Columns
-    // ---------------------------------------------
     const columns = [
         {
             key: "invoiceNumber",
@@ -120,7 +156,7 @@ const PurchaseInvoicePage = () => {
         {
             key: "date",
             label: "Date",
-            render: (row: IPurchaseInvoice) => formatLocalDate(new Date(row.date))
+            render: (row: IPurchaseInvoice) => formatDateTime(row.date)
         },
         {
             key: "actions",
@@ -135,10 +171,67 @@ const PurchaseInvoicePage = () => {
         },
     ];
 
+    // Stat Cards
+    const purchaseStatCards = [
+        <StatCard
+            key="total-purchases"
+            title="Total Purchases Amount"
+            value={formatCurrencyLKR(stats.totalPurchasesAmount)}
+            icon={<CircleDollarSign className="w-5 h-5 text-green-400" />}
+            iconBg="bg-green-500/10"
+            gradient="linear-gradient(79.74deg, rgba(0,255,132,0.15) 0%, rgba(0,0,0,0.12) 100%)"
+        />,
+
+        // <StatCard
+        //     key="total-invoices"
+        //     title="Total Purchase Invoices"
+        //     value={stats.totalPurchaseInvoices}
+        //     icon={<ReceiptText className="w-5 h-5 text-blue-400" />}
+        //     iconBg="bg-blue-500/10"
+        //     gradient="linear-gradient(79.74deg, rgba(0,128,255,0.15) 0%, rgba(0,0,0,0.12) 100%)"
+        // />,
+
+        <StatCard
+            key="pending-invoices"
+            title="Pending Invoices"
+            value={stats.pendingInvoices}
+            icon={<Receipt className="w-5 h-5 text-yellow-400" />}
+            iconBg="bg-yellow-500/10"
+            gradient="linear-gradient(79.74deg, rgba(255,165,0,0.15) 0%, rgba(0,0,0,0.12) 100%)"
+        />,
+
+        <StatCard
+            key="outstanding-balance"
+            title="Outstanding Supplier Balance"
+            value={formatCurrencyLKR(stats.outstandingSupplierBalance)}
+            icon={<Timer className="w-5 h-5 text-purple-400" />}
+            iconBg="bg-purple-500/10"
+            gradient="linear-gradient(79.74deg, rgba(128,0,255,0.15) 0%, rgba(0,0,0,0.12) 100%)"
+        />,
+
+        <StatCard
+            key="due-payments"
+            title="Upcoming Due Payments"
+            value={stats.upcomingDuePayments}
+            icon={<BellRing className="w-5 h-5 text-red-400" />}
+            iconBg="bg-red-500/10"
+            gradient="linear-gradient(79.74deg, rgba(255,0,0,0.15) 0%, rgba(0,0,0,0.12) 100%)"
+        />
+    ];
+
     return (
         <div className="flex flex-col gap-6">
 
-            <div className="flex flex-col gap-6 p-5 rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient shadow-lg shadow-primary-900/15">
+            {/* Stat Cards */}
+            <div className="hidden lg:grid grid-cols-1 lg:grid-cols-4 gap-6 w-full mb-2">
+                {purchaseStatCards}
+            </div>
+
+            {/* Mobile slider */}
+            <PaginationSlider>{purchaseStatCards}</PaginationSlider>
+
+            <div className="flex flex-col gap-6 p-5 rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient 
+            shadow-lg shadow-primary-900/15">
 
                 {/* Filters Section */}
                 <div className="flex md:flex-row flex-col gap-5 items-center justify-between w-full">

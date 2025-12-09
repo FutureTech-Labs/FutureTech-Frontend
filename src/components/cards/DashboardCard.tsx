@@ -34,13 +34,14 @@ export default function DashboardCard({
 
     return (
         <Card
-            className={`flex flex-col rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient shadow-lg shadow-primary-900/15 h-full overflow-hidden ${className}`}>
+            className={`flex flex-col rounded-xl border-2 border-gradient border-primary-100/15 table-bg-gradient shadow-lg 
+            shadow-primary-900/15 h-full overflow-hidden ${className}`}>
             {/* HEADER */}
             <CardHeader className={headerClasses}>
 
                 {/* LEFT SIDE */}
                 <div className="grid flex-1 gap-1">
-                    <CardTitle className="text-xl text-gradient">{title}</CardTitle>
+                    <CardTitle className="text-xl font-semibold text-gradient">{title}</CardTitle>
                     {description && <CardDescription>{description}</CardDescription>}
                 </div>
 

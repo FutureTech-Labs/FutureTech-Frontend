@@ -10,8 +10,8 @@ import {
     Cell
 } from "recharts";
 
-import DashboardCard from "@/components/cards/DashboardCard";
 import SelectField from "@/components/forms/SelectField";
+import DashboardCard from "@/components/cards/DashboardCard";
 
 import {
     ChartContainer,
@@ -42,9 +42,9 @@ export default function TopSellingChart({
 
     // Dummy data filter based on selected months
     const dummyFiltered = (() => {
-        if (monthsValue === 1) return dummyData.slice(0, 1);  // This Month
-        if (monthsValue === 3) return dummyData.slice(0, 3);  // Last 3 Months
-        if (monthsValue === 6) return dummyData;              // Last 6 Months
+        if (monthsValue === 1) return dummyData.slice(0, 1);
+        if (monthsValue === 3) return dummyData.slice(0, 3);
+        if (monthsValue === 6) return dummyData;
         return dummyData;
     })();
 
@@ -83,13 +83,14 @@ export default function TopSellingChart({
         >
             <ChartContainer
                 config={chartConfig}
-                className="h-full w-full min-h-[250px]"
+                className="h-full w-full max-h-[350px]"
             >
                 <BarChart
                     data={top5}
                     layout="vertical"
                     key={JSON.stringify(top5)}
-                    margin={{ left: 0, right: 0, top: 0, bottom: 10 }}
+                    barSize={22}
+                    margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
                 >
                     <defs>
                         <linearGradient id="grad-0" x1="0" y1="0" x2="1" y2="0">
@@ -126,7 +127,7 @@ export default function TopSellingChart({
 
                     <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
 
-                    <Bar dataKey="qty" radius={[6, 6, 6, 6]}>
+                    <Bar dataKey="qty" radius={[16, 16, 16, 16]}>
                         <LabelList
                             dataKey="name"
                             position="insideLeft"

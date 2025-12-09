@@ -1,3 +1,20 @@
+import type { ComponentType, SVGProps } from "react";
+
+import {
+    Zap,
+    Droplet,
+    Wifi,
+    Building2,
+    UserCheck,
+    Wrench,
+    ShoppingCart,
+    Truck,
+    Package,
+    Tags,
+} from "lucide-react";
+
+export type IconType = ComponentType<SVGProps<SVGSVGElement>>;
+
 
 // Password Reset form details
 export const ForgotpasswordStepContent = [
@@ -48,6 +65,7 @@ export const WARRANTY_PERIODS = [
 export const PRODUCT_STATUSES = ["active", "inactive"];
 
 
+// Expense category related constants
 export const EXPENSE_CATEGORIES = [
     { value: "all", label: "All Categories" },
     { value: "Electricity", label: "Electricity" },
@@ -60,3 +78,22 @@ export const EXPENSE_CATEGORIES = [
     { value: "Transport", label: "Transport" },
     { value: "Misc", label: "Misc" },
 ];
+
+export const CATEGORY_ICON_MAP: Record<
+    string,
+    { icon: IconType; color: string }
+> = {
+    Electricity: { icon: Zap, color: "text-yellow-300" },
+    Marketing: { icon: Tags, color: "text-green-300" },
+    Water: { icon: Droplet, color: "text-blue-300" },
+    Internet: { icon: Wifi, color: "text-cyan-300" },
+    Rent: { icon: Building2, color: "text-purple-300" },
+    Salary: { icon: UserCheck, color: "text-green-300" },
+    Maintenance: { icon: Wrench, color: "text-orange-300" },
+    Purchase: { icon: ShoppingCart, color: "text-emerald-300" },
+    Transport: { icon: Truck, color: "text-indigo-300" },
+    Misc: { icon: Package, color: "text-gray-300" },
+};
+
+// Fallback icon
+export const CATEGORY_DEFAULT_ICON = { icon: Tags, color: "text-gray-300" };

@@ -6,6 +6,23 @@ import {
 } from "react";
 
 import { toast } from "sonner";
+
+import {
+    updateGlobalStockThreshold,
+    getGlobalStockThreshold
+} from "@/services/productService";
+
+import {
+    deleteBatch,
+    getAllStockBatches
+} from "@/services/stockService";
+
+import {
+    getPurchaseInvoice
+} from "@/services/purchaseService";
+
+import { formatCurrencyLKR } from "@/lib/utils";
+
 import { Plus } from "lucide-react";
 import { Button } from "../ui/button";
 import Invoice from "../common/Invoice";
@@ -13,14 +30,10 @@ import DataTable from "../common/Table";
 import DialogBox from "../common/DialogBox";
 import IconButton from "../common/IconButton";
 import SearchField from "../forms/SearchField";
-import { formatCurrencyLKR } from "@/lib/utils";
 import PurchaseForm from "../forms/PurchaseForm";
+import StockDetails from "../common/StockDetails";
 import { StatusBadge } from "../common/StatusBadge";
-import { getPurchaseInvoice } from "@/services/purchaseService";
-import { deleteBatch, getAllStockBatches } from "@/services/stockService";
-
 import ThresholdInput from "@/components/common/ThresholdInput";
-import { updateGlobalStockThreshold, getGlobalStockThreshold } from "@/services/productService";
 
 const StockPage = () => {
     const [batches, setBatches] = useState<IStockBatch[]>([]);
@@ -41,6 +54,9 @@ const StockPage = () => {
     const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
     const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
     const [invoiceData, setInvoiceData] = useState<IPurchaseInvoiceResponse | null>(null);
+
+    const [stockDetailsDialogOpen, setStockDetailsDialogOpen] = useState(false);
+    const [selectedBatch, setSelectedBatch] = useState<IStockBatch | null>(null);
 
     const fetchStockData = async () => {
         setLoading(true);
@@ -136,6 +152,11 @@ const StockPage = () => {
         }
     };
 
+    const handleViewBatch = (batch: IStockBatch) => {
+        setSelectedBatch(batch);
+        setStockDetailsDialogOpen(true);
+    };
+
     const StockColumns = [
         {
             key: "dateReceived",
@@ -170,12 +191,12 @@ const StockPage = () => {
                 const minStock = b.product?.minStock ?? undefined;
 
                 if (stock === 0)
-                    return <StatusBadge text="Out" color="red" />;
+                    return <StatusBadge text="Out" color="red" />
 
                 if (minStock && stock < minStock)
-                    return <StatusBadge text={`Low (${stock})`} color="yellow" />;
+                    return <StatusBadge text={`Low (${stock})`} color="yellow" />
 
-                return <StatusBadge text={`${stock}`} color="green" />;
+                return <StatusBadge text={`${stock}`} color="green" />
             },
         },
         {
@@ -191,7 +212,7 @@ const StockPage = () => {
                     <IconButton
                         iconSrc="/icons/Eye.svg"
                         ariaLabel="view"
-                        onClick={() => { }}
+                        onClick={() => handleViewBatch(b)}
                     />
 
                     <IconButton
@@ -207,8 +228,8 @@ const StockPage = () => {
     return (
         <div className="relative flex flex-col gap-6">
 
-            <div className="flex flex-col gap-6 p-5 rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient shadow-lg 
-            shadow-primary-900/15">
+            <div className="flex flex-col gap-6 p-5 rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient 
+            shadow-lg shadow-primary-900/15">
 
                 <div className="flex md:flex-row flex-col gap-5 items-center justify-between w-full">
 
@@ -285,6 +306,16 @@ const StockPage = () => {
                     )}
                 </DialogBox>
 
+                {/* Stock Details Dialog */}
+                <DialogBox
+                    open={stockDetailsDialogOpen}
+                    onOpenChange={setStockDetailsDialogOpen}
+                    title="Stock Details"
+                    widthClass="lg:min-w-4xl!"
+                >
+                    <StockDetails batch={selectedBatch} />
+                </DialogBox>
+
                 {/* Delete Confirmation Dialog */}
                 <DialogBox
                     open={deleteDialogOpen}
@@ -304,7 +335,6 @@ const StockPage = () => {
                         {"\n"}This will permanently remove the batch, update product stock levels, and cannot be undone.
                     </div>
                 </DialogBox>
-
             </div>
         </div>
     );

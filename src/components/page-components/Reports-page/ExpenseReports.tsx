@@ -14,17 +14,28 @@ import {
 
 import { DateRange } from "react-day-picker";
 
+import {
+    DollarSign,
+    Receipt,
+    BarChart2,
+    TrendingUp
+} from "lucide-react";
+
+import {
+    formatCurrencyLKR,
+    formatDateTime,
+    normalizeDateRange
+} from "@/lib/utils";
+
 import KPI from "@/components/cards/KPICard";
-import { formatCurrencyLKR, formatLocalDate } from "@/lib/utils";
+import { EXPENSE_CATEGORIES } from "@/constants";
+import DataTable from "@/components/common/Table";
+import SelectField from "@/components/forms/SelectField";
+import ExportPDFButton from "@/components/common/ExportPdfButton";
 import PaginationSlider from "@/components/sliders/PaginationSlider";
-import { DollarSign, Receipt, BarChart2, TrendingUp } from "lucide-react";
+import { DateRangePicker } from "@/components/common/DateRangePicker";
 import ExpenseTrendsChart from "@/components/charts/expense-report-charts/ExpenseTrendsReportsChart";
 import CategoryExpenseReportChart from "@/components/charts/expense-report-charts/CategoryExpenseReportChart";
-import DataTable from "@/components/common/Table";
-import { DateRangePicker } from "@/components/common/DateRangePicker";
-import SelectField from "@/components/forms/SelectField";
-import { EXPENSE_CATEGORIES } from "@/constants";
-import ExportPDFButton from "@/components/common/ExportPdfButton";
 
 const ExpenseReports = () => {
 
@@ -40,8 +51,8 @@ const ExpenseReports = () => {
     const [interval, setInterval] = useState<"day" | "month">("month");
 
     // Expense List (paginated table)
-    const [expenseList, setExpenseList] = useState<IExpenseReportListResponse | null>(null);
     const [selectedCategory, setSelectedCategory] = useState("all");
+    const [expenseList, setExpenseList] = useState<IExpenseReportListResponse | null>(null);
 
     // Table pagination
     const [page, setPage] = useState(1);
@@ -53,16 +64,14 @@ const ExpenseReports = () => {
     const [loadingList, setLoadingList] = useState(false);
 
     // Date range filters
-    const [dateRange, setDateRange] = useState<DateRange | undefined>();
-    const [from, setFrom] = useState("");
     const [to, setTo] = useState("");
+    const [from, setFrom] = useState("");
+    const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
     // Global loading (for the entire page)
     const [loading, setLoading] = useState(true);
 
-    // --------------------------------------------------------
     // Load all data
-    // --------------------------------------------------------
     useEffect(() => {
         const loadAllReports = async () => {
             try {
@@ -93,9 +102,7 @@ const ExpenseReports = () => {
         loadAllReports();
     }, []);
 
-    // --------------------------------------------------------
     // Load table data (pagination + filters)
-    // --------------------------------------------------------
     const loadExpenseList = async () => {
         try {
             setLoadingList(true);
@@ -126,13 +133,14 @@ const ExpenseReports = () => {
     }, [page, from, to, selectedCategory]);
 
 
-    // --------------------------------------------------------
     // Sync formatted dates from date selector
-    // --------------------------------------------------------
     useEffect(() => {
-        setFrom(formatLocalDate(dateRange?.from));
-        setTo(formatLocalDate(dateRange?.to));
+        const { from, to } = normalizeDateRange(dateRange);
+        setFrom(from);
+        setTo(to);
+        setPage(1);
     }, [dateRange]);
+
 
     if (loading) {
         return <div>Loading...</div>;
@@ -205,7 +213,7 @@ const ExpenseReports = () => {
         {
             key: "date",
             label: "Date",
-            render: (row: IExpenseReportItem) => formatLocalDate(new Date(row.date)),
+            render: (row: IExpenseReportItem) => formatDateTime(row.date),
             enableSorting: true,
         },
         {
@@ -253,7 +261,7 @@ const ExpenseReports = () => {
         {
             header: "Date",
             key: "date",
-            format: (v: string) => formatLocalDate(new Date(v)),
+            format: (v: string) => formatDateTime(v),
         },
         {
             header: "Description",
@@ -262,7 +270,7 @@ const ExpenseReports = () => {
         {
             header: "Linked Purchase",
             key: "linkedPurchase",
-            format: (value: any, row: IExpenseReportItem) =>
+            format: (row: IExpenseReportItem) =>
                 row.linkedPurchase?.invoiceNumber
                     ? `${row.linkedPurchase.invoiceNumber}\n${row.linkedPurchase.supplier?.name ?? ""}`
                     : "—",

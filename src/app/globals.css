@@ -504,6 +504,49 @@
     border-image: linear-gradient(to right, #020618, #eee, #020618) 1;
   }
 
+
+  /* Dashboard card gradient */
+  .dashboard-card-border-gradient {
+    position: relative;
+    border-radius: 16px;
+    z-index: 0;
+    isolation: isolate;
+  }
+
+  .dashboard-card-border-gradient {
+    position: relative;
+    border-radius: 16px;
+    z-index: 0;
+  }
+
+  .dashboard-card-border-gradient::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    padding: 1.2px;
+
+    background:
+      linear-gradient(45deg,
+        rgba(255, 255, 255, 0.30) 0%,
+        rgba(255, 255, 255, 0.08) 35%,
+        transparent 60%),
+      linear-gradient(225deg,
+        rgba(255, 255, 255, 0.25) 0%,
+        rgba(255, 255, 255, 0.06) 35%,
+        transparent 60%);
+
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask-composite: exclude;
+    z-index: -1;
+    box-sizing: border-box;
+  }
+
+
+
   /* Auth */
   .auth-layout {
     @apply relative flex flex-col justify-between lg:flex-row h-screen bg-black-500 overflow-hidden;

@@ -4,7 +4,8 @@ import {
     useState,
     useEffect
 } from "react";
-import { BarChart2, DollarSign, Receipt, ShoppingCart } from "lucide-react";
+
+import { DateRange } from "react-day-picker";
 
 import {
     getInvoiceListReport,
@@ -15,14 +16,27 @@ import {
     getTopProducts
 } from "@/services/Report-Services/salesReportServices";
 
+import {
+    formatCurrencyLKR,
+    formatDateTime,
+    normalizeDateRange,
+    toSentenceCase
+} from "@/lib/utils";
+
+import {
+    BarChart2,
+    DollarSign,
+    Receipt,
+    ShoppingCart
+} from "lucide-react";
+
 import KPI from "@/components/cards/KPICard";
+import DataTable from "@/components/common/Table";
+import SelectField from "@/components/forms/SelectField";
 import PaginationSlider from "@/components/sliders/PaginationSlider";
+import { DateRangePicker } from "@/components/common/DateRangePicker";
 import SalesTrendsChart from "@/components/charts/sales-report-charts/SalesTrendsChart";
 import TopProductsChart from "@/components/charts/sales-report-charts/TopProductsChart";
-import { formatCurrencyLKR, formatLocalDate } from "@/lib/utils";
-import DataTable from "@/components/common/Table";
-import { DateRange } from "react-day-picker";
-import { DateRangePicker } from "@/components/common/DateRangePicker";
 import PaymentBreakdownChart from "@/components/charts/sales-report-charts/PaymentBreakdownChart";
 
 const SalesReports = () => {
@@ -44,17 +58,21 @@ const SalesReports = () => {
     // 6. Invoice List
     const [invoiceList, setInvoiceList] = useState<ISalesInvoiceListResponse | null>(null);
 
+    const [roleFilter, setRoleFilter] = useState<"cashier" | "admin">("cashier");
+
     // Table states
     const [page, setPage] = useState(1);
     const [loadingCashier, setLoadingCashier] = useState(false);
+
+    // Table Meta
     const total = cashierReport?.meta.total ?? 0;
-    const totalPages = cashierReport?.meta.totalPages ?? 1;
     const limit = cashierReport?.meta.limit ?? 10;
+    const totalPages = cashierReport?.meta.totalPages ?? 1;
 
     // Date states
-    const [dateRange, setDateRange] = useState<DateRange | undefined>();
-    const [from, setFrom] = useState("");
     const [to, setTo] = useState("");
+    const [from, setFrom] = useState("");
+    const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -101,6 +119,7 @@ const SalesReports = () => {
                 dateTo: to,
                 page,
                 limit: limit,
+                role: roleFilter
             });
 
             if (cashierRes.success) {
@@ -115,14 +134,16 @@ const SalesReports = () => {
 
     useEffect(() => {
         loadCashierReport();
-    }, [page, from, to]);
+    }, [page, from, to, roleFilter]);
 
 
     // Sync date range
     useEffect(() => {
-        setFrom(formatLocalDate(dateRange?.from));
-        setTo(formatLocalDate(dateRange?.to));
+        const { from, to } = normalizeDateRange(dateRange);
+        setFrom(from);
+        setTo(to);
     }, [dateRange]);
+
 
     if (loading) {
         return (
@@ -201,17 +222,47 @@ const SalesReports = () => {
             label: "Email",
             render: (row: ISalesByCashierReportItem) => row.cashierEmail,
         },
+
+        {
+            key: "dateRange",
+            label: "Date Range",
+            render: (row: ISalesByCashierReportItem) => {
+                const from = row.firstSaleDate;
+                const to = row.lastSaleDate;
+
+                const sameDay =
+                    from &&
+                    to &&
+                    new Date(from).toDateString() === new Date(to).toDateString();
+
+                return (
+                    <div className="flex flex-col text-xs gap-1.5">
+                        {sameDay ? (
+                            <span>{formatDateTime(from, { hideTime: true })}</span>
+                        ) : (
+                            <>
+                                <span>From: {formatDateTime(from, { hideTime: true })}</span>
+                                <span>To: {formatDateTime(to, { hideTime: true })}</span>
+                            </>
+                        )}
+                    </div>
+                );
+            },
+        },
+
         {
             key: "totalSales",
             label: "Total Sales",
             render: (row: ISalesByCashierReportItem) =>
                 formatCurrencyLKR(row.totalSales, false),
         },
+
         {
             key: "invoiceCount",
             label: "Invoices",
             render: (row: ISalesByCashierReportItem) => row.invoiceCount,
         },
+
         {
             key: "totalProfit",
             label: "Total Profit",
@@ -238,17 +289,34 @@ const SalesReports = () => {
             </div>
 
             {/* Cashier sales table */}
-            <div className="flex flex-col gap-6 p-5 rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient shadow-lg 
-            shadow-primary-900/15">
+            <div className="flex flex-col gap-6 p-5 rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient 
+            shadow-lg shadow-primary-900/15">
 
-                <div className="flex items-center justify-between">
-                    <h1 className="text-sm md:text-lg font-semibold">Sales by Cashiers</h1>
+                <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+                    <h1 className="text-sm md:text-lg font-semibold w-full">Sales by {toSentenceCase(roleFilter)}</h1>
 
-                    <DateRangePicker
-                        value={dateRange}
-                        onChange={setDateRange}
-                        className="max-w-[250px]"
-                    />
+                    <div className="flex flex-col md:flex-row gap-4 w-full items-center justify-end">
+
+                        <SelectField
+                            placeholder="Select Role"
+                            value={roleFilter}
+                            onChange={(val) => {
+                                setRoleFilter(val as "cashier" | "admin");
+                                setPage(1);
+                            }}
+                            options={[
+                                { label: "Cashiers", value: "cashier" },
+                                { label: "Admin", value: "admin" },
+                            ]}
+                            width="md:max-w-[150px] search-gradient"
+                        />
+
+                        <DateRangePicker
+                            value={dateRange}
+                            onChange={setDateRange}
+                            className="md:max-w-[250px]"
+                        />
+                    </div>
                 </div>
 
                 <DataTable

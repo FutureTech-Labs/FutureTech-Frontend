@@ -39,10 +39,10 @@ export default function ProfitExpensePie({ data }: Props) {
     };
 
     return (
-        <div className="flex flex-col w-full rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient shadow-lg shadow-primary-900/15 p-5">
+        <div className="flex flex-col dashboard-card-border-gradient table-bg-gradient shadow-lg shadow-primary-900/15 p-5">
 
             <div className="flex justify-between items-center w-full">
-                <h1 className="text-lg text-gradient">Daily Profit/Loss</h1>
+                <h1 className="text-lg font-semibold text-gradient">Daily Profit/Loss</h1>
 
                 <span
                     className={`text-sm font-semibold ${isProfit ? "text-cyan-300" : "text-rose-300"}`}

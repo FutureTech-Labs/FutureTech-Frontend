@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { DateRange } from "react-day-picker";
-import { formatCurrencyLKR, formatLocalDate } from "@/lib/utils";
+import {
+    useState,
+    useEffect
+} from "react";
 
 import {
     getCurrentStockReport,
@@ -15,6 +16,15 @@ import {
     getBatchListReport,
 } from "@/services/Report-Services/inventoryReportServices";
 
+import { formatCurrencyLKR, formatDateTime } from "@/lib/utils";
+
+import {
+    DollarSign,
+    Package,
+    Layers,
+    BarChart2
+} from "lucide-react";
+
 import KPI from "@/components/cards/KPICard";
 import DataTable from "@/components/common/Table";
 import SearchField from "@/components/forms/SearchField";
@@ -22,14 +32,11 @@ import ReportSection from "@/components/common/ReportsSection";
 import ExportPDFButton from "@/components/common/ExportPdfButton";
 import { TooltipWrapper } from "@/components/common/TooltipWrapper";
 import PaginationSlider from "@/components/sliders/PaginationSlider";
-import { DollarSign, Package, Layers, BarChart2 } from "lucide-react";
 import { StatusBadge, StatusBadgeProps } from "@/components/common/StatusBadge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const InventoryReports = () => {
-    // -----------------------------
-    // 1. STATES
-    // -----------------------------
+    // STATES
     const [currentStock, setCurrentStock] = useState<ICurrentStockResponse | null>(null);
     const [lowStock, setLowStock] = useState<ILowStockResponse | null>(null);
     const [stockValue, setStockValue] = useState<IStockValueResponse | null>(null);
@@ -63,19 +70,11 @@ const InventoryReports = () => {
     const [pageBatchList, setPageBatchList] = useState(1);
     const [loadingBatchList, setLoadingBatchList] = useState(true);
 
-    // Date range for Stock Movement
-    const [dateRange, setDateRange] = useState<DateRange | undefined>();
-    const [from, setFrom] = useState<string>("");
-    const [to, setTo] = useState<string>("");
-
     // Global initial loader
     const [loading, setLoading] = useState(true);
 
-    // Table-specific loader
 
-    // -----------------------------
-    // 2. INITIAL PARALLEL LOAD
-    // -----------------------------
+    // INITIAL PARALLEL LOAD
     const loadInitial = async () => {
         try {
             const [
@@ -123,9 +122,7 @@ const InventoryReports = () => {
         loadInitial();
     }, []);
 
-    // -----------------------------
-    // 3. PAGINATION LOADERS
-    // -----------------------------
+    // PAGINATION LOADERS
     const loadCurrentStock = async () => {
         if (loading) return;
         setLoadingCurrent(true);
@@ -186,8 +183,6 @@ const InventoryReports = () => {
         setLoadingMovement(true);
         try {
             const res = await getStockMovementReport({
-                from,
-                to,
                 page: pageStockMovement,
             });
             setStockMovement(res);
@@ -198,40 +193,24 @@ const InventoryReports = () => {
         }
     };
 
-    // -----------------------------
-    // 4. PAGINATION TRIGGERS
-    // -----------------------------
+    // PAGINATION TRIGGERS
     useEffect(() => { loadCurrentStock() }, [pageCurrent]);
     useEffect(() => { loadLowStock() }, [pageLow, lowSearch]);
     useEffect(() => { loadStockValue() }, [pageStockValue]);
     useEffect(() => { loadBatchList() }, [pageBatchList]);
-    useEffect(() => { loadStockMovement() }, [pageStockMovement, from, to]);
+    useEffect(() => { loadStockMovement() }, [pageStockMovement]);
 
-    // -----------------------------
-    // 5. DATE RANGE SYNC
-    // -----------------------------
-    useEffect(() => {
-        setFrom(formatLocalDate(dateRange?.from));
-        setTo(formatLocalDate(dateRange?.to));
-    }, [dateRange]);
-
-    // -----------------------------
-    // 6. PRE-RENDER
-    // -----------------------------
+    // PRE-RENDER
     if (loading) return <div>Loading...</div>;
 
-    // -----------------------------
-    // 7. KPI CALCULATIONS (UNCHANGED)
-    // -----------------------------
+    // KPI CALCULATIONS
+    const totalBatches = currentStock?.meta.totalBatches ?? 0;
     const totalProducts = currentStock?.meta.totalProducts ?? 0;
     const totalStockValue = currentStock?.meta.totalStockValue ?? 0;
-    const totalBatches = currentStock?.meta.totalBatches ?? 0;
     const totalQuantityAvailable = currentStock?.meta.totalQuantityAvailable ?? 0;
 
+    // TABLE COLUMNS
 
-    // -----------------------------
-    // 8. TABLE COLUMNS
-    // -----------------------------
     // Current stock table columns
     const currentStockColumns = [
         {
@@ -641,10 +620,9 @@ const InventoryReports = () => {
             key: "dateReceived",
             label: "Received On",
             render: (row: IBatchAgingItem) => {
-                const receivedDate = new Date(row.dateReceived);
                 return (
                     <TooltipWrapper content={`Age: ${row.ageDays} days`}>
-                        {formatLocalDate(receivedDate)}
+                        {formatDateTime(row.dateReceived)}
                     </TooltipWrapper>
                 );
             },
@@ -688,7 +666,7 @@ const InventoryReports = () => {
         {
             header: "Received On",
             key: "dateReceived",
-            format: (v: any) => formatLocalDate(new Date(v)),
+            format: (v: any) => formatDateTime(v),
         },
 
         {
@@ -747,7 +725,7 @@ const InventoryReports = () => {
             key: "dateReceived",
             label: "Received On",
             render: (row: IBatchListItem) =>
-                formatLocalDate(new Date(row.dateReceived)),
+                formatDateTime(row.dateReceived),
         },
     ];
 
@@ -783,10 +761,9 @@ const InventoryReports = () => {
         {
             header: "Received On",
             key: "dateReceived",
-            format: (value: string) => formatLocalDate(new Date(value)),
+            format: (value: string) => formatDateTime(value),
         },
     ];
-
 
     // KPI cards
     const kpiCards = [

@@ -55,7 +55,7 @@ export const getTopProducts = async (
 // GET /admin/report/sales/by-cashier/detail
 // ==============================
 export const getSalesByCashierReport = async (
-    params?: { dateFrom?: string; dateTo?: string; page?: number; limit?: number }
+    params?: { dateFrom?: string; dateTo?: string; page?: number; limit?: number, role?: "admin" | "cashier" }
 ): Promise<ISalesByCashierReportResponse> => {
     const { data } = await api.get<ISalesByCashierReportResponse>(
         "/admin/report/sales/by-cashier/detail",

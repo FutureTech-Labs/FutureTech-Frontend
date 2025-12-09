@@ -193,6 +193,21 @@ declare global {
         items: IPurchaseInvoiceItem[];
     }
 
+    // ==============================
+    // PURCHASE STATS
+    // ==============================
+    interface IPurchaseStats {
+        totalPurchasesAmount: number;      // Sum of all purchase totals
+        totalPurchaseInvoices: number;     // Count of all purchase invoices
+        pendingInvoices: number;           // Invoices with status = "pending" or "partial"
+        outstandingSupplierBalance: number; // Sum of all suppliers' outstandingBalance
+        upcomingDuePayments: number;       // Count of invoices due within next 7 days
+    }
+    interface IPurchaseStatsResponse {
+        success: boolean;
+        stats: IPurchaseStats;
+    }
+
     // ----------------------------------------
     // SUPPLIER PAYMENT
     // ----------------------------------------
@@ -476,6 +491,20 @@ declare global {
         data: ISalesByCashierItem[];
     }
 
+    // ---------- SALES STATISTICS (Admin + Cashier) ----------
+    interface ISalesStats {
+        totalSales: number;        // Sum of all invoice totals
+        totalInvoices: number;     // Count of invoices
+        avgInvoice: number;        // Average invoice amount
+        returnedInvoices: number;  // Count of invoices with returned items
+    }
+
+    interface ISalesStatsResponse {
+        success: boolean;
+        stats: ISalesStats;
+    }
+
+
     // ===== RETURN TYPES =====
 
     interface IReturnItem {
@@ -749,6 +778,8 @@ declare global {
         totalSales: number;
         invoiceCount: number;
         totalProfit: number;
+        firstSaleDate: string;
+        lastSaleDate: string;
     }
 
     // Pagination meta data

@@ -71,7 +71,7 @@ const ExpenseForm = ({ expense, onSuccess, onCancel }: ExpenseFormProps) => {
         defaultValues: {
             category: undefined as unknown as ManualExpenseCategory,
             amount: 0,
-            date: new Date().toISOString().slice(0, 10),
+            date: new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
             description: ""
         }
     });
@@ -83,7 +83,7 @@ const ExpenseForm = ({ expense, onSuccess, onCancel }: ExpenseFormProps) => {
             reset({
                 category: expense.category as ManualExpenseCategory,
                 amount: expense.amount,
-                date: expense.date.slice(0, 10),
+                date: new Date(expense.date).toISOString(),
                 description: expense.description || ""
             });
         }

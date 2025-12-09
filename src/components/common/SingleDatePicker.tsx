@@ -1,11 +1,13 @@
 "use client";
 
 import { format } from "date-fns";
+import { cn, normalizeSingleDate } from "@/lib/utils";
+
 import { CalendarIcon } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface DatePickerFieldProps {
     label?: string;
@@ -50,7 +52,10 @@ export default function DatePickerField({
                     <Calendar
                         mode="single"
                         selected={selectedDate}
-                        onSelect={(d) => d && onChange(format(d, "yyyy-MM-dd"))}
+                        onSelect={(d) => {
+                            const iso = normalizeSingleDate(d);
+                            if (iso) onChange(iso);
+                        }}
                         disabled={disabled}
                     />
                 </PopoverContent>

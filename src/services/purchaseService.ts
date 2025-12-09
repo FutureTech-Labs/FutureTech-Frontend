@@ -51,3 +51,11 @@ export const getAllPurchases = async (params?: {
     });
     return res.data;
 };
+
+// ==============================
+// GET PURCHASE STATS
+// ==============================
+export const getPurchaseStats = async (): Promise<IPurchaseStatsResponse> => {
+    const res = await api.get<IPurchaseStatsResponse>("/admin/purchases/stats");
+    return res.data;
+};

@@ -87,12 +87,12 @@ export function formatReadableDate(dateString: string): string {
  *   formatLocalDate(new Date("2025-02-21T18:00:00Z"))
  *   → "2025-02-21"
  */
-export function formatLocalDate(date?: Date) {
-  if (!date) return "";
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-    .toISOString()
-    .split("T")[0];
-};
+// export function formatLocalDate(date?: Date) {
+//   if (!date) return "";
+//   return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+//     .toISOString()
+//     .split("T")[0];
+// };
 
 /**
  * Utility: warrantyStringToMonths()
@@ -151,17 +151,30 @@ export const computeWarrantyEndDate = (saleDate: string | Date, warrantyPeriod: 
  *   formatDateTime("2025-02-21T10:12:00Z")
  *   → "Feb 21, 2025, 10:12 AM"
  */
-export const formatDateTime = (date?: string | null) => {
+export const formatDateTime = (
+  date?: string | null,
+  options?: { hideTime?: boolean }
+) => {
   if (!date) return "—";
-  return new Date(date).toLocaleString("en-US", {
+
+  const hideTime = options?.hideTime ?? false;
+
+  const baseOptions: Intl.DateTimeFormatOptions = {
     timeZone: "Asia/Colombo",
     year: "numeric",
     month: "short",
     day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  };
+
+  // include time only if hideTime = false
+  if (!hideTime) {
+    baseOptions.hour = "2-digit";
+    baseOptions.minute = "2-digit";
+  }
+
+  return new Date(date).toLocaleString("en-US", baseOptions);
 };
+
 
 
 /**
@@ -217,4 +230,53 @@ export function parseUserAgent(ua: string): string {
   }
 
   return `${os} — ${browser}`;
+};
+
+/**
+ * normalizeDateRange()
+ * ----------------------------------------------
+ * Takes a DateRange object and returns:
+ * { from: ISO string | "", to: ISO string | "" }
+ *
+ * - Ensures start-of-day for `from`
+ * - Ensures end-of-day for `to`
+ * - Prevents timezone shift issues
+ */
+export function normalizeDateRange(range?: { from?: Date; to?: Date }) {
+  if (!range) {
+    return { from: "", to: "" };
+  }
+
+  let from = "";
+  let to = "";
+
+  if (range.from instanceof Date && !isNaN(range.from.getTime())) {
+    const start = new Date(range.from);
+    start.setHours(0, 0, 0, 0);
+    from = start.toISOString();
+  }
+
+  if (range.to instanceof Date && !isNaN(range.to.getTime())) {
+    const end = new Date(range.to);
+    end.setHours(23, 59, 59, 999);
+    to = end.toISOString();
+  }
+
+  return { from, to };
 }
+
+
+/**
+ * normalizeSingleDate()
+ * ----------------------------------------------
+ * Converts a single Date into ISO start-of-day.
+ * Returns "" if invalid.
+ */
+export function normalizeSingleDate(d?: Date) {
+  if (!d || !(d instanceof Date) || isNaN(d.getTime())) return "";
+
+  const start = new Date(d);
+  start.setHours(0, 0, 0, 0);
+  return start.toISOString(); // safe UTC ISO
+}
+

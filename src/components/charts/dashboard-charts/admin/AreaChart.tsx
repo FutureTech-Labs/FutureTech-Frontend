@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+    useEffect,
+    useState
+} from "react";
+
 import {
     AreaChart,
     Area,
@@ -9,13 +13,14 @@ import {
     DotProps,
 } from "recharts";
 
-import SelectField from "@/components/forms/SelectField";
 import {
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
     ChartConfig,
 } from "@/components/ui/chart";
+
+import SelectField from "@/components/forms/SelectField";
 import DashboardCard from "@/components/cards/DashboardCard";
 
 // Month names
@@ -106,14 +111,14 @@ export default function AreaRevenueProfitExpenseChart({
                             { value: "6", label: "Last 6 Months" },
                             { value: "3", label: "Last 3 Months" },
                         ]}
-                        className="w-[150px]"
+                        className="hidden sm:flex w-[150px]"
                     />
                 </div>
             }
         >
 
             {/* Chart Container (Legend internally binds here) */}
-            <ChartContainer config={chartConfig} className="w-full h-full">
+            <ChartContainer config={chartConfig} className="w-full h-full max-h-[350px]">
 
                 <AreaChart data={chartData} key={JSON.stringify(chartData)}>
 
