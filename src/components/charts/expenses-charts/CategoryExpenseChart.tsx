@@ -23,10 +23,8 @@ const COLOR_MAP = [
 ];
 
 export default function CategoryExpenseChart({
-    refresh = 0,
     expenses = [],
 }: {
-    refresh?: number;
     expenses: IExpense[];
 }) {
     const [chartData, setChartData] = useState<
@@ -35,7 +33,7 @@ export default function CategoryExpenseChart({
     const [totalAmount, setTotalAmount] = useState(0);
 
     // -------------------------------
-    // Dummy Fallback Data
+    // Dummy Fallback Data (KEPT)
     // -------------------------------
     const dummyData = [
         { category: "Electricity", total: 82000, fill: COLOR_MAP[0] },
@@ -45,47 +43,33 @@ export default function CategoryExpenseChart({
         { category: "Misc", total: 25000, fill: COLOR_MAP[4] },
     ];
 
-    const load = () => {
-        try {
-            // If no expenses → Dummy data
-            if (!expenses || expenses.length < 10) {
-                setChartData(dummyData);
-                setTotalAmount(dummyData.reduce((sum, d) => sum + d.total, 0));
-                return;
-            }
-
-            const categoryMap: Record<string, number> = {};
-
-            let accumulated = 0;
-
-            expenses.forEach((exp) => {
-                if (!categoryMap[exp.category]) categoryMap[exp.category] = 0;
-                categoryMap[exp.category] += exp.amount;
-                accumulated += exp.amount;
-            });
-
-            const formatted = Object.entries(categoryMap).map(
-                ([category, total], i) => ({
-                    category,
-                    total,
-                    fill: COLOR_MAP[i % COLOR_MAP.length],
-                })
-            );
-
-            setChartData(formatted);
-            setTotalAmount(accumulated);
-        } catch (err) {
-            console.error("Error:", err);
-
-            // fallback
-            setChartData(dummyData);
-            setTotalAmount(dummyData.reduce((sum, d) => sum + d.total, 0));
-        }
-    };
-
     useEffect(() => {
-        load();
-    }, [refresh, expenses]);
+        if (!Array.isArray(expenses) || expenses.length < 100) {
+            setChartData(dummyData);
+            setTotalAmount(dummyData.reduce((s, d) => s + d.total, 0));
+            return;
+        }
+
+        const categoryMap: Record<string, number> = {};
+        let accumulated = 0;
+
+        expenses.forEach((exp) => {
+            categoryMap[exp.category] =
+                (categoryMap[exp.category] || 0) + exp.amount;
+            accumulated += exp.amount;
+        });
+
+        const formatted = Object.entries(categoryMap).map(
+            ([category, total], i) => ({
+                category,
+                total,
+                fill: COLOR_MAP[i % COLOR_MAP.length],
+            })
+        );
+
+        setChartData(formatted);
+        setTotalAmount(accumulated);
+    }, [expenses]);
 
     const chartConfig: ChartConfig = {
         total: { label: "Expenses" },
@@ -127,7 +111,7 @@ export default function CategoryExpenseChart({
                         nameKey="category"
                         innerRadius={56}
                         labelLine={false}
-                        isAnimationActive={true}
+                        isAnimationActive
                         animationDuration={1000}
                     />
 

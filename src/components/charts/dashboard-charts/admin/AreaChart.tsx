@@ -57,7 +57,7 @@ export default function AreaRevenueProfitExpenseChart({
     const [chartData, setChartData] = useState<any[]>([]);
 
     useEffect(() => {
-        if (!data || data.length < 30) {
+        if (!data || data.length < 100) {
             setChartData(fullDummyData.slice(-monthsValue));
             return;
         }

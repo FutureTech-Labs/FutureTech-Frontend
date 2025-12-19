@@ -1,15 +1,25 @@
 "use client";
 
+import {
+    useState,
+    startTransition
+} from "react";
+
+import { toast } from "sonner";
+
+import {
+    createSale,
+    getSaleById
+} from "@/services/salesServices";
+
 import { useSalesCart } from "@/stores/useSalesCart";
-import { createSale, getSaleById } from "@/services/salesServices";
+
+import { FileText } from "lucide-react";
+import InputField from "./InputField";
+import { Button } from "../ui/button";
+import SelectField from "./SelectField";
 
 import { useForm } from "react-hook-form";
-import InputField from "./InputField";
-import SelectField from "./SelectField";
-import { toast } from "sonner";
-import { useState } from "react";
-import { Button } from "../ui/button";
-import { FileText } from "lucide-react";
 
 interface SalesFormProps {
     onSuccess: (data: IGetSaleByIdResponse) => void;
@@ -61,22 +71,20 @@ export default function SalesForm({ onSuccess }: SalesFormProps) {
                 tax: 0,
             };
 
-            // Show loading toast
             loadingToast = toast.loading("Processing sale...");
 
-            // Create sale
             const res = await createSale(payload);
-
-            // Fetch full invoice with normalized product name
-            const invoiceFull = await getSaleById(res.invoice._id);
 
             toast.success("Sale created successfully!", {
                 id: loadingToast,
             });
 
-            clear();
-            reset();
-            onSuccess(invoiceFull);
+            startTransition(async () => {
+                const invoiceFull = await getSaleById(res.invoice._id);
+                clear();
+                reset();
+                onSuccess(invoiceFull);
+            });
 
         } catch (err: any) {
             toast.error(
@@ -85,8 +93,7 @@ export default function SalesForm({ onSuccess }: SalesFormProps) {
                 "Something went wrong",
                 { id: loadingToast }
             );
-        }
-        finally {
+        } finally {
             setLoading(false);
         }
     };

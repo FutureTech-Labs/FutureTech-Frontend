@@ -1,11 +1,7 @@
-import InvoiceTest from "@/tests/InvoiceTest";
+import AdminDashboardSkeleton from "@/components/loaders/AdminDashboardLoader";
 
 const SettingsPage = () => {
-    return (
-        <div>
-            <InvoiceTest />
-        </div>
-    )
-}
+    return <AdminDashboardSkeleton />;
+};
 
 export default SettingsPage;

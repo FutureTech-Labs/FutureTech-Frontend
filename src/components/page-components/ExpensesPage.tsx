@@ -18,7 +18,7 @@ import IconButton from "../common/IconButton";
 import { TooltipWrapper } from "../common/TooltipWrapper";
 import { DateRangePicker } from "../common/DateRangePicker";
 
-import { deleteExpense, getExpenses } from "@/services/expenseServices";
+import { deleteExpense, getExpenses, getProfitVsExpense } from "@/services/expenseServices";
 
 import { EXPENSE_CATEGORIES } from "@/constants";
 import { formatDateTime, normalizeDateRange } from "@/lib/utils";
@@ -28,6 +28,7 @@ import ProfitVsExpenseChart from "../charts/expenses-charts/ProfitVsExpenseChart
 
 const ExpensesPage = () => {
     const [expenses, setExpenses] = useState<IExpense[]>([]);
+    const [allExpensesForCharts, setAllExpensesForCharts] = useState<IExpense[]>([]);
     const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
     const [from, setFrom] = useState("");
@@ -40,6 +41,7 @@ const ExpensesPage = () => {
 
     const [loading, setLoading] = useState(true);
     const [refreshCharts, setRefreshCharts] = useState(0);
+    const [profitVsExpense, setProfitVsExpense] = useState<IProfitVsExpenseItem[]>([]);
 
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
@@ -81,17 +83,53 @@ const ExpensesPage = () => {
         fetchExpenses();
     }, [page, from, to, selectedCategory]);
 
+    const fetchAllExpensesForCharts = async () => {
+        try {
+            const res = await getExpenses({
+                limit: 100000,
+                from,
+                to,
+            });
+
+            if (res.success) {
+                setAllExpensesForCharts(res.data);
+            }
+        } catch (err) {
+            console.error("Failed to load chart expenses", err);
+        }
+    };
+
+    useEffect(() => {
+        fetchAllExpensesForCharts();
+    }, [from, to, refreshCharts]);
+
+    const fetchProfitVsExpense = async () => {
+        try {
+            const res = await getProfitVsExpense(12);
+
+            if (res.success) {
+                setProfitVsExpense(res.data);
+            }
+        } catch (error) {
+            console.error("Failed to load profit vs expense analytics", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchProfitVsExpense();
+    }, [refreshCharts]);
+
+
     const handleDeleteExpense = async (expenseId: string) => {
         try {
             const res = await deleteExpense(expenseId);
             toast.success(res.message || "Expense deleted");
-            fetchExpenses(); // refresh table
+            fetchExpenses();
             setRefreshCharts((n) => n + 1);
         } catch (err: any) {
             toast.error(err?.response?.data?.message || "Failed to delete expense");
         }
     };
-
 
     // Table Columns
     const ExpenseColumns = [
@@ -153,13 +191,29 @@ const ExpensesPage = () => {
                         />
                     </TooltipWrapper>
 
-                    <TooltipWrapper content="Delete Expense">
+                    <TooltipWrapper
+                        content={
+                            e.category === "Purchase"
+                                ? "Purchase expenses cannot be deleted"
+                                : "Delete Expense"
+                        }
+                    >
                         <IconButton
                             iconSrc="/icons/Minus.svg"
                             ariaLabel="Delete"
-                            onClick={() => handleDeleteExpense(e._id)}
+                            disabled={e.category === "Purchase"}
+                            className={
+                                e.category === "Purchase"
+                                    ? "opacity-40 cursor-not-allowed"
+                                    : ""
+                            }
+                            onClick={() => {
+                                if (e.category === "Purchase") return;
+                                handleDeleteExpense(e._id);
+                            }}
                         />
                     </TooltipWrapper>
+
                 </div>
             ),
         },
@@ -173,12 +227,12 @@ const ExpensesPage = () => {
 
                     {/* First Chart */}
                     <div className="col-span-3 row-span-2">
-                        <ProfitVsExpenseChart refresh={refreshCharts} expenses={expenses} />
+                        <ProfitVsExpenseChart months={12} data={profitVsExpense} />
                     </div>
 
                     {/* Second Chart */}
                     <div className="col-span-3 md:col-span-2 row-span-2">
-                        <CategoryExpenseChart refresh={refreshCharts} expenses={expenses} />
+                        <CategoryExpenseChart expenses={allExpensesForCharts} />
                     </div>
                 </div>
             </div>

@@ -179,11 +179,11 @@ const Header = ({ user }: { user: IUser }) => {
                                     My Account
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                {user.role === "admin" && (
+                                {/* {user.role === "admin" && (
                                     <DropdownMenuItem onClick={() => { }}>
                                         <Settings className="mr-2 h-4 w-4" /> Settings
                                     </DropdownMenuItem>
-                                )}
+                                )} */}
                                 <DropdownMenuItem onClick={logout}>
                                     <LogOut className="mr-2 h-4 w-4" /> Logout
                                 </DropdownMenuItem>

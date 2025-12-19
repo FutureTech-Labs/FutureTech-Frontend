@@ -32,6 +32,7 @@ import { Button } from "@/components/ui/button";
 import TopSellingChart from "@/components/charts/dashboard-charts/admin/TopSellingChart";
 import AreaRevenueProfitExpenseChart from "@/components/charts/dashboard-charts/admin/AreaChart";
 import ProfitExpenseRadial from "@/components/charts/dashboard-charts/admin/ProfitExpenseChart";
+import AdminDashboardSkeleton from "@/components/loaders/AdminDashboardLoader";
 
 const AdminDashboard = () => {
 
@@ -89,13 +90,22 @@ const AdminDashboard = () => {
         };
 
         loadDashboard();
-    }, [months]);
+    }, [months, topMonths]);
+
+    const isReady =
+        areaChart &&
+        topProducts &&
+        profitVsExpense &&
+        recentExpenses &&
+        inventoryOverview;
+
+    if (loading || !isReady) {
+        return <AdminDashboardSkeleton />;
+    }
 
     const handleAddExpense = () => {
         router.push("/dashboard/expenses");
     };
-
-    if (loading) return <div>Loading dashboard…</div>;
 
     return (
         <div className="max-h-screen h-screen">
@@ -125,7 +135,7 @@ const AdminDashboard = () => {
 
                     {/* Profit Vs Expense chart */}
                     <div>
-                        <ProfitExpenseRadial />
+                        <ProfitExpenseRadial data={profitVsExpense} />
                     </div>
 
                     {/* Inventory overview */}
@@ -180,25 +190,39 @@ const AdminDashboard = () => {
                         {/* Header */}
                         <h1 className="text-lg font-semibold text-gradient shrink-0">Recent Expenses</h1>
 
-                        <div className="flex-1 flex flex-col gap-4 overflow-y-auto h-full justify-between">
-                            {recentExpenses?.map((item, i) => {
-                                const { icon: Icon, color } = CATEGORY_ICON_MAP[item.category] ?? CATEGORY_DEFAULT_ICON;
+                        <div className="flex-1 flex flex-col gap-4 overflow-y-auto h-full justify-center">
 
-                                return (
-                                    <div key={i} className="flex items-center justify-between shrink-0">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8 rounded-md bg-white/10 flex items-center justify-center">
-                                                <Icon className={`w-4 h-4 ${color}`} />
+                            {recentExpenses && recentExpenses.length > 0 ? (
+                                recentExpenses.map((item, i) => {
+                                    const { icon: Icon, color } =
+                                        CATEGORY_ICON_MAP[item.category] ?? CATEGORY_DEFAULT_ICON;
+
+                                    return (
+                                        <div key={i} className="flex items-center justify-between shrink-0">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-8 w-8 rounded-md bg-white/10 flex items-center justify-center">
+                                                    <Icon className={`w-4 h-4 ${color}`} />
+                                                </div>
+                                                <span className="text-white/80 text-sm">
+                                                    {item.category}
+                                                </span>
                                             </div>
-                                            <span className="text-white/80 text-sm">{item.category}</span>
+                                            <span className="text-white font-semibold text-sm">
+                                                {formatCurrencyLKR(item.amount)}
+                                            </span>
                                         </div>
-                                        <span className="text-white font-semibold text-sm">
-                                            {formatCurrencyLKR(item.amount)}
-                                        </span>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })
+                            ) : (
+                                <div className="flex flex-col items-center justify-center gap-2 text-center text-white/60">
+                                    <p className="text-sm font-medium">No expenses recorded yet</p>
+                                    <p className="text-xs">
+                                        Add your first expense to start tracking costs
+                                    </p>
+                                </div>
+                            )}
                         </div>
+
 
                         {/* Footer Button */}
                         <div className="shrink-0 pt-2">

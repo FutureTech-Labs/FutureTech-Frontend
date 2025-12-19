@@ -18,7 +18,12 @@ type Props = {
 export default function ProfitExpensePie({ data }: Props) {
     const dummy = { profit: 32000, expense: 18000 };
 
-    const last = data?.[data.length - 1] ?? dummy;
+    const last =
+        data && data.length > 50
+            ? data.slice().reverse().find(d => d.profit !== 0 || d.expense !== 0)
+            ?? dummy
+            : dummy;
+
 
     const profit = last.profit;
     const expense = last.expense;
@@ -70,7 +75,6 @@ export default function ProfitExpensePie({ data }: Props) {
                             <Cell key={index} fill={item.color} />
                         ))}
 
-                        {/* Center ICON (image) */}
                         <Label
                             position="center"
                             content={({ viewBox }) => {

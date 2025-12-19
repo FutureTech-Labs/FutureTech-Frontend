@@ -30,7 +30,7 @@ export default function TopProductsChart({ data }: { data: ITopProductItem[] }) 
         { _id: "5", productName: "MI Power Bank", qtySold: 55, revenue: 40000 },
     ];
 
-    const source = (data && data.length > 3 ? data : dummyData);
+    const source = (data && data.length > 10 ? data : dummyData);
 
     const top5 = [...source]
         .sort((a, b) => b.qtySold - a.qtySold)

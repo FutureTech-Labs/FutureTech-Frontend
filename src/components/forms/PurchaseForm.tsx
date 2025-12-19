@@ -18,6 +18,8 @@ import { CircleMinus } from "lucide-react";
 import IconButton from "../common/IconButton";
 import { Button } from "@/components/ui/button";
 
+import { WARRANTY_PERIODS } from "@/constants";
+
 import { getProducts } from "@/services/productService";
 import { getSuppliers } from "@/services/supplierServices";
 import { createPurchase } from "@/services/purchaseService";
@@ -152,7 +154,7 @@ const PurchaseForm = ({ onSuccess, onCancel }: PurchaseFormProps) => {
                 {fields.map((field, index) => (
                     <div
                         key={field.id}
-                        className="relative grid grid-cols-1 md:grid-cols-4 gap-4 p-5 bg-zinc-900/30 rounded-xl border border-zinc-700 shadow-sm"
+                        className="relative grid grid-cols-1 md:grid-cols-3 gap-4 p-5 bg-zinc-900/30 rounded-xl border border-zinc-700 shadow-sm"
                     >
                         {/* Product */}
                         <ComboBoxField
@@ -169,24 +171,6 @@ const PurchaseForm = ({ onSuccess, onCancel }: PurchaseFormProps) => {
                             className="w-full"
                         />
 
-                        {/* Quantity */}
-                        {/* Quantity */}
-                        <InputField
-                            placeholder="Qty"
-                            name={`items.${index}.quantity`}
-                            label="Qty"
-                            type="number"
-                            register={register}                    // <-- IMPORTANT FIX
-                            validation={{                          // <-- validation moved here
-                                valueAsNumber: true,               // <-- number conversion
-                                required: "Quantity required",
-                                min: { value: 1, message: "Minimum 1 qty" },
-                            }}
-                            error={errors.items?.[index]?.quantity}
-                            height="h-11"
-                        />
-
-
                         {/* Selling price readonly */}
                         <InputField
                             placeholder="Selling Price"
@@ -201,23 +185,53 @@ const PurchaseForm = ({ onSuccess, onCancel }: PurchaseFormProps) => {
                             error={undefined}
                         />
 
-                        {/* Cost Price */}
-                        {/* Cost Price */}
+                        {/* Quantity */}
                         <InputField
-                            placeholder="Cost Price"
-                            name={`items.${index}.costPrice`}
-                            label="Cost Price"
+                            placeholder="Qty"
+                            name={`items.${index}.quantity`}
+                            label="Qty"
                             type="number"
                             register={register}
                             validation={{
                                 valueAsNumber: true,
-                                required: "Cost price required",
-                                min: { value: 0, message: "Cannot be negative" },
+                                required: "Quantity required",
+                                min: { value: 1, message: "Minimum 1 qty" },
                             }}
-                            error={errors.items?.[index]?.costPrice}
+                            error={errors.items?.[index]?.quantity}
                             height="h-11"
                         />
 
+                        <div className="col-span-full grid grid-cols-2 gap-4 w-full">
+                            {/* Cost Price */}
+                            <InputField
+                                placeholder="Cost Price"
+                                name={`items.${index}.costPrice`}
+                                label="Cost Price"
+                                type="number"
+                                register={register}
+                                validation={{
+                                    valueAsNumber: true,
+                                    required: "Cost price required",
+                                    min: { value: 0, message: "Cannot be negative" },
+                                }}
+                                error={errors.items?.[index]?.costPrice}
+                                height="h-11"
+                            />
+
+                            {/* Warranty Period */}
+                            <SelectField
+                                name={`items.${index}.warrantyReference`}
+                                label="Warranty Period"
+                                placeholder="Select warranty period"
+                                control={control}
+                                options={WARRANTY_PERIODS.map((option) => ({
+                                    value: option,
+                                    label: option,
+                                }))}
+                                className="h-11!"
+                            />
+
+                        </div>
 
                         {/* Remove */}
                         <div className="absolute top-0 right-0 flex items-end">

@@ -1,13 +1,14 @@
 "use client";
 
 import {
-    useEffect
+    useEffect,
+    useRef
 } from "react";
+
 import { toast } from "sonner";
 
 import { useAuth } from "@/context/AuthContext";
 import { useSocket } from "@/context/SocketContext";
-
 import { useNotificationStore } from "@/context/NotificationStore";
 import { fetchNotifications } from "@/services/notificationService";
 
@@ -18,14 +19,18 @@ export default function NotificationListener() {
     const addNotification = useNotificationStore((s) => s.addNotification);
     const setNotifications = useNotificationStore((s) => s.setNotifications);
 
-    // Load stored notifications after login
+    // Initial fetch runs ONCE after login
+    const didInitFetch = useRef(false);
+
     useEffect(() => {
-        if (!user) return;
+        if (!user || didInitFetch.current) return;
+
+        didInitFetch.current = true;
 
         fetchNotifications().then((items) => {
             setNotifications(items);
         });
-    }, [user]);
+    }, [user, setNotifications]);
 
     // Live real-time notifications
     useEffect(() => {
@@ -35,7 +40,6 @@ export default function NotificationListener() {
             addNotification(notif);
             toast(notif.message);
 
-            // Play sound
             try {
                 new Audio("/sounds/notification.mp3").play();
             } catch { }
@@ -46,7 +50,8 @@ export default function NotificationListener() {
         return () => {
             socket.off("notification", handler);
         };
-    }, [socket]);
+    }, [socket, addNotification]);
 
-    return null; // No UI, just a background listener
+
+    return null;
 }

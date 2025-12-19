@@ -25,24 +25,28 @@ const monthName = (m: number) =>
     ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
         "Aug", "Sep", "Oct", "Nov", "Dec"][m - 1];
 
+interface IProfitVsExpenseItem {
+    year: number;
+    month: number;
+    expenseTotal: number;
+    profitTotal: number;
+}
+
 export default function ProfitVsExpenseChart({
     months = 12,
-    refresh = 0,
-    expenses = []
+    data = [],
 }: {
     months?: number;
-    refresh?: number;
-    expenses: IExpense[];
+    data: IProfitVsExpenseItem[];
 }) {
-
     const [selectedMonths, setSelectedMonths] = useState(String(months));
 
-    const [data, setData] = useState<
+    const [chartData, setChartData] = useState<
         { date: string; expense: number; profit: number }[]
     >([]);
 
     // -------------------------------
-    // Dummy Fallback Data
+    // Dummy Fallback Data (KEPT)
     // -------------------------------
     const dummyData = [
         { date: "Jan 24", expense: 82000, profit: 120000 },
@@ -59,77 +63,25 @@ export default function ProfitVsExpenseChart({
         { date: "Dec 24", expense: 99000, profit: 180000 },
     ];
 
-    const load = async () => {
-        try {
-            const limit = Number(selectedMonths);
-
-            // If no expenses → dummy fallback (only last X months)
-            if (!expenses || expenses.length === 0) {
-                setData(dummyData.slice(-limit));
-                return;
-            }
-
-            // ---- 1. Build last X months list ----
-            const now = new Date();
-            const monthsList: { year: number; month: number }[] = [];
-
-            for (let i = limit - 1; i >= 0; i--) {
-                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                monthsList.push({
-                    year: d.getFullYear(),
-                    month: d.getMonth() + 1,
-                });
-            }
-
-            // ---- 2. Group expenses by month ----
-            const map = new Map<
-                string,
-                { date: string; expense: number; profit: number }
-            >();
-
-            expenses.forEach(exp => {
-                const d = new Date(exp.date);
-                const year = d.getFullYear();
-                const month = d.getMonth() + 1;
-                const key = `${year}-${month}`;
-
-                if (!map.has(key)) {
-                    map.set(key, {
-                        date: `${monthName(month)} ${String(year).slice(-2)}`,
-                        expense: 0,
-                        profit: 0
-                    });
-                }
-
-                const entry = map.get(key)!;
-                entry.expense += exp.amount;
-            });
-
-            // ---- 3. Fill missing months with 0 ----
-            const finalData = monthsList.map(({ year, month }) => {
-                const key = `${year}-${month}`;
-                return (
-                    map.get(key) ?? {
-                        date: `${monthName(month)} ${String(year).slice(-2)}`,
-                        expense: 0,
-                        profit: 0
-                    }
-                );
-            });
-
-            setData(finalData);
-
-        } catch (error) {
-            console.error(error);
-            setData(dummyData.slice(-Number(selectedMonths)));
-        }
-    };
-
-
-
     useEffect(() => {
-        load();
-    }, [selectedMonths, refresh, expenses]);
+        const limit = Number(selectedMonths);
+
+        if (!Array.isArray(data) || data.length === 0) {
+            setChartData(dummyData.slice(-limit));
+            return;
+        }
+
+        const formatted = data
+            .slice(-limit)
+            .map(item => ({
+                date: `${monthName(item.month)} ${String(item.year).slice(-2)}`,
+                expense: item.expenseTotal,
+                profit: item.profitTotal,
+            }));
+
+        setChartData(formatted);
+    }, [data, selectedMonths]);
+
 
     const chartConfig: ChartConfig = {
         expense: { label: "Expense", color: "var(--chart-orange-2)" },
@@ -144,7 +96,7 @@ export default function ProfitVsExpenseChart({
             headerRight={
                 <SelectField
                     value={selectedMonths}
-                    onChange={(v) => setSelectedMonths(v)}
+                    onChange={setSelectedMonths}
                     options={[
                         { value: "3", label: "Last 3 Months" },
                         { value: "6", label: "Last 6 Months" },
@@ -154,14 +106,8 @@ export default function ProfitVsExpenseChart({
                 />
             }
         >
-            <ChartContainer
-                config={chartConfig}
-                className="h-full w-full"
-            >
-                <AreaChart
-                    data={data}
-                    key={JSON.stringify(data)}
-                >
+            <ChartContainer config={chartConfig} className="h-full w-full">
+                <AreaChart data={chartData}>
                     <defs>
                         <linearGradient id="fillExpense" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="var(--chart-orange-3)" stopOpacity={0.8} />
@@ -196,9 +142,6 @@ export default function ProfitVsExpenseChart({
                         fill="url(#fillExpense)"
                         stroke="var(--chart-orange-1)"
                         strokeWidth={1}
-                        isAnimationActive={true}
-                        animationDuration={1200}
-                        animationBegin={100}
                     />
 
                     <Area
@@ -207,15 +150,11 @@ export default function ProfitVsExpenseChart({
                         fill="url(#fillProfit)"
                         stroke="var(--chart-green-2)"
                         strokeWidth={1}
-                        isAnimationActive={true}
-                        animationDuration={1200}
-                        animationBegin={150}
                     />
 
                     <ChartLegend content={<ChartLegendContent />} />
                 </AreaChart>
             </ChartContainer>
-
         </ChartCard>
     );
 }

@@ -8,11 +8,6 @@ import {
 import { toast } from "sonner";
 
 import {
-    updateGlobalStockThreshold,
-    getGlobalStockThreshold
-} from "@/services/productService";
-
-import {
     deleteBatch,
     getAllStockBatches,
     getStockStats
@@ -26,8 +21,8 @@ import { formatCurrencyLKR } from "@/lib/utils";
 
 import {
     Plus,
-    PackageSearch,
-    Boxes, Wallet,
+    Boxes,
+    Wallet,
     TrendingUp
 } from "lucide-react";
 
@@ -42,7 +37,6 @@ import PurchaseForm from "../forms/PurchaseForm";
 import StockDetails from "../common/StockDetails";
 import { StatusBadge } from "../common/StatusBadge";
 import PaginationSlider from "../sliders/PaginationSlider";
-import ThresholdInput from "@/components/common/ThresholdInput";
 
 const StockPage = () => {
     const [batches, setBatches] = useState<IStockBatch[]>([]);
@@ -51,8 +45,6 @@ const StockPage = () => {
     const [pages, setPages] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
-
-    const [globalThreshold, setGlobalThreshold] = useState(0);
 
     const [purchaseDialog, setPurchaseDialogOpen] = useState(false);
 
@@ -70,7 +62,6 @@ const StockPage = () => {
     const [stats, setStats] = useState({
         totalStockValue: 0,
         totalBatches: 0,
-        globalThreshold: 0,
         totalPurchaseCostThisMonth: 0
     });
 
@@ -96,16 +87,11 @@ const StockPage = () => {
         }
     };
 
-    // Fetch global stats (independent of table pagination)
     const fetchStats = async () => {
         try {
             const res = await getStockStats();
             if (res && res.success && res.stats) {
                 setStats(res.stats);
-                // keep globalThreshold in sync if present
-                if (typeof res.stats.globalThreshold === "number") {
-                    setGlobalThreshold(res.stats.globalThreshold);
-                }
             } else {
                 console.warn("getStockStats returned unexpected shape", res);
             }
@@ -114,23 +100,9 @@ const StockPage = () => {
         }
     };
 
-    // Load global threshold on mount
-    useEffect(() => {
-        (async () => {
-            try {
-                const res = await getGlobalStockThreshold();
-                if (res.success) {
-                    setGlobalThreshold(res.settings.minStockThreshold);
-                }
-            } catch (err) {
-                console.error("Failed to load threshold");
-            }
-            await fetchStats();
-        })();
-    }, []);
-
     useEffect(() => {
         fetchStockData();
+        fetchStats();
     }, [page, searchTerm]);
 
     useEffect(() => {
@@ -140,19 +112,6 @@ const StockPage = () => {
             setInvoiceData(res);
         });
     }, [selectedInvoiceId]);
-
-    const handleThresholdUpdate = async (v: number) => {
-        try {
-            const res = await updateGlobalStockThreshold(v);
-            if (res.success) {
-                toast.success("Global threshold updated");
-                setGlobalThreshold(v);
-                await fetchStats();
-            }
-        } catch (err: any) {
-            toast.error(err.response?.data?.message || "Failed to update threshold");
-        }
-    };
 
     const handlePurchase = () => {
         setPurchaseDialogOpen(true);
@@ -228,12 +187,12 @@ const StockPage = () => {
                 const minStock = b.product?.minStock ?? undefined;
 
                 if (stock === 0)
-                    return <StatusBadge text="Out" color="red" />
+                    return <StatusBadge text="Out" color="red" />;
 
                 if (minStock && stock < minStock)
-                    return <StatusBadge text={`Low (${stock})`} color="yellow" />
+                    return <StatusBadge text={`Low (${stock})`} color="yellow" />;
 
-                return <StatusBadge text={`${stock}`} color="green" />
+                return <StatusBadge text={`${stock}`} color="green" />;
             },
         },
         {
@@ -251,7 +210,6 @@ const StockPage = () => {
                         ariaLabel="view"
                         onClick={() => handleViewBatch(b)}
                     />
-
                     <IconButton
                         iconSrc="/icons/Delete.svg"
                         ariaLabel="Delete"
@@ -262,39 +220,27 @@ const StockPage = () => {
         },
     ];
 
-    // Stat Cards
     const stockStatCards = [
         <StatCard
             key="stock-value"
             title="Stock Value"
-            value={formatCurrencyLKR(stats?.totalStockValue || 0)}
+            value={formatCurrencyLKR(stats.totalStockValue || 0)}
             icon={<Wallet className="w-5 h-5 text-green-400" />}
             iconBg="bg-green-500/10"
             gradient="linear-gradient(79.74deg, rgba(0,255,132,0.15) 0%, rgba(0,0,0,0.12) 100%)"
         />,
-
         <StatCard
             key="total-batches"
             title="Batches"
-            value={stats?.totalBatches || 0}
+            value={stats.totalBatches || 0}
             icon={<Boxes className="w-5 h-5 text-blue-400" />}
             iconBg="bg-blue-500/10"
             gradient="linear-gradient(79.74deg, rgba(0,128,255,0.15) 0%, rgba(0,0,0,0.12) 100%)"
         />,
-
-        <StatCard
-            key="threshold"
-            title="Global Threshold"
-            value={globalThreshold}
-            icon={<PackageSearch className="w-5 h-5 text-purple-400" />}
-            iconBg="bg-purple-500/10"
-            gradient="linear-gradient(79.74deg, rgba(180,0,255,0.15) 0%, rgba(0,0,0,0.12) 100%)"
-        />,
-
         <StatCard
             key="monthly-cost"
             title="Purchases (This Month)"
-            value={formatCurrencyLKR(stats?.totalPurchaseCostThisMonth || 0)}
+            value={formatCurrencyLKR(stats.totalPurchaseCostThisMonth || 0)}
             icon={<TrendingUp className="w-5 h-5 text-red-400" />}
             iconBg="bg-red-500/10"
             gradient="linear-gradient(79.74deg, rgba(255,0,0,0.15) 0%, rgba(0,0,0,0.12) 100%)"
@@ -304,33 +250,22 @@ const StockPage = () => {
     return (
         <div className="relative flex flex-col gap-6">
 
-            {/* Desktop grid */}
-            <div className="hidden lg:grid grid-cols-1 lg:grid-cols-4 gap-6 w-full">
+            <div className="hidden lg:grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
                 {stockStatCards}
             </div>
 
-            {/* Mobile slider */}
             <PaginationSlider>{stockStatCards}</PaginationSlider>
 
-
-            <div className="flex flex-col gap-6 p-5 rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient 
-            shadow-lg shadow-primary-900/15">
+            <div className="flex flex-col gap-6 p-5 rounded-xl border-2 border-gradient border-primary-900/40 table-bg-gradient shadow-lg shadow-primary-900/15">
 
                 <div className="flex md:flex-row flex-col gap-5 items-center justify-between w-full">
 
-                    {/* Search filter */}
                     <SearchField
                         placeholder="Search products, brands or categories..."
                         value={searchTerm}
                         onChange={setSearchTerm}
                         onClear={() => setSearchTerm("")}
                         className="md:max-w-md"
-                    />
-
-                    {/* Minimum Threshold */}
-                    <ThresholdInput
-                        value={globalThreshold}
-                        onSubmit={handleThresholdUpdate}
                     />
 
                     <Button
@@ -342,7 +277,6 @@ const StockPage = () => {
                     </Button>
                 </div>
 
-                {/* Table */}
                 <DataTable
                     columns={StockColumns}
                     data={batches}
@@ -354,7 +288,6 @@ const StockPage = () => {
                     }}
                 />
 
-                {/* Purchase form */}
                 <DialogBox
                     open={purchaseDialog}
                     onOpenChange={setPurchaseDialogOpen}
@@ -375,7 +308,6 @@ const StockPage = () => {
                     />
                 </DialogBox>
 
-                {/* Invoice Dialog */}
                 <DialogBox
                     open={invoiceDialogOpen}
                     onOpenChange={setInvoiceDialogOpen}
@@ -391,7 +323,6 @@ const StockPage = () => {
                     )}
                 </DialogBox>
 
-                {/* Stock Details Dialog */}
                 <DialogBox
                     open={stockDetailsDialogOpen}
                     onOpenChange={setStockDetailsDialogOpen}
@@ -401,7 +332,6 @@ const StockPage = () => {
                     <StockDetails batch={selectedBatch} />
                 </DialogBox>
 
-                {/* Delete Confirmation Dialog */}
                 <DialogBox
                     open={deleteDialogOpen}
                     onOpenChange={setDeleteDialogOpen}

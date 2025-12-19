@@ -34,10 +34,10 @@ export default function TopSellingChart({
 
     const dummyData: ITopSellingProduct[] = [
         { productId: "1", name: "Kingston Data Traveller", qtySold: 120, revenue: 450000, profit: 90000 },
-        { productId: "2", name: "Samsung A52", qtySold: 90, revenue: 320000, profit: 65000 },
-        { productId: "3", name: "AirPods Pro", qtySold: 70, revenue: 140000, profit: 40000 },
-        { productId: "4", name: "Oppo F19", qtySold: 60, revenue: 180000, profit: 30000 },
-        { productId: "5", name: "MI Power Bank", qtySold: 55, revenue: 40000, profit: 8000 },
+        { productId: "2", name: "Samsung 980 PRO NVMe", qtySold: 90, revenue: 320000, profit: 65000 },
+        { productId: "3", name: "HP LaserJet Pro", qtySold: 70, revenue: 140000, profit: 40000 },
+        { productId: "4", name: "Dell UltraSharp", qtySold: 60, revenue: 180000, profit: 30000 },
+        { productId: "5", name: "Acer Aspire", qtySold: 55, revenue: 40000, profit: 8000 },
     ];
 
     // Dummy data filter based on selected months
@@ -49,7 +49,12 @@ export default function TopSellingChart({
     })();
 
     // Use backend or dummy
-    const source = (data && data.length >= 3 ? data : dummyFiltered);
+    // Use backend or dummy (FIXED)
+    const source =
+        Array.isArray(data) && data.length > 10
+            ? data
+            : dummyFiltered;
+
 
     const top5 = [...source]
         .sort((a, b) => b.qtySold - a.qtySold)
