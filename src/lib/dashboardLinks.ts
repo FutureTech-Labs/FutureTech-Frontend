@@ -83,12 +83,12 @@ export const dashboardLinks = [
                 icon: "/icons/Users.svg",
                 roles: ["admin"]
             },
-            {
-                label: "System Settings",
-                href: "/dashboard/settings",
-                icon: "/icons/Settings.svg",
-                roles: ["admin"]
-            },
+            // {
+            //     label: "System Settings",
+            //     href: "/dashboard/settings",
+            //     icon: "/icons/Settings.svg",
+            //     roles: ["admin"]
+            // },
         ],
     },
 ];
