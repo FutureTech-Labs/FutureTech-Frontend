@@ -73,7 +73,7 @@ function DialogContent({
             className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-5 rounded-xs opacity-80 transition-opacity hover:opacity-100 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
           >
             <Image
-              src="/icons/closeIcon.svg"
+              src="/icons/CloseIcon.svg"
               alt="Close"
               width={26}
               height={24}

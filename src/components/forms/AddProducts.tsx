@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import InputField from "./InputField";
 import SelectField from "./SelectField";
 import TextareaField from "./TextAreaField";
-import { useEdgeStore } from "@/lib/edgestore";
 import { Button } from "@/components/ui/button";
 import { Controller, useForm } from "react-hook-form";
 import { EdgeStoreUploader } from "../common/EdgeStoreUploader";
@@ -23,6 +22,11 @@ interface ProductFormProps {
     onCancel?: () => void;
 }
 
+interface ProductImage {
+    url: string;
+    public_id: string;
+}
+
 interface ProductFormValues {
     name: string;
     category: string;
@@ -32,7 +36,7 @@ interface ProductFormValues {
     intro: string;
     specifications: string;
     status: string;
-    images: (string | File)[];
+    images: (ProductImage | File)[];
     minStock: number;
 }
 
@@ -66,7 +70,6 @@ const ProductForm = ({
     });
 
     const [loading, setLoading] = useState(false);
-    const { edgestore } = useEdgeStore();
 
     useEffect(() => {
         if (product) {
@@ -100,7 +103,6 @@ const ProductForm = ({
     }, [product, reset]);
 
     const onSubmit = async (data: ProductFormValues) => {
-        const uploadedUrls: string[] = []; // define once (accessible in catch)
         try {
             if (!data.images || data.images.length === 0) {
                 toast.warning("Please upload at least one product image.");
@@ -108,25 +110,6 @@ const ProductForm = ({
             }
 
             setLoading(true);
-
-            // Upload all images in parallel
-            const uploadResults = await Promise.all(
-                data.images.map(async (item, i) => {
-                    if (item instanceof File) {
-                        const oldUrl = product?.images?.[i] || null;
-                        const res = await edgestore.productImages.upload({
-                            file: item,
-                            options: oldUrl ? { replaceTargetUrl: oldUrl } : undefined,
-                        });
-                        if (res?.url) uploadedUrls.push(res.url); //  push into outer array
-                        return res?.url || "";
-                    }
-                    return item; // already a URL
-                })
-            );
-
-            // Filter out any empty URLs
-            const finalImageUrls = uploadResults.filter(Boolean);
 
             // Validate brand/category
             const selectedBrand = brands.find((b) => b._id === data.brand);
@@ -146,46 +129,67 @@ const ProductForm = ({
                     .filter(Boolean),
             };
 
-            // Payload
-            const payload: Partial<IProduct> = {
-                name: data.name,
-                brand: { _id: selectedBrand._id, name: selectedBrand.name },
-                category: { _id: selectedCategory._id, name: selectedCategory.name },
-                sellingPrice: Number(data.sellingPrice),
-                warrantyPeriod: data.warrantyPeriod,
-                description,
-                images: finalImageUrls,
-                status: data.status,
-                minStock: Number(data.minStock)
-            };
+            // Create FormData
+            const formData = new FormData();
+
+            formData.append("name", data.name);
+            formData.append("brand", selectedBrand._id);
+            formData.append("category", selectedCategory._id);
+            formData.append("sellingPrice", data.sellingPrice.toString());
+            formData.append("warrantyPeriod", data.warrantyPeriod);
+            formData.append("status", data.status);
+            formData.append("minStock", data.minStock.toString());
+
+            // Description fields
+            formData.append("description[intro]", description.intro);
+
+            description.specifications.forEach((spec) => {
+                formData.append("description[specifications][]", spec);
+            });
+
+            data.images.forEach((image) => {
+
+                // Existing image
+                if (
+                    typeof image === "object" &&
+                    image !== null &&
+                    "url" in image
+                ) {
+
+                    formData.append(
+                        "existingImages",
+                        JSON.stringify(image)
+                    );
+
+                }
+
+                // Newly uploaded file
+                if (image instanceof File) {
+
+                    formData.append(
+                        "newImages",
+                        image
+                    );
+                }
+            });
 
             // Create or update product
             if (product?._id) {
-                await updateProduct(product._id, payload);
+                await updateProduct(product._id, formData as any);
                 toast.success("Product updated successfully!");
             } else {
-                await createProduct(payload);
+                await createProduct(formData);
                 toast.success("Product added successfully!");
             }
 
             reset();
             onSuccess?.();
+
         } catch (error: any) {
-            //  Rollback uploaded images if save fails
-            if (uploadedUrls.length > 0) {
-                await Promise.all(
-                    uploadedUrls.map(async (url) => {
-                        try {
-                            await edgestore.productImages.delete({ url });
-                        } catch (err) {
-                            console.warn("Failed to delete uploaded image:", url, err);
-                        }
-                    })
-                );
-            }
 
             // Field error mapping
             const msg = (error?.response?.data?.message || "").toLowerCase();
+
             const fieldMap: Record<string, keyof ProductFormValues> = {
                 name: "name",
                 category: "category",
@@ -193,7 +197,10 @@ const ProductForm = ({
                 price: "sellingPrice",
             };
 
-            const matchedKey = Object.keys(fieldMap).find((key) => msg.includes(key));
+            const matchedKey = Object.keys(fieldMap).find((key) =>
+                msg.includes(key)
+            );
+
             if (matchedKey) {
                 setError(fieldMap[matchedKey], {
                     type: "server",
@@ -201,8 +208,11 @@ const ProductForm = ({
                         error.response?.data?.message || "Invalid field value.",
                 });
             } else {
-                toast.error(error.response?.data?.message || "Failed to save product.");
+                toast.error(
+                    error.response?.data?.message || "Failed to save product."
+                );
             }
+
         } finally {
             setLoading(false);
         }

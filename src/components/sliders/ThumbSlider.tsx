@@ -11,8 +11,13 @@ import 'swiper/css/thumbs';
 import 'swiper/css/effect-fade';
 import { FreeMode, Thumbs, Autoplay, EffectFade } from 'swiper/modules';
 
+
+interface ProductImage {
+    url: string;
+    public_id: string;
+}
 interface IThumbSlider {
-    images: string[];
+    images: ProductImage[];
     name?: string;
 }
 
@@ -49,7 +54,7 @@ const ThumbSlider: React.FC<IThumbSlider> = ({ images, name }) => {
                     <SwiperSlide key={index}>
                         <div className="relative w-full h-full min-h-60 transition-all duration-300 rounded-lg overflow-hidden">
                             <Image
-                                src={img}
+                                src={img.url}
                                 alt={`${name || 'Product'} image ${index + 1}`}
                                 fill
                                 className="object-cover"
@@ -79,7 +84,7 @@ const ThumbSlider: React.FC<IThumbSlider> = ({ images, name }) => {
                                     }`}
                             >
                                 <Image
-                                    src={img}
+                                    src={img.url}
                                     alt={`${name || 'Product'} thumbnail ${id + 1}`}
                                     fill
                                     className="object-cover"

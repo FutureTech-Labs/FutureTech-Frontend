@@ -23,7 +23,7 @@ export default function SalesProductSelector() {
         (async () => {
             const res = await getProducts();
 
-            // ✅ FILTER ONLY ACTIVE PRODUCTS
+            // FILTER ONLY ACTIVE PRODUCTS
             const activeProducts = res.products.filter((p) => p.status === "active");
 
             setProducts(activeProducts);
@@ -38,7 +38,7 @@ export default function SalesProductSelector() {
             // Generate 4 random active products only once
             const random = [...activeProducts]
                 .sort(() => Math.random() - 0.5)
-                .slice(0, 4);
+                .slice(0, 1);
 
             setFeatured(random);
         })();
@@ -70,12 +70,12 @@ export default function SalesProductSelector() {
                     >
                         <div className="w-full h-30 bg-gray-800 flex items-center justify-center">
                             <Image
-                                src={p.images?.[0]}
+                                src={p.images?.[0].url}
                                 alt={p.name}
                                 width={500}
                                 height={500}
                                 placeholder="blur"
-                                blurDataURL={p.images?.[0]}
+                                blurDataURL={p.images?.[0].url}
                                 className="object-cover w-full h-full rounded-lg select-none pointer-events-none"
                             />
 

@@ -81,8 +81,11 @@ declare global {
     }
 
 
-
     // Product Interfaces
+    interface ProductImage {
+        url: string;
+        public_id: string;
+    }
     interface IProduct {
         _id: string;
         name: string;
@@ -91,7 +94,7 @@ declare global {
         category: Category;
         sellingPrice: number;
         warrantyPeriod: string;
-        images: string[];
+        images: ProductImage[];
         status: string;
         totalStock: number;
         minStock: number;

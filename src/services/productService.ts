@@ -50,14 +50,21 @@ export const getProductById = async (id: string): Promise<IProduct> => {
 };
 
 // Create new product (Admin only)
-export const createProduct = async (productData: Partial<IProduct>): Promise<IProduct> => {
-    const res = await api.post<{ success: boolean; message: string; product: IProduct }>("/admin/product", productData);
+export const createProduct = async (formData: FormData): Promise<IProduct> => {
+    const res = await api.post<{ success: boolean; message: string; product: IProduct }>("/admin/product", formData,
+        {
+            headers: { "Content-Type": "multipart/form-data" }
+        });
     return res.data.product;
 };
 
 // Update product (Admin only)
-export const updateProduct = async (id: string, productData: Partial<IProduct>): Promise<IProduct> => {
-    const res = await api.put<{ success: boolean; message: string; product: IProduct }>(`/admin/product/${id}`, productData);
+export const updateProduct = async (id: string, formData: FormData): Promise<IProduct> => {
+
+    const res = await api.put<{ success: boolean; message: string; product: IProduct; }>(`/admin/product/${id}`, formData,
+        {
+            headers: { "Content-Type": "multipart/form-data", },
+        });
     return res.data.product;
 };
 

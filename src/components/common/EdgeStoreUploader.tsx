@@ -10,13 +10,20 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Image as ImageIcon } from "lucide-react";
 
+interface ProductImage {
+    url: string;
+    public_id: string;
+}
+
 interface EdgeStoreUploaderProps {
     maxFiles?: number;
     maxSizeMB?: number;
-    value?: (File | string)[];
-    onChange?: (value: (File | string)[]) => void;
+    value?: (ProductImage | File)[];
+    onChange?: (
+        value: (ProductImage | File)[]
+    ) => void;
     error?: string;
-    initialUrls?: string[];
+    initialUrls?: ProductImage[];
 }
 
 export const EdgeStoreUploader: React.FC<EdgeStoreUploaderProps> = ({
@@ -27,25 +34,39 @@ export const EdgeStoreUploader: React.FC<EdgeStoreUploaderProps> = ({
     error,
     initialUrls = [],
 }) => {
-    const [fileSlots, setFileSlots] = useState<(File | string | null)[]>(Array(maxFiles).fill(null));
+    const [fileSlots, setFileSlots] = useState<
+        (File | ProductImage | null)[]
+    >(
+        Array(maxFiles).fill(null)
+    );
     const [slotErrors, setSlotErrors] = useState<(string | null)[]>(Array(maxFiles).fill(null));
     const [globalError, setGlobalError] = useState<string | null>(null);
     const multiInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (initialUrls.length > 0) {
+
             const filled = Array(maxFiles)
                 .fill(null)
                 .map((_, i) => initialUrls[i] || null);
+
             setFileSlots(filled);
+
         }
     }, [initialUrls, maxFiles]);
 
     useEffect(() => {
+
         if (onChange) {
-            const filtered = fileSlots.filter(Boolean) as (File | string)[];
+
+            const filtered = fileSlots.filter(
+                Boolean
+            ) as (File | ProductImage)[];
+
             onChange(filtered);
+
         }
+
     }, [fileSlots, onChange]);
 
 
@@ -53,16 +74,33 @@ export const EdgeStoreUploader: React.FC<EdgeStoreUploaderProps> = ({
         return (
             fileSlots.some((existing, i) => {
                 if (i === excludeIndex) return false;
-                if (existing instanceof File)
-                    return existing.name === file.name && existing.size === file.size;
-                if (typeof existing === "string")
-                    return existing.split("/").pop() === file.name;
+
+                if (existing instanceof File) {
+                    return (
+                        existing.name === file.name &&
+                        existing.size === file.size
+                    );
+                }
+
+                if (
+                    typeof existing === "object" &&
+                    existing !== null &&
+                    "url" in existing
+                ) {
+                    return (
+                        existing.url.split("/").pop() === file.name
+                    );
+                }
+
                 return false;
             }) ||
-            initialUrls.some((url) => url.split("/").pop() === file.name)
+
+            initialUrls.some(
+                (image) =>
+                    image.url.split("/").pop() === file.name
+            )
         );
     };
-
 
     const handleMultipleFileSelect = (files: FileList) => {
         const validFiles = Array.from(files).slice(0, maxFiles);
@@ -174,9 +212,11 @@ export const EdgeStoreUploader: React.FC<EdgeStoreUploaderProps> = ({
                                 <>
                                     <Image
                                         src={
-                                            typeof slot === "string"
-                                                ? slot
-                                                : URL.createObjectURL(slot)
+                                            typeof slot === "object" &&
+                                                slot !== null &&
+                                                "url" in slot
+                                                ? slot.url
+                                                : URL.createObjectURL(slot as File)
                                         }
                                         alt={`Image ${index + 1}`}
                                         fill

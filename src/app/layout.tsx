@@ -2,8 +2,6 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 
-import { EdgeStoreProvider } from "@/lib/edgestore";
-
 import { AuthProvider } from "@/context/AuthContext";
 import { SocketProvider } from "@/context/SocketContext";
 
@@ -37,10 +35,8 @@ export default function RootLayout({
         <Toaster />
         <AuthProvider>
           <SocketProvider>
-            <EdgeStoreProvider>
               <NotificationListener />
               {children}
-            </EdgeStoreProvider>
           </SocketProvider>
         </AuthProvider>
       </body>

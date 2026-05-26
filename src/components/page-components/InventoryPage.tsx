@@ -9,8 +9,6 @@ import Image from "next/image";
 
 import { toast } from "sonner";
 
-import { useEdgeStore } from "@/lib/edgestore";
-
 import {
     deleteProduct,
     getCategoriesAndBrands,
@@ -72,8 +70,6 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
     const [deleting, setDeleting] = useState(false);
     const [productToDelete, setProductToDelete] = useState<IProduct | null>(null);
 
-    const { edgestore } = useEdgeStore();
-
     const fetchData = async () => {
         setLoading(true);
         try {
@@ -122,27 +118,29 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
 
     const confirmDelete = async () => {
         if (!productToDelete) return;
-        setDeleting(true);
-        try {
-            if (productToDelete.images?.length) {
-                await Promise.all(
-                    productToDelete.images.map(async (url) => {
-                        try {
-                            await edgestore.productImages.delete({ url });
-                        } catch (err) {
-                            console.warn("Failed to delete image:", url, err);
-                        }
-                    })
-                );
-            }
 
+        setDeleting(true);
+
+        try {
+
+            // Backend now handles Cloudinary cleanup
             await deleteProduct(productToDelete._id);
-            toast.success("Product and images deleted successfully");
+
+            toast.success("Product deleted successfully");
+
             setDeleteDialogOpen(false);
             setProductToDelete(null);
+
             await fetchData();
+
         } catch (error: any) {
-            toast.error(error.message || "Failed to delete product");
+
+            toast.error(
+                error?.response?.data?.message ||
+                error.message ||
+                "Failed to delete product"
+            );
+
         } finally {
             setDeleting(false);
         }
@@ -173,7 +171,7 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
                 p.images?.[0] ? (
                     <div className="relative w-[50px] h-8">
                         <Image
-                            src={p.images[0]}
+                            src={p.images[0].url}
                             alt={p.name || "Product Image"}
                             fill
                             className="object-cover rounded"
