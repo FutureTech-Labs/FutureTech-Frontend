@@ -1,7 +1,7 @@
 import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
-const SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
+const SECRET = new TextEncoder().encode(process.env.JWT_VERIFY_SECRET!);
 
 interface SessionPayload {
     id: string;

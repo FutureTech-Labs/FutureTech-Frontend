@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { dashboardLinks } from "@/lib/dashboardLinks";
 
-const SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
+const SECRET = new TextEncoder().encode(process.env.JWT_VERIFY_SECRET!);
 
 interface JwtPayload {
     id: string;
