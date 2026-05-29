@@ -58,8 +58,8 @@ jobs:
           context: .
           push: true
           tags: |
-            Hashir-techwhiz/futuretech-frontend:latest
-            Hashir-techwhiz/futuretech-frontend:${{github.sha}}
+            Hashir-TechWhiz/futuretech-frontend:latest
+            Hashir-TechWhiz/futuretech-frontend:${{github.sha}}
           build-args: |
             NEXT_PUBLIC_API_URL=${{secrets.NEXT_PUBLIC_API_URL}}
             NEXT_PUBLIC_BACKEND_URL=${{secrets.NEXT_PUBLIC_BACKEND_URL}}
