@@ -47,14 +47,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Build-time arguments (injected during docker build)
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_BACKEND_URL
-# ARG EDGE_STORE_ACCESS_KEY
-# ARG EDGE_STORE_SECRET_KEY
 
 # Convert build args into environment variables for Next.js build
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
-# ENV EDGE_STORE_ACCESS_KEY=$EDGE_STORE_ACCESS_KEY
-# ENV EDGE_STORE_SECRET_KEY=$EDGE_STORE_SECRET_KEY
 
 # Build the Next.js application
 RUN npm run build
@@ -89,8 +85,17 @@ COPY --from=builder --chown=node:node /app/.next/standalone ./
 # Copy static build assets
 COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 
-# Ensure .next directory exists with correct permissions
-RUN mkdir -p .next && chown node:node .next
+# Security: Remove npm entirely from production image
+# Next.js standalone mode doesn't need npm/npx at runtime
+# This eliminates npm-related CVEs:
+# - CVE-2025-64756 (glob)
+# - CVE-2024-21538 (cross-spawn)
+# - CVE-2025-5889 (brace-expansion)
+RUN rm -rf \
+    /usr/local/lib/node_modules/npm \
+    /usr/local/bin/npm \
+    /usr/local/bin/npx \
+    /root/.npm
 
 # Switch to non-root user for security best practices
 USER node
