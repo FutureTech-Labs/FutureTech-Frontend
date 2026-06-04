@@ -109,7 +109,7 @@ futuretech-frontend/
 │   └── proxy.ts                # Authentication and route handling
 │
 ├── public/                     # Static assets
-├── Dockerfile                  # Production Docker image
+├── Dockerfile                  # Docker file
 ├── .env.example                # Environment variable template
 ├── next.config.ts
 ├── tailwind.config.ts
