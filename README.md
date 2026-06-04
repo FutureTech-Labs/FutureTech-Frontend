@@ -110,7 +110,7 @@ futuretech-frontend/
 │
 ├── public/                     # Static assets
 ├── Dockerfile                  # Docker file
-├── .env.example                # Environment variable template
+├── .env.example                # Environment variable template.
 ├── next.config.ts
 ├── tailwind.config.ts
 └── tsconfig.json
