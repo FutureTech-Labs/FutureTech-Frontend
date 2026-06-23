@@ -62,6 +62,7 @@ const DialogBox = ({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
+                aria-describedby={undefined}
                 className={cn(
                     "text-gray-100 border border-gray-500/30 rounded-xl p-0 z-50 shadow-lg shadow-white/10 lg:min-w-xl w-full",
                     widthClass

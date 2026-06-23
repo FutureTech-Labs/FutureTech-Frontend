@@ -176,6 +176,7 @@ const InventoryPage = ({ role }: InventoryPageProps) => {
                             fill
                             className="object-cover rounded"
                             priority={false}
+                            sizes="34px"
                         />
                     </div>
                 ) : (
