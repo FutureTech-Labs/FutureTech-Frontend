@@ -70,15 +70,14 @@ export default function SalesProductSelector() {
                     >
                         <div className="w-full h-30 bg-gray-800 flex items-center justify-center">
                             <Image
-                                src={p.images?.[0].url}
+                                src={p.images?.[0]?.url || "/images/placeholder.jpg"}
                                 alt={p.name}
                                 width={500}
                                 height={500}
-                                placeholder="blur"
-                                blurDataURL={p.images?.[0].url}
+                                placeholder={p.images?.[0]?.url ? "blur" : "empty"}
+                                blurDataURL={p.images?.[0]?.url}
                                 className="object-cover w-full h-full rounded-lg select-none pointer-events-none"
                             />
-
                         </div>
 
                         <div className="flex flex-col flex-1 gap-2 mt-2">
