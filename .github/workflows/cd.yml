@@ -1,12 +1,12 @@
 name: Frontend CD
-
 on:
     workflow_run:
         workflows:
             - Frontend CI
         types:
             - completed
-
+permissions:
+    contents: read
 jobs:
     deploy:
         if: >
