@@ -88,6 +88,7 @@ const ThumbSlider: React.FC<IThumbSlider> = ({ images, name }) => {
                                     alt={`${name || 'Product'} thumbnail ${id + 1}`}
                                     fill
                                     className="object-cover"
+                                    sizes='35px'
                                 />
                             </div>
                         </SwiperSlide>

@@ -221,6 +221,7 @@ export const EdgeStoreUploader: React.FC<EdgeStoreUploaderProps> = ({
                                         alt={`Image ${index + 1}`}
                                         fill
                                         className="object-cover rounded-lg"
+                                        sizes="250px"
                                     />
                                     <button
                                         type="button"

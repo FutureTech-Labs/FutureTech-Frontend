@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import Image from "next/image"
@@ -75,7 +74,7 @@ function DialogContent({
             <Image
               src="/icons/CloseIcon.svg"
               alt="Close"
-              width={26}
+              width={24}
               height={24}
               priority
               className="cursor-pointer"
